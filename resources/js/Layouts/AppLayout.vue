@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import Sidebar from '../Components/Sidebar.vue'
 import Header from '../Components/Header.vue'
+import Toast from '../Components/Toast.vue'
 
 const sidebarOpen = ref(false)
 </script>
@@ -15,5 +16,6 @@ const sidebarOpen = ref(false)
         <slot />
       </main>
     </div>
+    <Toast />
   </div>
 </template>

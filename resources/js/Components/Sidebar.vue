@@ -1,6 +1,6 @@
 <script setup>
-import { ref } from 'vue'
-import { Link } from '@inertiajs/vue3'
+import { computed, ref } from 'vue'
+import { Link, usePage } from '@inertiajs/vue3'
 import { route } from '../../../vendor/tightenco/ziggy'
 import {
     BarChart3,
@@ -19,21 +19,27 @@ defineProps({
 
 defineEmits(['close'])
 
+const page = usePage()
+
 const hovered = ref(false)
 
-const navGroups = [
+const canManageUsers = computed(() => page.props.auth?.can?.manageUsers ?? false)
+
+const navGroups = computed(() => [
     {
         title: 'Menu',
         items: [
             { name: 'Dashboard', icon: LayoutDashboard, href: route('dashboard'), routeName: 'dashboard' },
             { name: 'Patients', icon: Users, badge: 'Phase 2' },
             { name: 'Appointments', icon: CalendarDays, badge: 'Phase 2' },
-            { name: 'Users', icon: ShieldCheck, badge: 'Admin' },
+            ...(canManageUsers.value
+                ? [{ name: 'Users', icon: ShieldCheck, href: route('users.index'), routeName: 'users.index' }]
+                : [{ name: 'Users', icon: ShieldCheck, badge: 'Admin' }]),
             { name: 'Reports', icon: BarChart3, badge: 'Phase 3' },
             { name: 'Settings', icon: Settings, badge: 'Phase 3' },
         ],
     },
-]
+])
 
 const isActive = (item) => item.routeName && route().current(item.routeName)
 </script>
