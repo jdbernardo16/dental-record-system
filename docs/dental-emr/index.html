@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DCPRS — Backend Architecture Blueprint</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>🦷</text></svg>">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css">
+  <style>
+    :root {
+      --theme-color: #0d9488;              /* dental teal (oklch(0.60 0.10 200)) */
+      --sidebar-width: 20rem;
+    }
+    .sidebar-toggle {
+      bottom: 1rem;
+      right: 1rem;
+    }
+    .markdown-section table {
+      display: table;
+      width: 100%;
+    }
+    .markdown-section h1 {
+      color: var(--theme-color);
+    }
+    .markdown-section h2 {
+      border-bottom: 1px solid rgba(13, 148, 136, 0.25);
+      padding-bottom: 0.25rem;
+    }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+
+  <script>
+    window.$docsify = {
+      name: 'DCPRS Blueprint',
+      nameLink: '#/',
+      homepage: '00-README.md',
+      loadSidebar: true,
+      subMaxLevel: 2,
+      maxLevel: 3,
+      coverpage: true,
+      auto2top: true,
+      notFoundPage: true,
+      themeColor: '#0d9488',
+      search: {
+        placeholder: 'Search the blueprint',
+        noData: 'No results found',
+        depth: 4
+      },
+      plugins: [
+        function (hook) {
+          hook.doneEach(function () {
+            document.querySelectorAll('pre code.lang-mermaid').forEach(function (el) {
+              var pre = el.closest('pre');
+              pre.classList.add('mermaid');
+              pre.textContent = el.textContent;
+            });
+            if (window.mermaid) {
+              var pending = [].filter.call(document.querySelectorAll('.mermaid'), function (n) {
+                return !n.querySelector('svg');
+              });
+              if (pending.length) {
+                mermaid.run({ nodes: pending });
+              }
+            }
+          });
+        }
+      ]
+    }
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/docsify.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/plugins/search.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/plugins/emoji.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    mermaid.initialize({ startOnLoad: false, theme: 'base', securityLevel: 'loose' });
+  </script>
+</body>
+</html>
