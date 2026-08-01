@@ -78,11 +78,7 @@ class PatientsController extends Controller
 
         $props = [
             'patient' => $patient,
-            'consultations' => $patient->consultations()
-                ->with('dentist:id,name')
-                ->latest('consultation_date')
-                ->limit(20)
-                ->get(),
+            'consultationCount' => $patient->consultations()->count(),
             'consultationOptions' => [
                 'periodontal' => Consultation::periodontalOptions(),
                 'occlusion' => Consultation::occlusionOptions(),
@@ -105,6 +101,14 @@ class PatientsController extends Controller
 
         if ($canViewMedicalHistory) {
             $props['medicalHistory'] = $patient->medicalHistory;
+        }
+
+        if ($canViewConsultations) {
+            $props['consultations'] = $patient->consultations()
+                ->with('dentist:id,name')
+                ->latest('consultation_date')
+                ->limit(20)
+                ->get();
         }
 
         return Inertia::render('Patients/Show', $props);

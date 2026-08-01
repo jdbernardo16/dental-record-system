@@ -15,6 +15,7 @@ const props = defineProps({
     patient: { type: Object, required: true },
     medicalHistory: { type: Object, default: null },
     consultations: { type: Array, default: () => [] },
+    consultationCount: { type: Number, default: 0 },
     consultationOptions: { type: Object, default: () => ({}) },
     can: { type: Object, default: () => ({}) },
 })
@@ -361,7 +362,7 @@ const tabs = [
                 <div>
                     <h3 class="text-sm font-semibold text-gray-800">Consultations</h3>
                     <p class="mt-0.5 text-xs text-gray-500">
-                        {{ consultations.length ? `${consultations.length} on record` : 'No consultations recorded yet' }}
+                        {{ consultationCount ? `${consultationCount} on record` : 'No consultations recorded yet' }}
                     </p>
                 </div>
                 <Button v-if="can.consultations?.create" variant="outline" size="sm" @click="adding = !adding">
