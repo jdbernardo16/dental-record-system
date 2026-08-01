@@ -1,1 +1,50 @@
 @import "tailwindcss";
+@import "flatpickr/dist/flatpickr.min.css";
+
+@theme {
+  --color-brand-50:  oklch(0.97 0.02 200);
+  --color-brand-100: oklch(0.93 0.04 200);
+  --color-brand-200: oklch(0.87 0.06 200);
+  --color-brand-300: oklch(0.79 0.08 200);
+  --color-brand-400: oklch(0.70 0.09 200);
+  --color-brand-500: oklch(0.60 0.10 200);
+  --color-brand-600: oklch(0.53 0.09 200);
+  --color-brand-700: oklch(0.45 0.08 200);
+  --color-brand-800: oklch(0.37 0.06 200);
+  --color-brand-900: oklch(0.30 0.05 200);
+
+  --color-status-pending:   oklch(0.71 0.16 85);
+  --color-status-confirmed: oklch(0.55 0.25 263);
+  --color-status-completed: oklch(0.65 0.24 152);
+  --color-status-cancelled: oklch(0.45 0.01 280);
+  --color-status-no-show:   oklch(0.64 0.24 25);
+}
+
+/* TailAdmin nav utilities (ported from TailAdmin's main.css) */
+@utility menu-item {
+  @apply relative flex w-full items-center gap-3 rounded-lg px-3 py-2.5 font-medium text-sm;
+}
+
+@utility menu-item-active {
+  @apply bg-brand-50 text-brand-500;
+}
+
+@utility menu-item-inactive {
+  @apply text-gray-700 hover:bg-gray-100 group-hover:text-gray-700;
+}
+
+@utility menu-item-icon-active {
+  @apply text-brand-500;
+}
+
+@utility menu-item-icon-inactive {
+  @apply text-gray-500 group-hover:text-gray-700;
+}
+
+@utility no-scrollbar {
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
