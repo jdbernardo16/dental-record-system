@@ -25,6 +25,7 @@ const hovered = ref(false)
 
 const canManageUsers = computed(() => page.props.auth?.can?.manageUsers ?? false)
 const canManagePatients = computed(() => page.props.auth?.can?.managePatients ?? false)
+const canManageAppointments = computed(() => page.props.auth?.can?.manageAppointments ?? false)
 
 const navGroups = computed(() => [
     {
@@ -39,7 +40,14 @@ const navGroups = computed(() => [
                     routes: ['patients.index', 'patients.create', 'patients.show', 'patients.edit'],
                 }]
                 : [{ name: 'Patients', icon: Users, badge: 'Phase 2' }]),
-            { name: 'Appointments', icon: CalendarDays, badge: 'Phase 2' },
+            ...(canManageAppointments.value
+                ? [{
+                    name: 'Appointments',
+                    icon: CalendarDays,
+                    href: route('appointments.index'),
+                    routes: ['appointments.index'],
+                }]
+                : [{ name: 'Appointments', icon: CalendarDays, badge: 'No access' }]),
             ...(canManageUsers.value
                 ? [{ name: 'Users', icon: ShieldCheck, href: route('users.index'), routeName: 'users.index' }]
                 : [{ name: 'Users', icon: ShieldCheck, badge: 'Admin' }]),

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AppointmentsController;
 use App\Http\Controllers\MedicalHistoriesController;
 use App\Http\Controllers\PatientsController;
 use App\Http\Controllers\ProfileController;
@@ -45,5 +46,12 @@ Route::middleware(['auth', 'verified', 'permission:patients.update'])->patch('/p
 Route::middleware(['auth', 'verified', 'permission:patients.delete'])->delete('/patients/{patient}', [PatientsController::class, 'destroy'])->name('patients.destroy');
 
 Route::middleware(['auth', 'verified', 'permission:medical-histories.create'])->post('/patients/{patient}/medical-history', [MedicalHistoriesController::class, 'store'])->name('medical-histories.store');
+
+Route::middleware(['auth', 'verified', 'permission:appointments.view'])->get('/appointments', [AppointmentsController::class, 'index'])->name('appointments.index');
+Route::middleware(['auth', 'verified', 'permission:appointments.create'])->post('/appointments', [AppointmentsController::class, 'store'])->name('appointments.store');
+Route::middleware(['auth', 'verified', 'permission:appointments.update'])->patch('/appointments/{appointment}', [AppointmentsController::class, 'update'])->name('appointments.update');
+Route::middleware(['auth', 'verified', 'permission:appointments.update'])->post('/appointments/{appointment}/confirm', [AppointmentsController::class, 'confirm'])->name('appointments.confirm');
+Route::middleware(['auth', 'verified', 'permission:appointments.cancel'])->post('/appointments/{appointment}/cancel', [AppointmentsController::class, 'cancel'])->name('appointments.cancel');
+Route::middleware(['auth', 'verified', 'permission:appointments.attendance'])->post('/appointments/{appointment}/attendance', [AppointmentsController::class, 'attendance'])->name('appointments.attendance');
 
 require __DIR__.'/auth.php';

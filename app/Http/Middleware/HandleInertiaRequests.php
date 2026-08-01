@@ -36,6 +36,7 @@ class HandleInertiaRequests extends Middleware
                 'can' => [
                     'manageUsers' => $request->user()?->can('users.view') ?? false,
                     'managePatients' => $request->user()?->can('patients.view') ?? false,
+                    'manageAppointments' => $request->user()?->can('appointments.view') ?? false,
                 ],
             ],
         ];
