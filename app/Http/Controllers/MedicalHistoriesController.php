@@ -23,6 +23,10 @@ class MedicalHistoriesController extends Controller
         activity()
             ->performedOn($history)
             ->causedBy($request->user())
+            ->withProperties([
+                'changes' => $history->getChanges(),
+                'recorded_by' => $request->user()->id,
+            ])
             ->log('medical_history.saved');
 
         return Redirect::back();

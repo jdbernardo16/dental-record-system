@@ -229,7 +229,7 @@ const tabs = [
             </div>
         </div>
 
-        <div class="rounded-2xl border border-gray-200 bg-white shadow-sm">
+        <div v-if="can.medicalHistory?.view" class="rounded-2xl border border-gray-200 bg-white shadow-sm">
             <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-6 py-4">
                 <div>
                     <h3 class="text-sm font-semibold text-gray-800">Medical history</h3>
@@ -265,6 +265,13 @@ const tabs = [
             </div>
 
             <form v-else class="space-y-6 p-6" @submit.prevent="saveMedicalHistory">
+                <p
+                    v-if="form.hasErrors"
+                    role="alert"
+                    class="rounded-lg bg-status-cancelled/10 px-4 py-3 text-sm font-medium text-status-cancelled"
+                >
+                    Please review the highlighted fields.
+                </p>
                 <div v-for="q in questions" :key="q.key" class="space-y-2.5">
                     <div class="flex flex-wrap items-center justify-between gap-3">
                         <p class="text-sm font-medium text-gray-700">{{ q.label }}</p>
@@ -285,6 +292,7 @@ const tabs = [
                             </button>
                         </div>
                     </div>
+                    <p v-if="form.errors[q.key]" class="text-xs text-status-cancelled">{{ form.errors[q.key] }}</p>
                     <textarea
                         v-if="q.detailsKey && form[q.key] === 'yes'"
                         v-model="form[q.detailsKey]"
@@ -292,6 +300,9 @@ const tabs = [
                         :placeholder="`Details for ${q.label.toLowerCase()}…`"
                         class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
                     />
+                    <p v-if="q.detailsKey && form.errors[q.detailsKey]" class="text-xs text-status-cancelled">
+                        {{ form.errors[q.detailsKey] }}
+                    </p>
                 </div>
 
                 <div>
@@ -302,6 +313,7 @@ const tabs = [
                         placeholder="Additional notes…"
                         class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
                     />
+                    <p v-if="form.errors.remarks" class="mt-1.5 text-xs text-status-cancelled">{{ form.errors.remarks }}</p>
                 </div>
 
                 <div class="flex items-center justify-end gap-2">

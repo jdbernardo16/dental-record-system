@@ -72,17 +72,25 @@ class PatientsController extends Controller
     {
         $this->authorize('view', $patient);
 
-        return Inertia::render('Patients/Show', [
+        $canViewMedicalHistory = $request->user()->can('medical-histories.view');
+
+        $props = [
             'patient' => $patient,
-            'medicalHistory' => $patient->medicalHistory,
             'can' => [
                 'update' => $request->user()->can('patients.update'),
                 'delete' => $request->user()->can('patients.delete'),
                 'medicalHistory' => [
-                    'edit' => $request->user()->can('medical-histories.create') || $request->user()->can('medical-histories.update'),
+                    'view' => $canViewMedicalHistory,
+                    'edit' => $request->user()->can('medical-histories.create'),
                 ],
             ],
-        ]);
+        ];
+
+        if ($canViewMedicalHistory) {
+            $props['medicalHistory'] = $patient->medicalHistory;
+        }
+
+        return Inertia::render('Patients/Show', $props);
     }
 
     /**
