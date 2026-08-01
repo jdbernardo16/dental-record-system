@@ -3,6 +3,7 @@
 use App\Http\Controllers\AppointmentsController;
 use App\Http\Controllers\ConsultationsController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DentalChartController;
 use App\Http\Controllers\MedicalHistoriesController;
 use App\Http\Controllers\PatientsController;
 use App\Http\Controllers\ProfileController;
@@ -60,5 +61,13 @@ Route::middleware(['auth', 'verified', 'permission:consultations.create'])
 Route::middleware(['auth', 'verified', 'permission:consultations.update'])
     ->patch('/consultations/{consultation}', [ConsultationsController::class, 'update'])
     ->name('consultations.update');
+
+Route::middleware(['auth', 'verified', 'permission:dental-chart.view'])
+    ->get('/patients/{patient}/chart', [DentalChartController::class, 'show'])
+    ->whereNumber('patient')
+    ->name('patients.chart');
+Route::middleware(['auth', 'verified', 'permission:dental-chart.update'])
+    ->post('/dental-chart/entries', [DentalChartController::class, 'store'])
+    ->name('dental-chart.store');
 
 require __DIR__.'/auth.php';
