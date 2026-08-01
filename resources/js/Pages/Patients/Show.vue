@@ -1,11 +1,12 @@
 <script setup>
 import { ref } from 'vue'
 import { Head, Link, router, useForm } from '@inertiajs/vue3'
-import { CalendarDays, FileText, FolderOpen, Pencil, Stethoscope, Trash2, Wrench } from 'lucide-vue-next'
+import { CalendarDays, ChevronDown, FileText, FolderOpen, Pencil, Plus, Stethoscope, Trash2, Wrench } from 'lucide-vue-next'
 import { route } from '../../../../vendor/tightenco/ziggy'
 import AppLayout from '@/Layouts/AppLayout.vue'
 import Badge from '@/Components/Badge.vue'
 import Button from '@/Components/Button.vue'
+import ConsultationForm from '@/Components/Wizard/ConsultationForm.vue'
 import { useToastStore } from '@/Stores/toast'
 
 defineOptions({ layout: AppLayout })
@@ -13,6 +14,8 @@ defineOptions({ layout: AppLayout })
 const props = defineProps({
     patient: { type: Object, required: true },
     medicalHistory: { type: Object, default: null },
+    consultations: { type: Array, default: () => [] },
+    consultationOptions: { type: Object, default: () => ({}) },
     can: { type: Object, default: () => ({}) },
 })
 
@@ -116,6 +119,36 @@ const confirmDelete = () => {
         })
     }
 }
+
+const adding = ref(false)
+const expandedId = ref(null)
+
+const toggleExpanded = (id) => {
+    expandedId.value = expandedId.value === id ? null : id
+}
+
+const optionLabel = (map, value) => map[value] ?? value
+
+const pdaRows = (consultation) => [
+    { label: 'Periodontal screening', value: optionLabel(props.consultationOptions.periodontal, consultation.periodontal_screening) },
+    { label: 'Occlusion class', value: optionLabel(props.consultationOptions.occlusion, consultation.occlusion_class) },
+    { label: 'Overjet', value: consultation.overjet },
+    { label: 'Overbite', value: consultation.overbite },
+    { label: 'Midline deviation', value: consultation.midline_deviation },
+    { label: 'Crossbite', value: consultation.crossbite },
+    {
+        label: 'Appliances',
+        value: (consultation.appliances ?? [])
+            .map((key) => optionLabel(props.consultationOptions.appliances, key))
+            .join(', '),
+    },
+    {
+        label: 'TMD findings',
+        value: (consultation.tmd_findings ?? [])
+            .map((key) => optionLabel(props.consultationOptions.tmd, key))
+            .join(', '),
+    },
+].filter((row) => row.value)
 
 const tabs = [
     { name: 'Appointments', icon: CalendarDays, phase: 'Phase 2' },
@@ -321,6 +354,103 @@ const tabs = [
                     <Button type="submit" :disabled="form.processing">Save</Button>
                 </div>
             </form>
+        </div>
+
+        <div v-if="can.consultations?.view" class="rounded-2xl border border-gray-200 bg-white shadow-sm">
+            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-6 py-4">
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-800">Consultations</h3>
+                    <p class="mt-0.5 text-xs text-gray-500">
+                        {{ consultations.length ? `${consultations.length} on record` : 'No consultations recorded yet' }}
+                    </p>
+                </div>
+                <Button v-if="can.consultations?.create" variant="outline" size="sm" @click="adding = !adding">
+                    <Plus class="h-4 w-4" />
+                    {{ adding ? 'Cancel' : 'Add consultation' }}
+                </Button>
+            </div>
+
+            <ConsultationForm
+                v-if="adding"
+                :patient-id="patient.id"
+                :options="consultationOptions"
+                class="border-b border-gray-100 p-6"
+                @saved="adding = false"
+            />
+
+            <div v-if="!consultations.length && !adding" class="px-6 py-10 text-center">
+                <p class="text-sm text-gray-500">No consultations yet — add the first one.</p>
+            </div>
+
+            <ul v-else class="divide-y divide-gray-100">
+                <li v-for="consultation in consultations" :key="consultation.id">
+                    <button
+                        type="button"
+                        class="flex w-full items-center justify-between gap-3 px-6 py-4 text-left"
+                        @click="toggleExpanded(consultation.id)"
+                    >
+                        <div class="flex min-w-0 items-center gap-3">
+                            <Badge size="sm" color="light">{{ consultation.consultation_date }}</Badge>
+                            <span class="truncate text-sm font-medium text-gray-800">
+                                {{ consultation.chief_complaint }}
+                            </span>
+                        </div>
+                        <div class="flex shrink-0 items-center gap-2">
+                            <Badge v-if="consultation.diagnosis" size="sm" color="primary">
+                                {{ consultation.diagnosis }}
+                            </Badge>
+                            <span class="hidden text-xs text-gray-500 sm:inline">
+                                {{ consultation.dentist?.name ?? '—' }}
+                            </span>
+                            <ChevronDown
+                                class="h-4 w-4 text-gray-400 transition"
+                                :class="{ 'rotate-180': expandedId === consultation.id }"
+                            />
+                        </div>
+                    </button>
+
+                    <div
+                        v-if="expandedId === consultation.id"
+                        class="grid grid-cols-1 gap-x-8 gap-y-4 border-t border-gray-100 bg-gray-50/50 px-6 py-5 sm:grid-cols-2"
+                    >
+                        <div v-if="consultation.examination_findings">
+                            <p class="text-xs font-medium text-gray-500">Examination findings</p>
+                            <p class="mt-1 text-sm text-gray-800">{{ consultation.examination_findings }}</p>
+                        </div>
+                        <div v-if="consultation.treatment_plan">
+                            <p class="text-xs font-medium text-gray-500">Treatment plan</p>
+                            <p class="mt-1 text-sm text-gray-800">{{ consultation.treatment_plan }}</p>
+                        </div>
+                        <div v-if="consultation.recommendations">
+                            <p class="text-xs font-medium text-gray-500">Recommendations</p>
+                            <p class="mt-1 text-sm text-gray-800">{{ consultation.recommendations }}</p>
+                        </div>
+                        <div v-if="consultation.notes">
+                            <p class="text-xs font-medium text-gray-500">Notes</p>
+                            <p class="mt-1 text-sm text-gray-800">{{ consultation.notes }}</p>
+                        </div>
+                        <div v-if="consultation.dentist">
+                            <p class="text-xs font-medium text-gray-500">Dentist</p>
+                            <p class="mt-1 text-sm text-gray-800">{{ consultation.dentist.name }}</p>
+                        </div>
+                        <div v-if="pdaRows(consultation).length" class="sm:col-span-2">
+                            <p class="text-xs font-semibold tracking-wide text-gray-400 uppercase">
+                                Intraoral examination
+                            </p>
+                            <dl class="mt-2 grid grid-cols-1 gap-x-8 gap-y-3 text-sm sm:grid-cols-2">
+                                <div
+                                    v-for="row in pdaRows(consultation)"
+                                    :key="row.label"
+                                    class="flex items-start justify-between gap-4"
+                                >
+                                    <dt class="text-gray-500">{{ row.label }}</dt>
+                                    <dd class="text-right font-medium text-gray-800">{{ row.value }}</dd>
+                                </div>
+                            </dl>
+                        </div>
+                    </div>
+                </li>
+            </ul>
         </div>
 
         <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">

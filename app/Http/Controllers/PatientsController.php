@@ -7,6 +7,7 @@ use App\Enums\CivilStatus;
 use App\Enums\Sex;
 use App\Http\Requests\StorePatientRequest;
 use App\Http\Requests\UpdatePatientRequest;
+use App\Models\Consultation;
 use App\Models\Patient;
 use App\Repositories\PatientRepository;
 use Illuminate\Http\RedirectResponse;
@@ -73,15 +74,31 @@ class PatientsController extends Controller
         $this->authorize('view', $patient);
 
         $canViewMedicalHistory = $request->user()->can('medical-histories.view');
+        $canViewConsultations = $request->user()->can('consultations.view');
 
         $props = [
             'patient' => $patient,
+            'consultations' => $patient->consultations()
+                ->with('dentist:id,name')
+                ->latest('consultation_date')
+                ->limit(20)
+                ->get(),
+            'consultationOptions' => [
+                'periodontal' => Consultation::periodontalOptions(),
+                'occlusion' => Consultation::occlusionOptions(),
+                'appliances' => Consultation::applianceOptions(),
+                'tmd' => Consultation::tmdOptions(),
+            ],
             'can' => [
                 'update' => $request->user()->can('patients.update'),
                 'delete' => $request->user()->can('patients.delete'),
                 'medicalHistory' => [
                     'view' => $canViewMedicalHistory,
                     'edit' => $request->user()->can('medical-histories.create'),
+                ],
+                'consultations' => [
+                    'create' => $request->user()->can('consultations.create'),
+                    'view' => $canViewConsultations,
                 ],
             ],
         ];

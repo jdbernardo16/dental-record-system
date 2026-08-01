@@ -8,6 +8,7 @@ use Database\Factories\PatientFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -58,5 +59,13 @@ class Patient extends Model
     public function medicalHistory(): HasOne
     {
         return $this->hasOne(MedicalHistory::class);
+    }
+
+    /**
+     * @return HasMany<Consultation, $this>
+     */
+    public function consultations(): HasMany
+    {
+        return $this->hasMany(Consultation::class);
     }
 }

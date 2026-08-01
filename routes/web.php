@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AppointmentsController;
+use App\Http\Controllers\ConsultationsController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MedicalHistoriesController;
 use App\Http\Controllers\PatientsController;
@@ -52,5 +53,12 @@ Route::middleware(['auth', 'verified', 'permission:appointments.update'])->patch
 Route::middleware(['auth', 'verified', 'permission:appointments.update'])->post('/appointments/{appointment}/confirm', [AppointmentsController::class, 'confirm'])->name('appointments.confirm');
 Route::middleware(['auth', 'verified', 'permission:appointments.cancel'])->post('/appointments/{appointment}/cancel', [AppointmentsController::class, 'cancel'])->name('appointments.cancel');
 Route::middleware(['auth', 'verified', 'permission:appointments.attendance'])->post('/appointments/{appointment}/attendance', [AppointmentsController::class, 'attendance'])->name('appointments.attendance');
+
+Route::middleware(['auth', 'verified', 'permission:consultations.create'])
+    ->post('/patients/{patient}/consultations', [ConsultationsController::class, 'store'])
+    ->name('consultations.store');
+Route::middleware(['auth', 'verified', 'permission:consultations.update'])
+    ->patch('/consultations/{consultation}', [ConsultationsController::class, 'update'])
+    ->name('consultations.update');
 
 require __DIR__.'/auth.php';
