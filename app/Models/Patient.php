@@ -8,6 +8,7 @@ use Database\Factories\PatientFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Patient extends Model
@@ -49,5 +50,13 @@ class Patient extends Model
             ->orWhere('last_name', 'like', "%{$term}%")
             ->orWhere('first_name', 'like', "%{$term}%")
             ->orWhere('contact_number', 'like', "%{$term}%"));
+    }
+
+    /**
+     * @return HasOne<MedicalHistory, $this>
+     */
+    public function medicalHistory(): HasOne
+    {
+        return $this->hasOne(MedicalHistory::class);
     }
 }

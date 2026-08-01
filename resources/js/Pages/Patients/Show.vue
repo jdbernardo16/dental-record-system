@@ -1,5 +1,6 @@
 <script setup>
-import { Head, Link, router } from '@inertiajs/vue3'
+import { ref } from 'vue'
+import { Head, Link, router, useForm } from '@inertiajs/vue3'
 import { CalendarDays, FileText, FolderOpen, Pencil, Stethoscope, Trash2, Wrench } from 'lucide-vue-next'
 import { route } from '../../../../vendor/tightenco/ziggy'
 import AppLayout from '@/Layouts/AppLayout.vue'
@@ -11,6 +12,7 @@ defineOptions({ layout: AppLayout })
 
 const props = defineProps({
     patient: { type: Object, required: true },
+    medicalHistory: { type: Object, default: null },
     can: { type: Object, default: () => ({}) },
 })
 
@@ -41,6 +43,71 @@ const civilStatusLabel = () =>
         annulled: 'Annulled',
         other: 'Other',
     })[props.patient.civil_status] ?? props.patient.civil_status
+
+const questions = [
+    { key: 'hypertension', label: 'Hypertension' },
+    { key: 'diabetes', label: 'Diabetes' },
+    { key: 'tuberculosis', label: 'Tuberculosis' },
+    { key: 'heart_disease', label: 'Heart disease' },
+    { key: 'pregnancy', label: 'Pregnancy' },
+    { key: 'allergies', label: 'Allergies', detailsKey: 'allergies_details' },
+    { key: 'medications', label: 'Medications', detailsKey: 'medications_details' },
+    { key: 'smoking_history', label: 'Smoking history', detailsKey: 'smoking_details' },
+    { key: 'alcohol_consumption', label: 'Alcohol consumption', detailsKey: 'alcohol_details' },
+    { key: 'previous_surgeries', label: 'Previous surgeries', detailsKey: 'surgeries_details' },
+]
+
+const answers = ['no', 'yes', 'not_applicable']
+const answerLabels = { no: 'No', yes: 'Yes', not_applicable: 'N/A' }
+
+const answerBadgeColor = (value) =>
+    value === 'yes' ? 'success' : value === 'not_applicable' ? 'warning' : 'light'
+
+const editing = ref(false)
+
+const form = useForm({
+    hypertension: 'no',
+    diabetes: 'no',
+    tuberculosis: 'no',
+    heart_disease: 'no',
+    pregnancy: 'no',
+    allergies: 'no',
+    medications: 'no',
+    smoking_history: 'no',
+    alcohol_consumption: 'no',
+    previous_surgeries: 'no',
+    allergies_details: '',
+    medications_details: '',
+    smoking_details: '',
+    alcohol_details: '',
+    surgeries_details: '',
+    remarks: '',
+})
+
+const openEditor = () => {
+    const history = props.medicalHistory
+    for (const q of questions) {
+        form[q.key] = history?.[q.key] ?? 'no'
+        if (q.detailsKey) form[q.detailsKey] = history?.[q.detailsKey] ?? ''
+    }
+    form.remarks = history?.remarks ?? ''
+    editing.value = true
+}
+
+const saveMedicalHistory = () => {
+    form.post(route('medical-histories.store', props.patient.id), {
+        preserveScroll: true,
+        onSuccess: () => {
+            editing.value = false
+            toastStore.show('Medical history saved.')
+        },
+    })
+}
+
+const detailedAnswers = () =>
+    questions.filter(
+        (q) => q.detailsKey && props.medicalHistory?.[q.key] === 'yes' && props.medicalHistory?.[q.detailsKey],
+    )
 
 const confirmDelete = () => {
     if (window.confirm(`Delete ${fullName()}? The record can be restored by an administrator.`)) {
@@ -160,6 +227,88 @@ const tabs = [
                     </dl>
                 </div>
             </div>
+        </div>
+
+        <div class="rounded-2xl border border-gray-200 bg-white shadow-sm">
+            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-6 py-4">
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-800">Medical history</h3>
+                    <p class="mt-0.5 text-xs text-gray-500">
+                        {{ medicalHistory ? 'Pre-treatment screening on record' : 'No screening recorded yet' }}
+                    </p>
+                </div>
+                <Button v-if="can.medicalHistory?.edit" variant="outline" size="sm" @click="openEditor">
+                    <Pencil class="h-4 w-4" />
+                    {{ editing ? 'Editing…' : 'Edit' }}
+                </Button>
+            </div>
+
+            <div v-if="!editing" class="grid grid-cols-1 gap-x-8 gap-y-4 p-6 sm:grid-cols-2">
+                <div v-for="q in questions" :key="q.key" class="flex items-center justify-between gap-3">
+                    <span class="text-sm text-gray-600">{{ q.label }}</span>
+                    <Badge size="sm" :color="answerBadgeColor(medicalHistory?.[q.key])">
+                        {{ answerLabels[medicalHistory?.[q.key]] ?? 'No' }}
+                    </Badge>
+                </div>
+                <div
+                    v-for="q in detailedAnswers()"
+                    :key="q.detailsKey"
+                    class="rounded-xl bg-gray-50 px-4 py-3 sm:col-span-2"
+                >
+                    <p class="text-xs font-medium text-gray-500">{{ q.label }} details</p>
+                    <p class="mt-1 text-sm text-gray-800">{{ medicalHistory[q.detailsKey] }}</p>
+                </div>
+                <div v-if="medicalHistory?.remarks" class="rounded-xl bg-gray-50 px-4 py-3 sm:col-span-2">
+                    <p class="text-xs font-medium text-gray-500">Remarks</p>
+                    <p class="mt-1 text-sm text-gray-800">{{ medicalHistory.remarks }}</p>
+                </div>
+            </div>
+
+            <form v-else class="space-y-6 p-6" @submit.prevent="saveMedicalHistory">
+                <div v-for="q in questions" :key="q.key" class="space-y-2.5">
+                    <div class="flex flex-wrap items-center justify-between gap-3">
+                        <p class="text-sm font-medium text-gray-700">{{ q.label }}</p>
+                        <div class="inline-flex gap-1 rounded-full bg-gray-100 p-1" role="radiogroup" :aria-label="q.label">
+                            <button
+                                v-for="answer in answers"
+                                :key="answer"
+                                type="button"
+                                role="radio"
+                                :aria-checked="form[q.key] === answer"
+                                :class="[
+                                    'min-h-11 rounded-full px-4 text-sm font-medium transition',
+                                    form[q.key] === answer ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500',
+                                ]"
+                                @click="form[q.key] = answer"
+                            >
+                                {{ answerLabels[answer] }}
+                            </button>
+                        </div>
+                    </div>
+                    <textarea
+                        v-if="q.detailsKey && form[q.key] === 'yes'"
+                        v-model="form[q.detailsKey]"
+                        :rows="2"
+                        :placeholder="`Details for ${q.label.toLowerCase()}…`"
+                        class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
+                    />
+                </div>
+
+                <div>
+                    <label class="mb-1.5 block text-sm font-medium text-gray-700">Remarks</label>
+                    <textarea
+                        v-model="form.remarks"
+                        :rows="3"
+                        placeholder="Additional notes…"
+                        class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
+                    />
+                </div>
+
+                <div class="flex items-center justify-end gap-2">
+                    <Button variant="outline" type="button" @click="editing = false">Cancel</Button>
+                    <Button type="submit" :disabled="form.processing">Save</Button>
+                </div>
+            </form>
         </div>
 
         <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">

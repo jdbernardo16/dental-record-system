@@ -74,9 +74,13 @@ class PatientsController extends Controller
 
         return Inertia::render('Patients/Show', [
             'patient' => $patient,
+            'medicalHistory' => $patient->medicalHistory,
             'can' => [
                 'update' => $request->user()->can('patients.update'),
                 'delete' => $request->user()->can('patients.delete'),
+                'medicalHistory' => [
+                    'edit' => $request->user()->can('medical-histories.create') || $request->user()->can('medical-histories.update'),
+                ],
             ],
         ]);
     }

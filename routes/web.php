@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\MedicalHistoriesController;
 use App\Http\Controllers\PatientsController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UsersController;
@@ -42,5 +43,7 @@ Route::middleware(['auth', 'verified', 'permission:patients.create'])->post('/pa
 Route::middleware(['auth', 'verified', 'permission:patients.update'])->get('/patients/{patient}/edit', [PatientsController::class, 'edit'])->name('patients.edit');
 Route::middleware(['auth', 'verified', 'permission:patients.update'])->patch('/patients/{patient}', [PatientsController::class, 'update'])->name('patients.update');
 Route::middleware(['auth', 'verified', 'permission:patients.delete'])->delete('/patients/{patient}', [PatientsController::class, 'destroy'])->name('patients.destroy');
+
+Route::middleware(['auth', 'verified', 'permission:medical-histories.create'])->post('/patients/{patient}/medical-history', [MedicalHistoriesController::class, 'store'])->name('medical-histories.store');
 
 require __DIR__.'/auth.php';
