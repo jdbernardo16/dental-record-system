@@ -27,6 +27,7 @@ class Appointment extends Model
             'start_time' => 'datetime:H:i',
             'end_time' => 'datetime:H:i',
             'status' => AppointmentStatus::class,
+            'is_follow_up' => 'boolean',
             'attended_at' => 'datetime',
         ];
     }
