@@ -33,19 +33,19 @@ class Patient extends Model
 
     public function getAgeAttribute(): int
     {
-        return $this->birth_date->age;
+        return max(0, $this->birth_date?->age ?? 0);
     }
 
     public function fullName(): string
     {
-        return trim("{$this->first_name} {$this->middle_name} {$this->last_name}");
+        return implode(' ', array_filter([$this->first_name, $this->middle_name, $this->last_name]));
     }
 
     public function scopeSearch(Builder $query, string $term): Builder
     {
-        return $query->where('patient_number', 'like', "%{$term}%")
+        return $query->where(fn (Builder $q) => $q->where('patient_number', 'like', "%{$term}%")
             ->orWhere('last_name', 'like', "%{$term}%")
             ->orWhere('first_name', 'like', "%{$term}%")
-            ->orWhere('contact_number', 'like', "%{$term}%");
+            ->orWhere('contact_number', 'like', "%{$term}%"));
     }
 }

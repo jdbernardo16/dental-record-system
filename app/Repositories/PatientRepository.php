@@ -10,11 +10,7 @@ class PatientRepository
     public function search(?string $term): LengthAwarePaginator
     {
         return Patient::query()
-            ->when($term, fn ($query) => $query->where(fn ($query) => $query->where('patient_number', 'like', "%{$term}%")
-                ->orWhere('last_name', 'like', "%{$term}%")
-                ->orWhere('first_name', 'like', "%{$term}%")
-                ->orWhere('contact_number', 'like', "%{$term}%")
-            ))
+            ->when($term, fn ($query) => $query->search($term))
             ->orderByDesc('created_at')
             ->paginate(20);
     }
