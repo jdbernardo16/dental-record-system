@@ -3,6 +3,7 @@ import { Head, Link, router, useForm } from '@inertiajs/vue3'
 import { Trash2 } from 'lucide-vue-next'
 import { route } from '../../../../vendor/tightenco/ziggy'
 import AppLayout from '@/Layouts/AppLayout.vue'
+import Badge from '@/Components/Badge.vue'
 import Button from '@/Components/Button.vue'
 import Input from '@/Components/Input.vue'
 import { useToastStore } from '@/Stores/toast'
@@ -24,6 +25,14 @@ const form = useForm({
     role: props.user.roles[0]?.name ?? '',
     is_active: props.user.is_active,
 })
+
+const roleColor = (role) =>
+    ({
+        Administrator: 'dark',
+        Dentist: 'info',
+        Assistant: 'light',
+        Receptionist: 'warning',
+    })[role] ?? 'light'
 
 const submit = () => {
     form.patch(route('users.update', props.user.id), {
@@ -48,7 +57,7 @@ const confirmDelete = () => {
             <p class="mt-1 text-sm text-gray-500">{{ user.name }} — update account details and role.</p>
         </div>
 
-        <form class="space-y-5 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm" @submit.prevent="submit">
+        <form v-if="can.update" class="space-y-5 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm" @submit.prevent="submit">
             <Input
                 v-model="form.name"
                 label="Full name"
@@ -115,6 +124,43 @@ const confirmDelete = () => {
                 </Button>
             </div>
         </form>
+
+        <div v-else class="space-y-5 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+            <dl class="divide-y divide-gray-100">
+                <div class="flex items-center justify-between py-3 first:pt-0 last:pb-0">
+                    <dt class="text-sm font-medium text-gray-500">Full name</dt>
+                    <dd class="text-sm font-medium text-gray-800">{{ user.name }}</dd>
+                </div>
+                <div class="flex items-center justify-between py-3">
+                    <dt class="text-sm font-medium text-gray-500">Email address</dt>
+                    <dd class="text-sm text-gray-800">{{ user.email }}</dd>
+                </div>
+                <div class="flex items-center justify-between py-3">
+                    <dt class="text-sm font-medium text-gray-500">Role</dt>
+                    <dd>
+                        <Badge size="sm" :color="roleColor(user.roles[0]?.name)">
+                            {{ user.roles[0]?.name ?? 'None' }}
+                        </Badge>
+                    </dd>
+                </div>
+                <div class="flex items-center justify-between py-3">
+                    <dt class="text-sm font-medium text-gray-500">Status</dt>
+                    <dd>
+                        <Badge size="sm" :color="user.is_active ? 'success' : 'error'">
+                            {{ user.is_active ? 'Active' : 'Inactive' }}
+                        </Badge>
+                    </dd>
+                </div>
+            </dl>
+            <div class="pt-2">
+                <Link
+                    :href="route('users.index')"
+                    class="inline-flex h-11 items-center justify-center rounded-lg border border-gray-300 bg-white px-5 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                >
+                    Back to users
+                </Link>
+            </div>
+        </div>
 
         <div v-if="can.delete" class="flex items-center justify-between rounded-2xl border border-status-cancelled/20 bg-status-cancelled/5 p-6">
             <div>

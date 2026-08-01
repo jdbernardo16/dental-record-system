@@ -36,3 +36,25 @@ it('locks out deactivated users', function () {
 
     $this->actingAs($user)->get('/dashboard')->assertForbidden();
 });
+
+it('gates the create and edit pages by their action permissions', function () {
+    $viewer = User::factory()->create()->givePermissionTo('users.view');
+
+    $this->actingAs($viewer)->get('/users')->assertOk();
+    $this->actingAs($viewer)->get('/users/create')->assertForbidden();
+    $this->actingAs($viewer)->get('/users/1/edit')->assertForbidden();
+});
+
+it('prevents an administrator from deactivating their own account', function () {
+    $admin = User::factory()->create()->assignRole('Administrator');
+
+    $this->actingAs($admin)->patch("/users/{$admin->id}", [
+        'name' => $admin->name,
+        'email' => $admin->email,
+        'password' => '',
+        'role' => 'Administrator',
+        'is_active' => false,
+    ])->assertForbidden();
+
+    expect($admin->fresh()->is_active)->toBeTrue();
+});

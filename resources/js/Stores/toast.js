@@ -7,7 +7,11 @@ export const useToastStore = defineStore('toast', {
       clearTimeout(this._timer)
       this.message = message
       this.type = type
-      this._timer = setTimeout(() => (this.message = null), 3500)
+      this._timer = setTimeout(() => this.hide(), 3500)
+    },
+    hide() {
+      clearTimeout(this._timer)
+      this.message = null
     },
   },
 })

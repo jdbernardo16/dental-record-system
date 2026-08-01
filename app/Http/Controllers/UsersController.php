@@ -24,6 +24,7 @@ class UsersController extends Controller
             'users' => User::with('roles')->orderBy('name')->get(),
             'can' => [
                 'create' => $request->user()->can('users.create'),
+                'update' => $request->user()->can('users.update'),
                 'delete' => $request->user()->can('users.delete'),
             ],
         ]);
@@ -51,7 +52,10 @@ class UsersController extends Controller
         $user = User::create($request->validated());
         $user->assignRole($request->validated('role'));
 
-        activity()->log('users.created');
+        activity()
+            ->performedOn($user)
+            ->withProperties(['role' => $request->validated('role')])
+            ->log('users.created');
 
         return Redirect::route('users.index');
     }
@@ -67,6 +71,7 @@ class UsersController extends Controller
             'user' => $user->load('roles'),
             'roles' => $this->roleNames(),
             'can' => [
+                'update' => $request->user()->can('users.update'),
                 'delete' => $request->user()->can('users.delete'),
             ],
         ]);
@@ -79,6 +84,12 @@ class UsersController extends Controller
     {
         $this->authorize('update', $user);
 
+        abort_if(
+            $user->id === $request->user()->id && $request->validated('is_active') === false,
+            403,
+            'You cannot deactivate your own account.'
+        );
+
         $data = $request->validated();
 
         if (blank($data['password'])) {
@@ -88,7 +99,13 @@ class UsersController extends Controller
         $user->update($data);
         $user->syncRoles($request->validated('role'));
 
-        activity()->log('users.updated');
+        activity()
+            ->performedOn($user)
+            ->withProperties([
+                'changes' => $user->getChanges(),
+                'role' => $request->validated('role'),
+            ])
+            ->log('users.updated');
 
         return Redirect::route('users.index');
     }
@@ -104,7 +121,10 @@ class UsersController extends Controller
 
         $user->delete();
 
-        activity()->log('users.deleted');
+        activity()
+            ->performedOn($user)
+            ->withProperties(['name' => $user->name, 'email' => $user->email])
+            ->log('users.deleted');
 
         return Redirect::route('users.index');
     }

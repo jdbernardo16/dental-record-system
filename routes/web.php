@@ -27,9 +27,9 @@ Route::middleware('auth')->group(function () {
 
 Route::middleware(['auth', 'verified', 'permission:users.view'])->prefix('users')->group(function () {
     Route::get('/', [UsersController::class, 'index'])->name('users.index');
-    Route::get('/create', [UsersController::class, 'create'])->name('users.create');
-    Route::get('/{user}/edit', [UsersController::class, 'edit'])->name('users.edit');
 });
+Route::middleware(['auth', 'verified', 'permission:users.create'])->get('/users/create', [UsersController::class, 'create'])->name('users.create');
+Route::middleware(['auth', 'verified', 'permission:users.update'])->get('/users/{user}/edit', [UsersController::class, 'edit'])->name('users.edit');
 Route::middleware(['auth', 'verified', 'permission:users.create'])->post('/users', [UsersController::class, 'store'])->name('users.store');
 Route::middleware(['auth', 'verified', 'permission:users.update'])->patch('/users/{user}', [UsersController::class, 'update'])->name('users.update');
 Route::middleware(['auth', 'verified', 'permission:users.delete'])->delete('/users/{user}', [UsersController::class, 'destroy'])->name('users.destroy');

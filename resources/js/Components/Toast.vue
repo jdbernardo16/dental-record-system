@@ -41,7 +41,7 @@ const iconClasses = {
                 type="button"
                 class="ml-2 text-gray-400 hover:text-gray-600"
                 aria-label="Dismiss notification"
-                @click="toastStore.show(null)"
+                @click="toastStore.hide()"
             >
                 &times;
             </button>
