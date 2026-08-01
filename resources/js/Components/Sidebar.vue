@@ -49,7 +49,8 @@ const navGroups = computed(() => [
     },
 ])
 
-const isActive = (item) => (item.routes ?? [item.routeName]).some((name) => route().current(name))
+const isActive = (item) =>
+    (item.routes ?? [item.routeName]).filter(Boolean).some((name) => route().current(name))
 </script>
 
 <template>

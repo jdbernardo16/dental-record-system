@@ -44,6 +44,6 @@ class PatientPolicy
      */
     public function delete(User $user, Patient $patient): bool
     {
-        return $user->can('patients.delete');
+        return $user->hasRole('Administrator') && $user->can('patients.delete');
     }
 }
