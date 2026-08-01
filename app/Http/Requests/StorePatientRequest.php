@@ -1,0 +1,30 @@
+<?php
+
+namespace App\Http\Requests;
+
+use Illuminate\Foundation\Http\FormRequest;
+
+class StorePatientRequest extends FormRequest
+{
+    /**
+     * @return array<string, array<int, string>>
+     */
+    public function rules(): array
+    {
+        return [
+            'first_name' => ['required', 'string', 'max:255'],
+            'middle_name' => ['nullable', 'string', 'max:255'],
+            'last_name' => ['required', 'string', 'max:255'],
+            'sex' => ['required', 'in:male,female'],
+            'birth_date' => ['required', 'date', 'before:today'],
+            'civil_status' => ['required', 'in:single,married,widowed,separated,divorced,annulled,other'],
+            'nationality' => ['required', 'string', 'max:100'],
+            'occupation' => ['nullable', 'string', 'max:255'],
+            'contact_number' => ['required', 'string', 'regex:/^[0-9+ -]{7,20}$/'],
+            'address' => ['required', 'string', 'max:500'],
+            'email_address' => ['nullable', 'email', 'max:255'],
+            'emergency_contact_person' => ['required', 'string', 'max:255'],
+            'emergency_contact_number' => ['required', 'string', 'regex:/^[0-9+ -]{7,20}$/'],
+        ];
+    }
+}

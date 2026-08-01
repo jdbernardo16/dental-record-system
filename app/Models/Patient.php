@@ -17,6 +17,8 @@ class Patient extends Model
 
     protected $guarded = [];
 
+    protected $appends = ['age'];
+
     /**
      * Get the attributes that should be cast.
      *
@@ -25,7 +27,7 @@ class Patient extends Model
     protected function casts(): array
     {
         return [
-            'birth_date' => 'date',
+            'birth_date' => 'date:Y-m-d',
             'sex' => Sex::class,
             'civil_status' => CivilStatus::class,
         ];

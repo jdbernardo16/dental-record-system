@@ -24,13 +24,21 @@ const page = usePage()
 const hovered = ref(false)
 
 const canManageUsers = computed(() => page.props.auth?.can?.manageUsers ?? false)
+const canManagePatients = computed(() => page.props.auth?.can?.managePatients ?? false)
 
 const navGroups = computed(() => [
     {
         title: 'Menu',
         items: [
             { name: 'Dashboard', icon: LayoutDashboard, href: route('dashboard'), routeName: 'dashboard' },
-            { name: 'Patients', icon: Users, badge: 'Phase 2' },
+            ...(canManagePatients.value
+                ? [{
+                    name: 'Patients',
+                    icon: Users,
+                    href: route('patients.index'),
+                    routes: ['patients.index', 'patients.create', 'patients.show', 'patients.edit'],
+                }]
+                : [{ name: 'Patients', icon: Users, badge: 'Phase 2' }]),
             { name: 'Appointments', icon: CalendarDays, badge: 'Phase 2' },
             ...(canManageUsers.value
                 ? [{ name: 'Users', icon: ShieldCheck, href: route('users.index'), routeName: 'users.index' }]
@@ -41,7 +49,7 @@ const navGroups = computed(() => [
     },
 ])
 
-const isActive = (item) => item.routeName && route().current(item.routeName)
+const isActive = (item) => (item.routes ?? [item.routeName]).some((name) => route().current(name))
 </script>
 
 <template>
