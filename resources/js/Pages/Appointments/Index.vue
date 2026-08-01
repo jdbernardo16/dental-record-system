@@ -46,13 +46,22 @@ const dateLabel = computed(() =>
     ),
 )
 
-const isToday = computed(() => props.date === new Date().toISOString().slice(0, 10))
+const toLocalDate = (d) => {
+    const y = d.getFullYear()
+    const m = String(d.getMonth() + 1).padStart(2, '0')
+    const day = String(d.getDate()).padStart(2, '0')
+    return `${y}-${m}-${day}`
+}
+
+const todayLocal = () => toLocalDate(new Date())
+
+const isToday = computed(() => props.date === todayLocal())
 
 const goTo = (date) => router.get(route('appointments.index', { date }))
-const shiftDay = (days) => {
-    const d = new Date(`${props.date}T00:00:00`)
-    d.setDate(d.getDate() + days)
-    goTo(d.toISOString().slice(0, 10))
+const shiftDay = (offset) => {
+    const parts = props.date.split('-').map(Number)
+    const d = new Date(parts[0], parts[1] - 1, parts[2] + offset)
+    goTo(toLocalDate(d))
 }
 
 const patientName = (p) => (p ? [p.first_name, p.last_name].filter(Boolean).join(' ') : '—')
@@ -211,7 +220,7 @@ watch(
                 >
                     <ChevronLeft class="h-5 w-5" />
                 </button>
-                <Button v-if="!isToday" variant="outline" size="sm" @click="goTo(new Date().toISOString().slice(0, 10))">
+                <Button v-if="!isToday" variant="outline" @click="goTo(todayLocal())">
                     Today
                 </Button>
                 <button
@@ -276,11 +285,12 @@ watch(
             </div>
 
             <div>
-                <label class="mb-1.5 block text-sm font-medium text-gray-700">
+                <label for="patient_search" class="mb-1.5 block text-sm font-medium text-gray-700">
                     Patient
                     <span class="text-status-cancelled">*</span>
                 </label>
                 <Input
+                    id="patient_search"
                     v-model="patientSearch"
                     type="search"
                     placeholder="Search by name or patient number…"
@@ -304,6 +314,9 @@ watch(
                     </button>
                     <p v-if="!filteredPatients.length" class="px-4 py-3 text-sm text-gray-500">No patients found.</p>
                 </div>
+                <p v-if="patients.length >= 50" class="mt-1.5 text-xs text-gray-400">
+                    Showing the 50 most recent patients — full list on the Patients page.
+                </p>
                 <p v-if="createForm.errors.patient_id" class="mt-1.5 text-xs text-status-cancelled">
                     {{ createForm.errors.patient_id }}
                 </p>
@@ -312,7 +325,6 @@ watch(
             <div>
                 <label for="dentist_id" class="mb-1.5 block text-sm font-medium text-gray-700">
                     Dentist
-                    <span class="text-status-cancelled">*</span>
                 </label>
                 <select
                     id="dentist_id"
@@ -336,8 +348,9 @@ watch(
             </div>
 
             <div>
-                <label class="mb-1.5 block text-sm font-medium text-gray-700">Reason</label>
+                <label for="create_reason" class="mb-1.5 block text-sm font-medium text-gray-700">Reason</label>
                 <textarea
+                    id="create_reason"
                     v-model="createForm.reason"
                     :rows="2"
                     placeholder="Optional…"
@@ -432,11 +445,12 @@ watch(
         <form class="space-y-5 p-6" @submit.prevent="submitCancel">
             <h2 class="text-lg font-semibold text-gray-800">Cancel appointment</h2>
             <div>
-                <label class="mb-1.5 block text-sm font-medium text-gray-700">
+                <label for="cancel_reason" class="mb-1.5 block text-sm font-medium text-gray-700">
                     Reason
                     <span class="text-status-cancelled">*</span>
                 </label>
                 <textarea
+                    id="cancel_reason"
                     v-model="cancelForm.reason"
                     :rows="3"
                     placeholder="Why is this appointment being cancelled?"

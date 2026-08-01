@@ -40,7 +40,9 @@ class AppointmentsController extends Controller
                 ->orderBy('start_time')
                 ->get(),
             'date' => $date,
-            'patients' => Patient::orderBy('last_name')
+            // The modal picker only covers recent patients; full search lives on the patients index page.
+            'patients' => Patient::orderByDesc('id')
+                ->limit(50)
                 ->get(['id', 'first_name', 'middle_name', 'last_name', 'patient_number']),
             'dentists' => User::role('Dentist')->orderBy('name')->get(['id', 'name']),
             'statusOptions' => AppointmentStatus::meta(),
@@ -62,7 +64,7 @@ class AppointmentsController extends Controller
 
         $this->service->create($request->validated(), $request->user());
 
-        return Redirect::route('appointments.index');
+        return Redirect::route('appointments.index', ['date' => $request->validated()['appointment_date']]);
     }
 
     /**

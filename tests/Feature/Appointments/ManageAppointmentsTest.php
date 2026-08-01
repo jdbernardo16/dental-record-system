@@ -29,10 +29,26 @@ it('creates an appointment through the store route', function () {
     $this->actingAs($user)->post('/appointments', [
         'patient_id' => $patient->id, 'appointment_date' => '2026-08-10',
         'start_time' => '09:00', 'end_time' => '09:30', 'reason' => 'Check-up',
-    ])->assertRedirect('/appointments');
+    ])->assertRedirect('/appointments?date=2026-08-10');
 
     expect(Appointment::count())->toBe(1);
     expect(Appointment::first()->status->value)->toBe('pending');
+});
+
+it('rejects a non-dentist user as the assigned dentist', function () {
+    $user = User::factory()->create()->assignRole('Receptionist');
+    $receptionist = User::factory()->create()->assignRole('Receptionist');
+    $patient = Patient::factory()->create();
+
+    $this->actingAs($user)->post('/appointments', [
+        'patient_id' => $patient->id,
+        'dentist_id' => $receptionist->id,
+        'appointment_date' => '2026-08-10',
+        'start_time' => '09:00',
+        'end_time' => '09:30',
+    ])->assertSessionHasErrors('dentist_id');
+
+    expect(Appointment::count())->toBe(0);
 });
 
 it('confirms a pending appointment', function () {
