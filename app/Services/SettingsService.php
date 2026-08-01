@@ -15,6 +15,7 @@ final class SettingsService
     public function set(string $key, mixed $value, string $group = 'general'): Setting
     {
         Cache::forget("settings.{$key}");
+
         return Setting::updateOrCreate(['key' => $key], ['value' => $value, 'group' => $group]);
     }
 }

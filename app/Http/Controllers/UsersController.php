@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
 use Inertia\Response;
+use Spatie\Permission\Models\Role;
 
 class UsersController extends Controller
 {
@@ -134,6 +135,6 @@ class UsersController extends Controller
      */
     private function roleNames(): array
     {
-        return \Spatie\Permission\Models\Role::orderBy('name')->pluck('name')->all();
+        return Role::orderBy('name')->pluck('name')->all();
     }
 }
