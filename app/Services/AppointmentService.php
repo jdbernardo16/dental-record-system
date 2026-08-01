@@ -43,10 +43,16 @@ final class AppointmentService
         throw_unless(in_array('rescheduled', $allowed, true), InvalidTransitionException::class,
             "Cannot reschedule an appointment with status {$appointment->status->value}.");
 
+        $this->ensureNoOverlap([
+            ...$data,
+            'id' => $appointment->id,
+            'dentist_id' => $appointment->dentist_id,
+        ]);
+
         $appointment->update([
             'appointment_date' => $data['appointment_date'],
             'start_time' => $data['start_time'],
-            'end_time' => $data['end_time'] ?? null,
+            'end_time' => $data['end_time'] ?? $appointment->end_time,
             'status' => AppointmentStatus::Pending->value,
         ]);
 
@@ -66,12 +72,12 @@ final class AppointmentService
     public function cancel(Appointment $appointment, string $reason, User $actor): Appointment
     {
         if (trim($reason) === '') {
-            throw new \InvalidArgumentException('A cancellation reason is required.');
+            throw new InvalidTransitionException('A cancellation reason is required.');
         }
 
         return $this->transition($appointment, 'cancelled', $actor, [
             'notes' => trim(($appointment->notes ?? '').PHP_EOL."Cancelled: {$reason}"),
-        ]);
+        ], ['reason' => $reason]);
     }
 
     public function markAttendance(Appointment $appointment, bool $present, User $actor): Appointment
@@ -81,7 +87,7 @@ final class AppointmentService
         ]);
     }
 
-    private function transition(Appointment $appointment, string $event, User $actor, array $extra = []): Appointment
+    private function transition(Appointment $appointment, string $event, User $actor, array $extra = [], array $properties = []): Appointment
     {
         $allowed = self::TRANSITIONS[$appointment->status->value] ?? [];
 
@@ -91,7 +97,7 @@ final class AppointmentService
         $appointment->update([...$extra, 'status' => $event]);
 
         activity()->performedOn($appointment)
-            ->withProperties(['changes' => $appointment->getChanges()])
+            ->withProperties(['changes' => $appointment->getChanges(), ...$properties])
             ->causedBy($actor)
             ->log("appointment.{$event}");
 
