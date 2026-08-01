@@ -113,7 +113,7 @@ const isActive = (item) => item.routeName && route().current(item.routeName)
                                 type="button"
                                 disabled
                                 :title="`${item.name} — coming in ${item.badge}`"
-                                class="menu-item menu-item-inactive w-full cursor-not-allowed opacity-50 pointer-events-none"
+                                class="menu-item menu-item-inactive w-full cursor-not-allowed opacity-50 disabled:hover:bg-transparent"
                                 :class="{ 'lg:justify-center': !open && !hovered }"
                             >
                                 <span class="menu-item-icon-inactive">
