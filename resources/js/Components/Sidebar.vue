@@ -28,6 +28,7 @@ const canManageUsers = computed(() => page.props.auth?.can?.manageUsers ?? false
 const canManagePatients = computed(() => page.props.auth?.can?.managePatients ?? false)
 const canManageAppointments = computed(() => page.props.auth?.can?.manageAppointments ?? false)
 const canViewReports = computed(() => page.props.auth?.can?.reports ?? page.props.can?.reports ?? false)
+const canViewSettings = computed(() => page.props.auth?.can?.settings ?? page.props.can?.settings ?? false)
 
 const navGroups = computed(() => [
     {
@@ -62,7 +63,9 @@ const navGroups = computed(() => [
             ...(canViewReports.value
                 ? [{ name: 'Reports', icon: BarChart3, href: route('reports.index'), routeName: 'reports.index' }]
                 : []),
-            { name: 'Settings', icon: Settings, badge: 'Phase 3' },
+            ...(canViewSettings.value
+                ? [{ name: 'Settings', icon: Settings, href: route('settings.index'), routeName: 'settings.index' }]
+                : []),
         ],
     },
 ])

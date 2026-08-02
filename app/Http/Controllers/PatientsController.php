@@ -84,6 +84,7 @@ class PatientsController extends Controller
         $canViewTreatments = $request->user()->can('treatments.view');
         $canViewConsents = $request->user()->can('consents.view');
         $canViewAttachments = $request->user()->can('attachments.view');
+        $canViewAppointments = $request->user()->can('appointments.view');
 
         $props = [
             'patient' => $patient,
@@ -124,6 +125,9 @@ class PatientsController extends Controller
                     'upload' => $request->user()->can('attachments.upload'),
                     'delete' => $request->user()->can('attachments.delete'),
                 ],
+                'appointments' => [
+                    'view' => $canViewAppointments,
+                ],
             ],
         ];
 
@@ -159,6 +163,15 @@ class PatientsController extends Controller
             $props['attachments'] = $patient->attachments()
                 ->with('uploadedBy:id,name')
                 ->latest()
+                ->get();
+        }
+
+        if ($canViewAppointments) {
+            $props['appointments'] = $patient->appointments()
+                ->with('dentist:id,name')
+                ->orderByDesc('appointment_date')
+                ->orderByDesc('start_time')
+                ->limit(20)
                 ->get();
         }
 

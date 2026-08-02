@@ -26,6 +26,7 @@ const props = defineProps({
     consentForms: { type: Array, default: () => [] },
     attachments: { type: Array, default: () => [] },
     attachmentOptions: { type: Object, default: () => ({}) },
+    appointments: { type: Array, default: () => [] },
     can: { type: Object, default: () => ({}) },
 })
 
@@ -195,7 +196,7 @@ const pdaRows = (consultation) => [
 ].filter((row) => row.value)
 
 const tabs = [
-    { name: 'Appointments', icon: CalendarDays, phase: 'Phase 2' },
+    { name: 'Appointments', icon: CalendarDays, wired: true },
     { name: 'Chart', icon: Stethoscope, phase: 'Phase 2', href: (id) => route('patients.chart', id) },
     { name: 'Treatments', icon: Wrench, wired: true },
     { name: 'Files', icon: FolderOpen, wired: true },
@@ -205,6 +206,31 @@ const tabs = [
 const activeTab = ref(null)
 const addingTreatment = ref(false)
 const expandedTreatmentId = ref(null)
+
+/* ---------------------------------------------------------------- Appointments tab */
+
+const appointmentStatusLabels = {
+    pending: 'Pending',
+    confirmed: 'Confirmed',
+    completed: 'Completed',
+    cancelled: 'Cancelled',
+    no_show: 'No-show',
+}
+
+const appointmentBadgeColors = {
+    pending: 'warning',
+    confirmed: 'info',
+    completed: 'success',
+    cancelled: 'light',
+    no_show: 'error',
+}
+
+const appointmentStatusLabel = (status) => appointmentStatusLabels[status] ?? status
+
+const appointmentBadgeColor = (status) => appointmentBadgeColors[status] ?? 'light'
+
+const appointmentTimeRange = (appointment) =>
+    appointment.end_time ? `${appointment.start_time} – ${appointment.end_time}` : appointment.start_time
 
 const toggleExpandedTreatment = (id) => {
     expandedTreatmentId.value = expandedTreatmentId.value === id ? null : id
@@ -697,7 +723,49 @@ const confirmDeleteAttachment = (attachment) => {
                 </template>
             </div>
 
-            <div v-if="activeTab === 'treatments'">
+            <div v-if="activeTab === 'appointments'">
+                <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-6 py-4">
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-800">Appointments</h3>
+                        <p class="mt-0.5 text-xs text-gray-500">
+                            {{ appointments.length ? `${appointments.length} on record` : 'No appointments on record' }}
+                        </p>
+                    </div>
+                    <Link v-if="can.appointments?.view" :href="route('appointments.index')">
+                        <Button variant="outline" size="sm">View calendar</Button>
+                    </Link>
+                </div>
+
+                <div v-if="!appointments.length" class="px-6 py-10 text-center">
+                    <p class="text-sm text-gray-500">No appointments yet — schedule one from the calendar.</p>
+                </div>
+
+                <ul v-else class="divide-y divide-gray-100">
+                    <li v-for="appointment in appointments" :key="appointment.id">
+                        <div class="flex flex-wrap items-center justify-between gap-3 px-6 py-4">
+                            <div class="flex min-w-0 flex-wrap items-center gap-2">
+                                <Badge size="sm" color="light">{{ appointment.appointment_date }}</Badge>
+                                <span class="text-sm font-medium text-gray-800">
+                                    {{ appointmentTimeRange(appointment) }}
+                                </span>
+                                <span class="min-w-0 truncate text-sm text-gray-600">
+                                    {{ appointment.reason || 'No reason given' }}
+                                </span>
+                            </div>
+                            <div class="flex shrink-0 items-center gap-2">
+                                <span class="text-xs text-gray-500">
+                                    {{ appointment.dentist?.name ?? '—' }}
+                                </span>
+                                <Badge size="sm" :color="appointmentBadgeColor(appointment.status)">
+                                    {{ appointmentStatusLabel(appointment.status) }}
+                                </Badge>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            <div v-else-if="activeTab === 'treatments'">
                 <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-6 py-4">
                     <div>
                         <h3 class="text-sm font-semibold text-gray-800">Treatment records</h3>
@@ -1009,7 +1077,7 @@ const confirmDeleteAttachment = (attachment) => {
             <div v-else class="flex flex-col items-center gap-2 px-6 py-14 text-center">
                 <p class="text-sm font-medium text-gray-700">No records yet</p>
                 <p class="text-sm text-gray-500">
-                    Appointments will appear here in a later phase.
+                    Records from each section will appear here. Select a tab to get started.
                 </p>
             </div>
         </div>

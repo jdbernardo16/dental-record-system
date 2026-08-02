@@ -17,5 +17,6 @@ class SettingsSeeder extends Seeder
         $settings->set('patient.number.prefix', 'year');
         $settings->set('appointment.overlap', 'false');
         $settings->set('attachment.max_size_mb', '25');
+        $settings->set('archive.inactivity_years', '5');
     }
 }

@@ -46,10 +46,6 @@ class HandleInertiaRequests extends Middleware
                 'name' => app(SettingsService::class)->get('clinic.name', 'Dental Clinic'),
                 'address' => app(SettingsService::class)->get('clinic.address', ''),
             ],
-            'can' => [
-                'reports' => fn () => $request->user()?->can('reports.view') ?? false,
-                'settings' => fn () => $request->user()?->can('settings.view') ?? false,
-            ],
         ];
     }
 }

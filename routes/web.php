@@ -10,6 +10,7 @@ use App\Http\Controllers\MedicalHistoriesController;
 use App\Http\Controllers\PatientsController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportsController;
+use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\TreatmentsController;
 use App\Http\Controllers\UsersController;
 use App\Http\Controllers\WizardController;
@@ -107,5 +108,12 @@ Route::middleware(['auth', 'verified', 'permission:reports.view'])
 Route::middleware(['auth', 'verified', 'permission:reports.view'])
     ->get('/reports/export', [ReportsController::class, 'export'])
     ->name('reports.export');
+
+Route::middleware(['auth', 'verified', 'permission:settings.view'])
+    ->get('/settings', [SettingsController::class, 'index'])
+    ->name('settings.index');
+Route::middleware(['auth', 'verified', 'permission:settings.update'])
+    ->patch('/settings', [SettingsController::class, 'update'])
+    ->name('settings.update');
 
 require __DIR__.'/auth.php';
