@@ -58,11 +58,13 @@ class WizardController extends Controller
         $hasConsultation = $patient->consultations()->exists();
         $hasChart = $patient->chartEntries()->exists();
         $hasTreatment = $patient->treatments()->exists();
+        $consentDraft = $patient->consentForms()->where('status', 'unsigned')->exists();
+        $consentSigned = $patient->consentForms()->whereIn('status', ['patient_signed', 'signed'])->exists();
 
         $resumeStep = match (true) {
-            $medicalHistory === null && ! $hasConsultation => 1,
+            $medicalHistory === null && ! $consentDraft && ! $consentSigned => 1,
+            ! $consentSigned => 3,
             ! $hasConsultation => 4,
-            $medicalHistory === null => 4,
             ! $hasChart => 5,
             ! $hasTreatment => 6,
             default => 0,
@@ -70,11 +72,29 @@ class WizardController extends Controller
 
         $service = app(DentalChartService::class);
 
+        $consentSections = array_values(array_map(
+            fn (string $key, array $section) => [
+                'key' => $key,
+                'label' => $section['label'],
+                'text' => $section['text'],
+            ],
+            array_keys(config('consent.sections')),
+            config('consent.sections'),
+        ));
+
         return Inertia::render('Wizard/Index', [
             'patient' => $patient,
             'steps' => self::STEPS,
             'resumeStep' => $resumeStep,
             'medicalHistory' => $medicalHistory,
+            'consentSections' => $consentSections,
+            'consentAcknowledgment' => config('consent.acknowledgment'),
+            'consentAuthorization' => config('consent.authorization'),
+            'consentFormId' => $patient->consentForms()
+                ->where('status', 'unsigned')
+                ->latest()
+                ->value('id'),
+            'patientAge' => $patient->age,
             'sexOptions' => $this->enumOptions(Sex::meta()),
             'civilStatusOptions' => $this->enumOptions(CivilStatus::meta()),
             'consultationOptions' => [

@@ -96,4 +96,12 @@ class Patient extends Model
     {
         return $this->hasMany(Treatment::class);
     }
+
+    /**
+     * @return HasMany<ConsentForm, $this>
+     */
+    public function consentForms(): HasMany
+    {
+        return $this->hasMany(ConsentForm::class);
+    }
 }

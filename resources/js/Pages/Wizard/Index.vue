@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { Head, Link, router, useForm } from '@inertiajs/vue3'
-import { ArrowLeft, Check, Lock, Pencil, Signature } from 'lucide-vue-next'
+import { ArrowLeft, Check, Pencil, Signature } from 'lucide-vue-next'
 import { route } from '../../../../vendor/tightenco/ziggy'
 import AppLayout from '@/Layouts/AppLayout.vue'
 import Badge from '@/Components/Badge.vue'
@@ -9,8 +9,10 @@ import Button from '@/Components/Button.vue'
 import ConsultationForm from '@/Components/Wizard/ConsultationForm.vue'
 import MedicalHistoryForm from '@/Components/Wizard/MedicalHistoryForm.vue'
 import SignaturePadModal from '@/Components/SignaturePadModal.vue'
+import SignatureStep from '@/Components/Wizard/SignatureStep.vue'
 import ToothChart, { wholeToothOnly } from '@/Components/ToothChart.vue'
 import TreatmentForm from '@/Components/Wizard/TreatmentForm.vue'
+import WaiverStep from '@/Components/Wizard/WaiverStep.vue'
 import { useToastStore } from '@/Stores/toast'
 import { useWizardStore } from '@/Stores/wizard'
 
@@ -21,6 +23,11 @@ const props = defineProps({
     steps: { type: Array, required: true },
     resumeStep: { type: Number, default: 0 },
     medicalHistory: { type: Object, default: null },
+    consentSections: { type: Array, default: () => [] },
+    consentAcknowledgment: { type: String, default: '' },
+    consentAuthorization: { type: String, default: '' },
+    consentFormId: { type: Number, default: null },
+    patientAge: { type: Number, default: 0 },
     sexOptions: { type: Array, default: () => [] },
     civilStatusOptions: { type: Array, default: () => [] },
     consultationOptions: { type: Object, default: () => ({}) },
@@ -37,9 +44,6 @@ const props = defineProps({
 const wizardStore = useWizardStore()
 const toastStore = useToastStore()
 
-/** Steps 2 (waiver) and 3 (signature) ship with Phase 3. */
-const lockedSteps = ['waiver', 'signature']
-
 const patientId = computed(() => props.patient?.id ?? wizardStore.patientId)
 
 onMounted(() => {
@@ -48,12 +52,10 @@ onMounted(() => {
 
 const stepLabel = (index) => props.steps[index]?.label ?? ''
 const stepKey = (index) => props.steps[index]?.key ?? ''
-const isLocked = (index) => lockedSteps.includes(stepKey(index))
 const isCompleted = (index) => wizardStore.completed[stepKey(index)] ?? index < wizardStore.step
 const isCurrent = (index) => wizardStore.step === index
 
 const navigateTo = (index) => {
-    if (isLocked(index)) return
     if (!isCompleted(index) && !isCurrent(index)) return
     wizardStore.go(index)
 }
@@ -104,6 +106,16 @@ const submitPatient = () => {
 
 const onMedicalHistorySaved = () => {
     wizardStore.markComplete('medical_history')
+    wizardStore.go(2)
+}
+
+const onWaiverSaved = () => {
+    wizardStore.markComplete('waiver')
+    wizardStore.go(3)
+}
+
+const onSignatureSaved = () => {
+    wizardStore.markComplete('signature')
     wizardStore.go(4)
 }
 
@@ -259,7 +271,6 @@ const finishWizard = () => {
                 <div class="flex w-full items-center gap-3">
                     <span class="sr-only">{{ index + 1 }}</span>
                     <button
-                        v-if="!isLocked(index)"
                         type="button"
                         :disabled="!isCompleted(index) && !isCurrent(index)"
                         :aria-current="isCurrent(index) ? 'step' : undefined"
@@ -276,24 +287,16 @@ const finishWizard = () => {
                         <Check v-if="isCompleted(index) && !isCurrent(index)" class="h-5 w-5" />
                         <span v-else>{{ index + 1 }}</span>
                     </button>
-                    <span
-                        v-else
-                        class="flex h-11 w-11 shrink-0 cursor-not-allowed items-center justify-center rounded-full bg-gray-100 text-gray-400"
-                        title="Coming in Phase 3"
-                    >
-                        <Lock class="h-5 w-5" />
-                    </span>
                     <div class="min-w-0">
                         <p
                             :class="[
                                 'text-sm font-medium',
-                                isCurrent(index) ? 'text-brand-700' : isLocked(index) ? 'text-gray-400' : 'text-gray-700',
+                                isCurrent(index) ? 'text-brand-700' : 'text-gray-700',
                             ]"
                         >
                             {{ step.label }}
                         </p>
-                        <p v-if="isLocked(index)" class="text-xs text-gray-400">Coming in Phase 3</p>
-                        <p v-else-if="isCompleted(index)" class="text-xs text-gray-400">Complete</p>
+                        <p v-if="isCompleted(index)" class="text-xs text-gray-400">Complete</p>
                     </div>
                 </div>
             </li>
@@ -729,24 +732,32 @@ const finishWizard = () => {
             </div>
 
             <!-- 2 · Waiver -->
-            <div v-show="wizardStore.step === 2" class="flex flex-col items-center gap-3 py-10 text-center">
-                <span class="flex h-14 w-14 items-center justify-center rounded-full bg-gray-100 text-gray-400">
-                    <Lock class="h-6 w-6" />
-                </span>
-                <p class="text-sm font-medium text-gray-700">Informed consent & waiver</p>
-                <p class="max-w-sm text-sm text-gray-500">
-                    Informed consent and the waiver form arrive in Phase 3.
+            <div v-show="wizardStore.step === 2">
+                <WaiverStep
+                    v-if="patient"
+                    :patient="patient"
+                    :sections="consentSections"
+                    :acknowledgment="consentAcknowledgment"
+                    :authorization="consentAuthorization"
+                    :patient-age="patientAge"
+                    @saved="onWaiverSaved"
+                />
+                <p v-else class="py-10 text-center text-sm text-gray-500">
+                    Register the patient first to continue.
                 </p>
             </div>
 
             <!-- 3 · Signature -->
-            <div v-show="wizardStore.step === 3" class="flex flex-col items-center gap-3 py-10 text-center">
-                <span class="flex h-14 w-14 items-center justify-center rounded-full bg-gray-100 text-gray-400">
-                    <Lock class="h-6 w-6" />
-                </span>
-                <p class="text-sm font-medium text-gray-700">Patient signature</p>
-                <p class="max-w-sm text-sm text-gray-500">
-                    Signature capture on the waiver and consent forms arrives in Phase 3.
+            <div v-show="wizardStore.step === 3">
+                <SignatureStep
+                    v-if="patient"
+                    :patient="patient"
+                    :consent-form-id="consentFormId"
+                    :patient-age="patientAge"
+                    @saved="onSignatureSaved"
+                />
+                <p v-else class="py-10 text-center text-sm text-gray-500">
+                    Register the patient first to continue.
                 </p>
             </div>
 

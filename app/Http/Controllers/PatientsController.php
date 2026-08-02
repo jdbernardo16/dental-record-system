@@ -81,6 +81,7 @@ class PatientsController extends Controller
         $canViewMedicalHistory = $request->user()->can('medical-histories.view');
         $canViewConsultations = $request->user()->can('consultations.view');
         $canViewTreatments = $request->user()->can('treatments.view');
+        $canViewConsents = $request->user()->can('consents.view');
 
         $props = [
             'patient' => $patient,
@@ -108,6 +109,10 @@ class PatientsController extends Controller
                     'sign' => $request->user()->can('treatments.sign'),
                     'view' => $canViewTreatments,
                 ],
+                'consents' => [
+                    'view' => $canViewConsents,
+                    'sign-dentist' => $request->user()->can('consents.sign-dentist'),
+                ],
             ],
         ];
 
@@ -128,6 +133,14 @@ class PatientsController extends Controller
                 ->with('dentist:id,name', 'consultation:id,chief_complaint')
                 ->latest('treatment_date')
                 ->limit(20)
+                ->get();
+        }
+
+        if ($canViewConsents) {
+            $props['consentForms'] = $patient->consentForms()
+                ->with('patient')
+                ->latest()
+                ->limit(5)
                 ->get();
         }
 

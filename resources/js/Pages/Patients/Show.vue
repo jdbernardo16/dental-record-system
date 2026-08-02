@@ -22,6 +22,7 @@ const props = defineProps({
     consultationOptions: { type: Object, default: () => ({}) },
     treatments: { type: Array, default: () => [] },
     toothOptions: { type: Array, default: () => [] },
+    consentForms: { type: Array, default: () => [] },
     can: { type: Object, default: () => ({}) },
 })
 
@@ -195,7 +196,7 @@ const tabs = [
     { name: 'Chart', icon: Stethoscope, phase: 'Phase 2', href: (id) => route('patients.chart', id) },
     { name: 'Treatments', icon: Wrench, wired: true },
     { name: 'Files', icon: FolderOpen, phase: 'Phase 3' },
-    { name: 'Consents', icon: FileText, phase: 'Phase 3' },
+    { name: 'Consents', icon: FileText, wired: true },
 ]
 
 const activeTab = ref(null)
@@ -242,6 +243,54 @@ const closeSign = () => {
 const formatSignedAt = (value) => {
     if (!value) return ''
     return new Date(value).toLocaleString()
+}
+
+/* ---------------------------------------------------------------- Consents tab */
+
+const consentSignModalOpen = ref(false)
+const signingConsent = ref(null)
+
+const consentSignForm = useForm({
+    signature_svg: '',
+})
+
+const consentStatusBadgeColor = (status) =>
+    ({
+        unsigned: 'warning',
+        patient_signed: 'info',
+        signed: 'success',
+        voided: 'error',
+    })[status] ?? 'light'
+
+const openConsentSign = (consentForm) => {
+    signingConsent.value = consentForm
+    consentSignModalOpen.value = true
+}
+
+const confirmConsentSign = (svg) => {
+    consentSignForm.signature_svg = svg
+    consentSignForm.post(route('consents.dentist-sign', signingConsent.value.id), {
+        preserveScroll: true,
+        onSuccess: () => {
+            consentSignModalOpen.value = false
+            consentSignForm.reset()
+            signingConsent.value = null
+            toastStore.show('Consent countersigned by the dentist.')
+        },
+        onError: () => {
+            toastStore.show('Signing failed — please try again.', 'error')
+        },
+    })
+}
+
+const closeConsentSign = () => {
+    consentSignModalOpen.value = false
+    signingConsent.value = null
+}
+
+const formatConsentDate = (value) => {
+    if (!value) return '—'
+    return new Date(value).toLocaleDateString()
 }
 </script>
 
@@ -654,10 +703,50 @@ const formatSignedAt = (value) => {
                 </ul>
             </div>
 
+            <div v-else-if="activeTab === 'consents'">
+                <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-6 py-4">
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-800">Consent forms</h3>
+                        <p class="mt-0.5 text-xs text-gray-500">
+                            {{ consentForms.length ? `${consentForms.length} on record` : 'No consent forms on record' }}
+                        </p>
+                    </div>
+                </div>
+
+                <div v-if="!consentForms.length" class="px-6 py-10 text-center">
+                    <p class="text-sm text-gray-500">No consents yet — the intake wizard records the first one.</p>
+                </div>
+
+                <ul v-else class="divide-y divide-gray-100">
+                    <li v-for="consentForm in consentForms" :key="consentForm.id">
+                        <div class="flex flex-wrap items-center justify-between gap-3 px-6 py-4">
+                            <div class="flex min-w-0 flex-wrap items-center gap-2">
+                                <Badge size="sm" color="light">{{ formatConsentDate(consentForm.created_at) }}</Badge>
+                                <Badge size="sm" color="primary">v{{ consentForm.version }}</Badge>
+                                <Badge size="sm" :color="consentStatusBadgeColor(consentForm.status)">{{ consentForm.status }}</Badge>
+                            </div>
+                            <div class="flex shrink-0 items-center gap-2">
+                                <Link :href="route('consents.show', consentForm.id)">
+                                    <Button variant="outline" size="sm">View</Button>
+                                </Link>
+                                <Button
+                                    v-if="consentForm.status === 'patient_signed' && can.consents?.['sign-dentist']"
+                                    size="sm"
+                                    @click="openConsentSign(consentForm)"
+                                >
+                                    <Signature class="h-4 w-4" />
+                                    Dentist sign
+                                </Button>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
             <div v-else class="flex flex-col items-center gap-2 px-6 py-14 text-center">
                 <p class="text-sm font-medium text-gray-700">No records yet</p>
                 <p class="text-sm text-gray-500">
-                    Appointments, files, and consents will appear here in later phases.
+                    Appointments and files will appear here in later phases.
                 </p>
             </div>
         </div>
@@ -668,6 +757,14 @@ const formatSignedAt = (value) => {
             confirm-label="Accept signature"
             @close="closeSign"
             @confirm="confirmSign"
+        />
+
+        <SignaturePadModal
+            :show="consentSignModalOpen"
+            title="Countersign consent form"
+            confirm-label="Accept signature"
+            @close="closeConsentSign"
+            @confirm="confirmConsentSign"
         />
     </div>
 </template>

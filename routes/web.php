@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AppointmentsController;
+use App\Http\Controllers\ConsentsController;
 use App\Http\Controllers\ConsultationsController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DentalChartController;
@@ -78,6 +79,19 @@ Route::middleware(['auth', 'verified', 'permission:treatments.create'])
 Route::middleware(['auth', 'verified', 'permission:treatments.sign'])
     ->post('/treatments/{treatment}/sign', [TreatmentsController::class, 'sign'])
     ->name('treatments.sign');
+
+Route::middleware(['auth', 'verified', 'permission:consents.create'])
+    ->post('/consents', [ConsentsController::class, 'store'])
+    ->name('consents.store');
+Route::middleware(['auth', 'verified', 'permission:consents.view'])
+    ->get('/consents/{consentForm}', [ConsentsController::class, 'show'])
+    ->name('consents.show');
+Route::middleware(['auth', 'verified', 'permission:consents.sign-patient'])
+    ->post('/consents/{consentForm}/patient-sign', [ConsentsController::class, 'patientSign'])
+    ->name('consents.patient-sign');
+Route::middleware(['auth', 'verified', 'permission:consents.sign-dentist'])
+    ->post('/consents/{consentForm}/dentist-sign', [ConsentsController::class, 'dentistSign'])
+    ->name('consents.dentist-sign');
 
 Route::middleware(['auth', 'verified'])->get('/wizard/{patient?}', [WizardController::class, 'index'])->name('wizard.index')->whereNumber('patient');
 

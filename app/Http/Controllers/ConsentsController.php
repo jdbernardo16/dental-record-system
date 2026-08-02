@@ -1,0 +1,63 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Requests\SignDentistConsentRequest;
+use App\Http\Requests\SignPatientConsentRequest;
+use App\Http\Requests\StoreConsentRequest;
+use App\Models\ConsentForm;
+use App\Models\Patient;
+use App\Services\ConsentService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Redirect;
+use Inertia\Inertia;
+use Inertia\Response;
+
+class ConsentsController extends Controller
+{
+    public function __construct(private readonly ConsentService $service) {}
+
+    public function store(StoreConsentRequest $request): RedirectResponse
+    {
+        $this->authorize('create', ConsentForm::class);
+
+        $patient = Patient::findOrFail($request->validated()['patient_id']);
+        $form = $this->service->createDraft($patient, $request->user());
+        $this->service->recordInitials($form, $request->validated()['initials'], $request->user());
+
+        return Redirect::route('wizard.index', $patient);
+    }
+
+    public function show(Request $request, ConsentForm $consentForm): Response
+    {
+        $this->authorize('view', $consentForm);
+
+        return Inertia::render('Consents/Show', [
+            'consent' => $consentForm->load(['patient', 'sections', 'dentist:id,name']),
+        ]);
+    }
+
+    public function patientSign(SignPatientConsentRequest $request, ConsentForm $consentForm): RedirectResponse
+    {
+        $this->authorize('signPatient', $consentForm);
+
+        $this->service->signPatient(
+            $consentForm,
+            $request->string('signature_svg'),
+            $request->input('guardian_name'),
+            $request->input('guardian_svg'),
+        );
+
+        return Redirect::back();
+    }
+
+    public function dentistSign(SignDentistConsentRequest $request, ConsentForm $consentForm): RedirectResponse
+    {
+        $this->authorize('signDentist', $consentForm);
+
+        $this->service->signDentist($consentForm, $request->string('signature_svg'), $request->user());
+
+        return Redirect::back();
+    }
+}
