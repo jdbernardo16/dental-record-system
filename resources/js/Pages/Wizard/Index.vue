@@ -1,0 +1,907 @@
+<script setup>
+import { computed, onMounted, ref } from 'vue'
+import { Head, Link, router, useForm } from '@inertiajs/vue3'
+import { ArrowLeft, Check, Lock, Pencil, Signature } from 'lucide-vue-next'
+import { route } from '../../../../vendor/tightenco/ziggy'
+import AppLayout from '@/Layouts/AppLayout.vue'
+import Badge from '@/Components/Badge.vue'
+import Button from '@/Components/Button.vue'
+import ConsultationForm from '@/Components/Wizard/ConsultationForm.vue'
+import MedicalHistoryForm from '@/Components/Wizard/MedicalHistoryForm.vue'
+import SignaturePadModal from '@/Components/SignaturePadModal.vue'
+import ToothChart, { wholeToothOnly } from '@/Components/ToothChart.vue'
+import TreatmentForm from '@/Components/Wizard/TreatmentForm.vue'
+import { useToastStore } from '@/Stores/toast'
+import { useWizardStore } from '@/Stores/wizard'
+
+defineOptions({ layout: AppLayout })
+
+const props = defineProps({
+    patient: { type: Object, default: null },
+    steps: { type: Array, required: true },
+    resumeStep: { type: Number, default: 0 },
+    medicalHistory: { type: Object, default: null },
+    sexOptions: { type: Array, default: () => [] },
+    civilStatusOptions: { type: Array, default: () => [] },
+    consultationOptions: { type: Object, default: () => ({}) },
+    toothOptions: { type: Array, default: () => [] },
+    statusOptions: { type: Object, default: () => ({}) },
+    chartState: { type: Object, default: () => ({}) },
+    chartHistory: { type: Array, default: () => [] },
+    chartOptions: { type: Object, default: () => ({}) },
+    treatments: { type: Array, default: () => [] },
+    consultations: { type: Array, default: () => [] },
+    can: { type: Object, default: () => ({}) },
+})
+
+const wizardStore = useWizardStore()
+const toastStore = useToastStore()
+
+/** Steps 2 (waiver) and 3 (signature) ship with Phase 3. */
+const lockedSteps = ['waiver', 'signature']
+
+const patientId = computed(() => props.patient?.id ?? wizardStore.patientId)
+
+onMounted(() => {
+    wizardStore.start(props.patient?.id ?? null, props.resumeStep ?? 0)
+})
+
+const stepLabel = (index) => props.steps[index]?.label ?? ''
+const stepKey = (index) => props.steps[index]?.key ?? ''
+const isLocked = (index) => lockedSteps.includes(stepKey(index))
+const isCompleted = (index) => wizardStore.completed[stepKey(index)] ?? index < wizardStore.step
+const isCurrent = (index) => wizardStore.step === index
+
+const navigateTo = (index) => {
+    if (isLocked(index)) return
+    if (!isCompleted(index) && !isCurrent(index)) return
+    wizardStore.go(index)
+}
+
+const backStep = () => {
+    const current = wizardStore.step
+    wizardStore.go(current === 4 ? 1 : Math.max(0, current - 1))
+}
+
+/* ---------------------------------------------------------------- Step 0 */
+
+const patientForm = useForm({
+    first_name: '',
+    middle_name: '',
+    last_name: '',
+    sex: '',
+    birth_date: '',
+    civil_status: '',
+    nationality: 'Filipino',
+    occupation: '',
+    contact_number: '',
+    address: '',
+    email_address: '',
+    emergency_contact_person: '',
+    emergency_contact_number: '',
+    religion: '',
+    nickname: '',
+    home_phone: '',
+    office_phone: '',
+    fax_number: '',
+    dental_insurance: '',
+    effective_date: '',
+    guardian_name: '',
+    guardian_occupation: '',
+    wizard: 1,
+})
+
+const submitPatient = () => {
+    patientForm.post(route('patients.store'), {
+        preserveScroll: true,
+        onSuccess: (page) => {
+            wizardStore.patientId = page.props.patient.id
+            wizardStore.markComplete('patient')
+            wizardStore.go(1)
+        },
+    })
+}
+
+const onMedicalHistorySaved = () => {
+    wizardStore.markComplete('medical_history')
+    wizardStore.go(4)
+}
+
+const onConsultationSaved = () => {
+    wizardStore.markComplete('consultation')
+    wizardStore.go(5)
+}
+
+const onChartDone = () => {
+    wizardStore.markComplete('dental_chart')
+    wizardStore.go(6)
+}
+
+const onTreatmentSaved = () => {
+    wizardStore.markComplete('treatment')
+}
+
+const patientFullName = () =>
+    [props.patient?.first_name, props.patient?.middle_name, props.patient?.last_name]
+        .filter(Boolean)
+        .join(' ')
+
+/* ---------------------------------------------------------------- Step 5 */
+
+const selectedCondition = ref(null)
+const selectedRestoration = ref(null)
+const applying = ref(false)
+
+const pickTool = (kind, key) => {
+    if (kind === 'condition') {
+        selectedCondition.value = selectedCondition.value === key ? null : key
+        selectedRestoration.value = null
+    } else {
+        selectedRestoration.value = selectedRestoration.value === key ? null : key
+        selectedCondition.value = null
+    }
+}
+
+const chartEditable = computed(() => props.can.dentalChart?.update ?? false)
+
+const applyTooth = ({ tooth, surface }) => {
+    if (applying.value || !chartEditable.value) return
+
+    // restorations are recorded on a present tooth (condition is required by the backend)
+    const tool = selectedRestoration.value
+        ? { condition: 'present', restoration_type: selectedRestoration.value }
+        : { condition: selectedCondition.value }
+    if (!tool.condition) return
+
+    applying.value = true
+    router.post(
+        route('dental-chart.store'),
+        {
+            patient_id: patientId.value,
+            tooth_number: tooth,
+            dentition: 'adult',
+            surface,
+            recorded_at: new Date().toISOString().slice(0, 10),
+            ...tool,
+        },
+        {
+            // keep the wizard on the chart step — a remount would resume the patient at a later step
+            preserveState: true,
+            preserveScroll: true,
+            onSuccess: () => toastStore.show(`Tooth ${tooth} updated.`),
+            onFinish: () => (applying.value = false),
+        },
+    )
+}
+
+const chartHint = computed(() => {
+    let text = 'Tap a condition or restoration, then tap a tooth (or its surface) to record it. Changes are saved instantly.'
+    if (selectedCondition.value && wholeToothOnly().includes(selectedCondition.value)) {
+        text += ' This condition applies to the whole tooth only.'
+    }
+    return text
+})
+
+const chipClass = (selected) => [
+    'min-h-11 inline-flex items-center gap-2 rounded-full border px-4 text-sm font-medium transition',
+    selected
+        ? 'border-brand-500 bg-brand-50 text-brand-700 ring-2 ring-brand-500'
+        : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50',
+]
+
+/* ---------------------------------------------------------------- Step 6 */
+
+const signModalOpen = ref(false)
+const signingTreatment = ref(null)
+
+const signForm = useForm({
+    signature_svg: '',
+})
+
+const openSign = (treatment) => {
+    signingTreatment.value = treatment
+    signModalOpen.value = true
+}
+
+const confirmSign = (svg) => {
+    signForm.signature_svg = svg
+    signForm.post(route('treatments.sign', signingTreatment.value.id), {
+        // keep the wizard on the treatment step — a completed intake resumes at step 0
+        preserveState: true,
+        preserveScroll: true,
+        onSuccess: () => {
+            signModalOpen.value = false
+            signForm.reset()
+            signingTreatment.value = null
+            toastStore.show('Treatment signed.')
+        },
+        onError: () => {
+            toastStore.show('Signing failed — please try again.', 'error')
+        },
+    })
+}
+
+const closeSign = () => {
+    signModalOpen.value = false
+    signingTreatment.value = null
+}
+
+const formatSignedAt = (value) => {
+    if (!value) return ''
+    return new Date(value).toLocaleString()
+}
+
+const finishWizard = () => {
+    wizardStore.reset()
+    router.visit(route('patients.show', props.patient.id))
+}
+</script>
+
+<template>
+    <Head :title="patient ? `Intake — ${patientFullName()}` : 'Patient intake'" />
+
+    <div class="mx-auto max-w-5xl space-y-6">
+        <div>
+            <h1 class="text-2xl font-semibold text-gray-800">Patient intake</h1>
+            <p class="mt-1 text-sm text-gray-500">
+                {{ patient ? `Resuming intake for ${patientFullName()}` : 'Register a new patient and complete the intake checklist.' }}
+            </p>
+        </div>
+
+        <!-- Stepper -->
+        <ol class="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm sm:p-6" aria-label="Intake steps">
+            <li
+                v-for="(step, index) in steps"
+                :key="step.key"
+                class="flex items-start"
+                :class="index > 0 ? 'mt-4' : ''"
+            >
+                <div class="flex w-full items-center gap-3">
+                    <span class="sr-only">{{ index + 1 }}</span>
+                    <button
+                        v-if="!isLocked(index)"
+                        type="button"
+                        :disabled="!isCompleted(index) && !isCurrent(index)"
+                        :aria-current="isCurrent(index) ? 'step' : undefined"
+                        :class="[
+                            'flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-sm font-semibold transition',
+                            isCompleted(index)
+                                ? 'bg-brand-500 text-white'
+                                : isCurrent(index)
+                                  ? 'bg-white text-brand-600 ring-2 ring-brand-500'
+                                  : 'bg-gray-100 text-gray-500',
+                        ]"
+                        @click="navigateTo(index)"
+                    >
+                        <Check v-if="isCompleted(index) && !isCurrent(index)" class="h-5 w-5" />
+                        <span v-else>{{ index + 1 }}</span>
+                    </button>
+                    <span
+                        v-else
+                        class="flex h-11 w-11 shrink-0 cursor-not-allowed items-center justify-center rounded-full bg-gray-100 text-gray-400"
+                        title="Coming in Phase 3"
+                    >
+                        <Lock class="h-5 w-5" />
+                    </span>
+                    <div class="min-w-0">
+                        <p
+                            :class="[
+                                'text-sm font-medium',
+                                isCurrent(index) ? 'text-brand-700' : isLocked(index) ? 'text-gray-400' : 'text-gray-700',
+                            ]"
+                        >
+                            {{ step.label }}
+                        </p>
+                        <p v-if="isLocked(index)" class="text-xs text-gray-400">Coming in Phase 3</p>
+                        <p v-else-if="isCompleted(index)" class="text-xs text-gray-400">Complete</p>
+                    </div>
+                </div>
+            </li>
+        </ol>
+
+        <!-- Step content -->
+        <div class="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
+            <!-- 0 · Patient -->
+            <div v-show="wizardStore.step === 0">
+                <div v-if="patient" class="space-y-5">
+                    <div class="flex flex-wrap items-center justify-between gap-3">
+                        <div class="min-w-0">
+                            <h2 class="text-lg font-semibold text-gray-800">{{ patientFullName() }}</h2>
+                            <p class="mt-0.5 text-sm text-gray-500">{{ patient.patient_number }}</p>
+                        </div>
+                        <Link :href="route('patients.edit', patient.id)">
+                            <Button variant="outline" size="sm">
+                                <Pencil class="h-4 w-4" />
+                                Edit
+                            </Button>
+                        </Link>
+                    </div>
+                    <div class="flex justify-end">
+                        <Button type="button" @click="wizardStore.go(1)">Continue</Button>
+                    </div>
+                </div>
+
+                <form v-else class="space-y-6" @submit.prevent="submitPatient">
+                    <p
+                        v-if="patientForm.hasErrors"
+                        role="alert"
+                        class="rounded-lg bg-status-cancelled/10 px-4 py-3 text-sm font-medium text-status-cancelled"
+                    >
+                        Please review the highlighted fields.
+                    </p>
+
+                    <section class="space-y-5">
+                        <h2 class="text-sm font-semibold text-gray-800">Identity</h2>
+                        <div>
+                            <label for="first_name" class="mb-1.5 block text-sm font-medium text-gray-700">
+                                First name
+                                <span class="text-status-cancelled">*</span>
+                            </label>
+                            <input
+                                id="first_name"
+                                v-model="patientForm.first_name"
+                                type="text"
+                                placeholder="Liza"
+                                required
+                                autofocus
+                                class="h-11 w-full rounded-lg border bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
+                                :class="{ 'border-status-cancelled': patientForm.errors.first_name }"
+                            />
+                            <p v-if="patientForm.errors.first_name" class="mt-1.5 text-xs text-status-cancelled">
+                                {{ patientForm.errors.first_name }}
+                            </p>
+                        </div>
+                        <div>
+                            <label for="middle_name" class="mb-1.5 block text-sm font-medium text-gray-700">Middle name</label>
+                            <input
+                                id="middle_name"
+                                v-model="patientForm.middle_name"
+                                type="text"
+                                placeholder="Optional"
+                                class="h-11 w-full rounded-lg border bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
+                                :class="{ 'border-status-cancelled': patientForm.errors.middle_name }"
+                            />
+                            <p v-if="patientForm.errors.middle_name" class="mt-1.5 text-xs text-status-cancelled">
+                                {{ patientForm.errors.middle_name }}
+                            </p>
+                        </div>
+                        <div>
+                            <label for="last_name" class="mb-1.5 block text-sm font-medium text-gray-700">
+                                Last name
+                                <span class="text-status-cancelled">*</span>
+                            </label>
+                            <input
+                                id="last_name"
+                                v-model="patientForm.last_name"
+                                type="text"
+                                placeholder="Reyes"
+                                required
+                                class="h-11 w-full rounded-lg border bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
+                                :class="{ 'border-status-cancelled': patientForm.errors.last_name }"
+                            />
+                            <p v-if="patientForm.errors.last_name" class="mt-1.5 text-xs text-status-cancelled">
+                                {{ patientForm.errors.last_name }}
+                            </p>
+                        </div>
+                        <div>
+                            <label for="sex" class="mb-1.5 block text-sm font-medium text-gray-700">
+                                Sex
+                                <span class="text-status-cancelled">*</span>
+                            </label>
+                            <select
+                                id="sex"
+                                v-model="patientForm.sex"
+                                required
+                                class="h-11 w-full rounded-lg border bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
+                                :class="{ 'border-status-cancelled': patientForm.errors.sex }"
+                            >
+                                <option value="" disabled>Select sex</option>
+                                <option v-for="option in sexOptions" :key="option.value" :value="option.value">
+                                    {{ option.label }}
+                                </option>
+                            </select>
+                            <p v-if="patientForm.errors.sex" class="mt-1.5 text-xs text-status-cancelled">
+                                {{ patientForm.errors.sex }}
+                            </p>
+                        </div>
+                        <div>
+                            <label for="birth_date" class="mb-1.5 block text-sm font-medium text-gray-700">
+                                Birth date
+                                <span class="text-status-cancelled">*</span>
+                            </label>
+                            <input
+                                id="birth_date"
+                                v-model="patientForm.birth_date"
+                                type="date"
+                                required
+                                class="h-11 w-full rounded-lg border bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
+                                :class="{ 'border-status-cancelled': patientForm.errors.birth_date }"
+                            />
+                            <p v-if="patientForm.errors.birth_date" class="mt-1.5 text-xs text-status-cancelled">
+                                {{ patientForm.errors.birth_date }}
+                            </p>
+                        </div>
+                        <div>
+                            <label for="civil_status" class="mb-1.5 block text-sm font-medium text-gray-700">
+                                Civil status
+                                <span class="text-status-cancelled">*</span>
+                            </label>
+                            <select
+                                id="civil_status"
+                                v-model="patientForm.civil_status"
+                                required
+                                class="h-11 w-full rounded-lg border bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
+                                :class="{ 'border-status-cancelled': patientForm.errors.civil_status }"
+                            >
+                                <option value="" disabled>Select civil status</option>
+                                <option v-for="option in civilStatusOptions" :key="option.value" :value="option.value">
+                                    {{ option.label }}
+                                </option>
+                            </select>
+                            <p v-if="patientForm.errors.civil_status" class="mt-1.5 text-xs text-status-cancelled">
+                                {{ patientForm.errors.civil_status }}
+                            </p>
+                        </div>
+                        <div>
+                            <label for="nationality" class="mb-1.5 block text-sm font-medium text-gray-700">
+                                Nationality
+                                <span class="text-status-cancelled">*</span>
+                            </label>
+                            <input
+                                id="nationality"
+                                v-model="patientForm.nationality"
+                                type="text"
+                                required
+                                class="h-11 w-full rounded-lg border bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
+                                :class="{ 'border-status-cancelled': patientForm.errors.nationality }"
+                            />
+                            <p v-if="patientForm.errors.nationality" class="mt-1.5 text-xs text-status-cancelled">
+                                {{ patientForm.errors.nationality }}
+                            </p>
+                        </div>
+                    </section>
+
+                    <hr class="border-gray-100" />
+
+                    <section class="space-y-5">
+                        <h2 class="text-sm font-semibold text-gray-800">Contact</h2>
+                        <div>
+                            <label for="occupation" class="mb-1.5 block text-sm font-medium text-gray-700">Occupation</label>
+                            <input
+                                id="occupation"
+                                v-model="patientForm.occupation"
+                                type="text"
+                                placeholder="Optional"
+                                class="h-11 w-full rounded-lg border bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
+                                :class="{ 'border-status-cancelled': patientForm.errors.occupation }"
+                            />
+                            <p v-if="patientForm.errors.occupation" class="mt-1.5 text-xs text-status-cancelled">
+                                {{ patientForm.errors.occupation }}
+                            </p>
+                        </div>
+                        <div>
+                            <label for="contact_number" class="mb-1.5 block text-sm font-medium text-gray-700">
+                                Contact number
+                                <span class="text-status-cancelled">*</span>
+                            </label>
+                            <input
+                                id="contact_number"
+                                v-model="patientForm.contact_number"
+                                type="text"
+                                placeholder="0917 123 4567"
+                                required
+                                class="h-11 w-full rounded-lg border bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
+                                :class="{ 'border-status-cancelled': patientForm.errors.contact_number }"
+                            />
+                            <p v-if="patientForm.errors.contact_number" class="mt-1.5 text-xs text-status-cancelled">
+                                {{ patientForm.errors.contact_number }}
+                            </p>
+                        </div>
+                        <div>
+                            <label for="address" class="mb-1.5 block text-sm font-medium text-gray-700">
+                                Address
+                                <span class="text-status-cancelled">*</span>
+                            </label>
+                            <input
+                                id="address"
+                                v-model="patientForm.address"
+                                type="text"
+                                placeholder="House number, street, barangay, city"
+                                required
+                                class="h-11 w-full rounded-lg border bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
+                                :class="{ 'border-status-cancelled': patientForm.errors.address }"
+                            />
+                            <p v-if="patientForm.errors.address" class="mt-1.5 text-xs text-status-cancelled">
+                                {{ patientForm.errors.address }}
+                            </p>
+                        </div>
+                        <div>
+                            <label for="email_address" class="mb-1.5 block text-sm font-medium text-gray-700">Email address</label>
+                            <input
+                                id="email_address"
+                                v-model="patientForm.email_address"
+                                type="email"
+                                placeholder="Optional"
+                                class="h-11 w-full rounded-lg border bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
+                                :class="{ 'border-status-cancelled': patientForm.errors.email_address }"
+                            />
+                            <p v-if="patientForm.errors.email_address" class="mt-1.5 text-xs text-status-cancelled">
+                                {{ patientForm.errors.email_address }}
+                            </p>
+                        </div>
+                    </section>
+
+                    <hr class="border-gray-100" />
+
+                    <section class="space-y-5">
+                        <h2 class="text-sm font-semibold text-gray-800">Emergency contact</h2>
+                        <div>
+                            <label for="emergency_contact_person" class="mb-1.5 block text-sm font-medium text-gray-700">
+                                Contact person
+                                <span class="text-status-cancelled">*</span>
+                            </label>
+                            <input
+                                id="emergency_contact_person"
+                                v-model="patientForm.emergency_contact_person"
+                                type="text"
+                                placeholder="John Reyes"
+                                required
+                                class="h-11 w-full rounded-lg border bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
+                                :class="{ 'border-status-cancelled': patientForm.errors.emergency_contact_person }"
+                            />
+                            <p v-if="patientForm.errors.emergency_contact_person" class="mt-1.5 text-xs text-status-cancelled">
+                                {{ patientForm.errors.emergency_contact_person }}
+                            </p>
+                        </div>
+                        <div>
+                            <label for="emergency_contact_number" class="mb-1.5 block text-sm font-medium text-gray-700">
+                                Contact number
+                                <span class="text-status-cancelled">*</span>
+                            </label>
+                            <input
+                                id="emergency_contact_number"
+                                v-model="patientForm.emergency_contact_number"
+                                type="text"
+                                placeholder="0917 987 6543"
+                                required
+                                class="h-11 w-full rounded-lg border bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
+                                :class="{ 'border-status-cancelled': patientForm.errors.emergency_contact_number }"
+                            />
+                            <p v-if="patientForm.errors.emergency_contact_number" class="mt-1.5 text-xs text-status-cancelled">
+                                {{ patientForm.errors.emergency_contact_number }}
+                            </p>
+                        </div>
+                    </section>
+
+                    <hr class="border-gray-100" />
+
+                    <section class="space-y-5">
+                        <h2 class="text-sm font-semibold text-gray-800">PDA additional details</h2>
+                        <p class="text-xs text-gray-500">Optional fields from the PDA patient information record.</p>
+                        <div>
+                            <label for="religion" class="mb-1.5 block text-sm font-medium text-gray-700">Religion</label>
+                            <input
+                                id="religion"
+                                v-model="patientForm.religion"
+                                type="text"
+                                placeholder="Optional"
+                                class="h-11 w-full rounded-lg border bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
+                                :class="{ 'border-status-cancelled': patientForm.errors.religion }"
+                            />
+                            <p v-if="patientForm.errors.religion" class="mt-1.5 text-xs text-status-cancelled">
+                                {{ patientForm.errors.religion }}
+                            </p>
+                        </div>
+                        <div>
+                            <label for="nickname" class="mb-1.5 block text-sm font-medium text-gray-700">Nickname</label>
+                            <input
+                                id="nickname"
+                                v-model="patientForm.nickname"
+                                type="text"
+                                placeholder="Optional"
+                                class="h-11 w-full rounded-lg border bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
+                                :class="{ 'border-status-cancelled': patientForm.errors.nickname }"
+                            />
+                            <p v-if="patientForm.errors.nickname" class="mt-1.5 text-xs text-status-cancelled">
+                                {{ patientForm.errors.nickname }}
+                            </p>
+                        </div>
+                        <div>
+                            <label for="home_phone" class="mb-1.5 block text-sm font-medium text-gray-700">Home phone</label>
+                            <input
+                                id="home_phone"
+                                v-model="patientForm.home_phone"
+                                type="text"
+                                placeholder="02 8123 4567"
+                                class="h-11 w-full rounded-lg border bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
+                                :class="{ 'border-status-cancelled': patientForm.errors.home_phone }"
+                            />
+                            <p v-if="patientForm.errors.home_phone" class="mt-1.5 text-xs text-status-cancelled">
+                                {{ patientForm.errors.home_phone }}
+                            </p>
+                        </div>
+                        <div>
+                            <label for="office_phone" class="mb-1.5 block text-sm font-medium text-gray-700">Office phone</label>
+                            <input
+                                id="office_phone"
+                                v-model="patientForm.office_phone"
+                                type="text"
+                                placeholder="02 8765 4321"
+                                class="h-11 w-full rounded-lg border bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
+                                :class="{ 'border-status-cancelled': patientForm.errors.office_phone }"
+                            />
+                            <p v-if="patientForm.errors.office_phone" class="mt-1.5 text-xs text-status-cancelled">
+                                {{ patientForm.errors.office_phone }}
+                            </p>
+                        </div>
+                        <div>
+                            <label for="fax_number" class="mb-1.5 block text-sm font-medium text-gray-700">Fax number</label>
+                            <input
+                                id="fax_number"
+                                v-model="patientForm.fax_number"
+                                type="text"
+                                placeholder="Optional"
+                                class="h-11 w-full rounded-lg border bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
+                                :class="{ 'border-status-cancelled': patientForm.errors.fax_number }"
+                            />
+                            <p v-if="patientForm.errors.fax_number" class="mt-1.5 text-xs text-status-cancelled">
+                                {{ patientForm.errors.fax_number }}
+                            </p>
+                        </div>
+                        <div>
+                            <label for="dental_insurance" class="mb-1.5 block text-sm font-medium text-gray-700">Dental insurance</label>
+                            <input
+                                id="dental_insurance"
+                                v-model="patientForm.dental_insurance"
+                                type="text"
+                                placeholder="e.g. PhilHealth"
+                                class="h-11 w-full rounded-lg border bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
+                                :class="{ 'border-status-cancelled': patientForm.errors.dental_insurance }"
+                            />
+                            <p v-if="patientForm.errors.dental_insurance" class="mt-1.5 text-xs text-status-cancelled">
+                                {{ patientForm.errors.dental_insurance }}
+                            </p>
+                        </div>
+                        <div>
+                            <label for="effective_date" class="mb-1.5 block text-sm font-medium text-gray-700">Effective date</label>
+                            <input
+                                id="effective_date"
+                                v-model="patientForm.effective_date"
+                                type="date"
+                                class="h-11 w-full rounded-lg border bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
+                                :class="{ 'border-status-cancelled': patientForm.errors.effective_date }"
+                            />
+                            <p v-if="patientForm.errors.effective_date" class="mt-1.5 text-xs text-status-cancelled">
+                                {{ patientForm.errors.effective_date }}
+                            </p>
+                        </div>
+                        <div>
+                            <label for="guardian_name" class="mb-1.5 block text-sm font-medium text-gray-700">Guardian name</label>
+                            <input
+                                id="guardian_name"
+                                v-model="patientForm.guardian_name"
+                                type="text"
+                                placeholder="For minors"
+                                class="h-11 w-full rounded-lg border bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
+                                :class="{ 'border-status-cancelled': patientForm.errors.guardian_name }"
+                            />
+                            <p v-if="patientForm.errors.guardian_name" class="mt-1.5 text-xs text-status-cancelled">
+                                {{ patientForm.errors.guardian_name }}
+                            </p>
+                        </div>
+                        <div>
+                            <label for="guardian_occupation" class="mb-1.5 block text-sm font-medium text-gray-700">Guardian occupation</label>
+                            <input
+                                id="guardian_occupation"
+                                v-model="patientForm.guardian_occupation"
+                                type="text"
+                                placeholder="For minors"
+                                class="h-11 w-full rounded-lg border bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
+                                :class="{ 'border-status-cancelled': patientForm.errors.guardian_occupation }"
+                            />
+                            <p v-if="patientForm.errors.guardian_occupation" class="mt-1.5 text-xs text-status-cancelled">
+                                {{ patientForm.errors.guardian_occupation }}
+                            </p>
+                        </div>
+                    </section>
+
+                    <div class="flex items-center justify-end gap-3 pt-2">
+                        <Button type="submit" :disabled="patientForm.processing">
+                            {{ patientForm.processing ? 'Saving…' : 'Register & continue' }}
+                        </Button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- 1 · Medical history -->
+            <div v-show="wizardStore.step === 1">
+                <MedicalHistoryForm
+                    v-if="patientId"
+                    :patient-id="patientId"
+                    :medical-history="medicalHistory"
+                    submit-label="Save & continue"
+                    :cancelable="false"
+                    @saved="onMedicalHistorySaved"
+                />
+                <p v-else class="py-10 text-center text-sm text-gray-500">
+                    Register the patient first to continue.
+                </p>
+            </div>
+
+            <!-- 2 · Waiver -->
+            <div v-show="wizardStore.step === 2" class="flex flex-col items-center gap-3 py-10 text-center">
+                <span class="flex h-14 w-14 items-center justify-center rounded-full bg-gray-100 text-gray-400">
+                    <Lock class="h-6 w-6" />
+                </span>
+                <p class="text-sm font-medium text-gray-700">Informed consent & waiver</p>
+                <p class="max-w-sm text-sm text-gray-500">
+                    Informed consent and the waiver form arrive in Phase 3.
+                </p>
+            </div>
+
+            <!-- 3 · Signature -->
+            <div v-show="wizardStore.step === 3" class="flex flex-col items-center gap-3 py-10 text-center">
+                <span class="flex h-14 w-14 items-center justify-center rounded-full bg-gray-100 text-gray-400">
+                    <Lock class="h-6 w-6" />
+                </span>
+                <p class="text-sm font-medium text-gray-700">Patient signature</p>
+                <p class="max-w-sm text-sm text-gray-500">
+                    Signature capture on the waiver and consent forms arrives in Phase 3.
+                </p>
+            </div>
+
+            <!-- 4 · Consultation -->
+            <div v-show="wizardStore.step === 4">
+                <ConsultationForm
+                    v-if="patientId"
+                    :patient-id="patientId"
+                    :options="consultationOptions"
+                    @saved="onConsultationSaved"
+                />
+                <p v-else class="py-10 text-center text-sm text-gray-500">
+                    Register the patient first to continue.
+                </p>
+            </div>
+
+            <!-- 5 · Dental chart -->
+            <div v-show="wizardStore.step === 5" class="space-y-6">
+                <ToothChart
+                    :state="chartState"
+                    dentition="adult"
+                    :readonly="!chartEditable"
+                    :selected-condition="selectedCondition"
+                    :selected-restoration="selectedRestoration"
+                    :options="chartOptions"
+                    @apply-tooth="applyTooth"
+                />
+
+                <p class="text-center text-sm text-gray-500">
+                    {{ chartHistory.length ? `${chartHistory.length} chart entr${chartHistory.length === 1 ? 'y' : 'ies'} on record` : 'No chart entries yet — tap a condition then a tooth to begin.' }}
+                </p>
+
+                <div v-if="chartEditable" class="rounded-xl bg-gray-50 px-4 py-3 text-sm text-gray-600">
+                    {{ chartHint }}
+                </div>
+
+                <div v-if="chartEditable" class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+                    <h3 class="text-xs font-semibold tracking-wide text-gray-400 uppercase">Conditions</h3>
+                    <div class="mt-3 flex flex-wrap gap-2">
+                        <button
+                            v-for="(meta, key) in chartOptions.conditions"
+                            :key="key"
+                            type="button"
+                            :title="meta.code"
+                            :class="chipClass(selectedCondition === key)"
+                            @click="pickTool('condition', key)"
+                        >
+                            <span
+                                class="h-4 w-4 shrink-0 rounded-full"
+                                :style="{ background: `var(--color-${meta.color})` }"
+                            />
+                            {{ meta.label }}
+                        </button>
+                    </div>
+
+                    <h3 class="mt-6 text-xs font-semibold tracking-wide text-gray-400 uppercase">Restorations</h3>
+                    <div class="mt-3 flex flex-wrap gap-2">
+                        <button
+                            v-for="(meta, key) in chartOptions.restorations"
+                            :key="key"
+                            type="button"
+                            :title="meta.code"
+                            :class="chipClass(selectedRestoration === key)"
+                            @click="pickTool('restoration', key)"
+                        >
+                            <span
+                                class="h-4 w-4 shrink-0 rounded-full"
+                                :style="{ background: `var(--color-${meta.color})` }"
+                            />
+                            {{ meta.label }}
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex justify-end">
+                    <Button type="button" @click="onChartDone">Continue to treatment</Button>
+                </div>
+            </div>
+
+            <!-- 6 · Treatment -->
+            <div v-show="wizardStore.step === 6" class="space-y-6">
+                <TreatmentForm
+                    v-if="patientId"
+                    :patient-id="patientId"
+                    :consultations="consultations"
+                    :tooth-options="toothOptions"
+                    @saved="onTreatmentSaved"
+                />
+
+                <div v-if="treatments.length" class="rounded-2xl border border-gray-200 bg-gray-50/50 p-6">
+                    <div class="flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                            <h3 class="text-sm font-semibold text-gray-800">Treatment records</h3>
+                            <p class="mt-0.5 text-xs text-gray-500">
+                                {{ treatments.length }} on record{{ treatments.some((t) => !t.signed_at) ? ' — sign pending records to complete the intake' : '' }}
+                            </p>
+                        </div>
+                        <Badge size="sm" color="success">Created</Badge>
+                    </div>
+
+                    <ul class="mt-4 divide-y divide-gray-100">
+                        <li
+                            v-for="treatment in treatments"
+                            :key="treatment.id"
+                            class="flex flex-wrap items-center justify-between gap-3 py-3"
+                        >
+                            <div class="flex min-w-0 flex-wrap items-center gap-2">
+                                <Badge size="sm" color="light">{{ treatment.treatment_date }}</Badge>
+                                <span class="truncate text-sm font-medium text-gray-800">
+                                    {{ treatment.procedure_name }}
+                                </span>
+                                <Badge v-if="treatment.tooth_number" size="sm" color="primary">
+                                    Tooth {{ treatment.tooth_number }}
+                                </Badge>
+                                <Badge size="sm" :color="treatment.signed_at ? 'success' : 'warning'">
+                                    {{ treatment.signed_at ? 'Signed' : 'Pending' }}
+                                </Badge>
+                            </div>
+                            <div class="flex shrink-0 items-center gap-2">
+                                <span class="text-xs text-gray-500">{{ treatment.dentist?.name ?? '—' }}</span>
+                                <Button
+                                    v-if="!treatment.signed_at && can.treatments?.sign"
+                                    variant="outline"
+                                    size="sm"
+                                    @click="openSign(treatment)"
+                                >
+                                    <Signature class="h-4 w-4" />
+                                    Sign now
+                                </Button>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="flex justify-end">
+                    <Button type="button" @click="finishWizard">Finish</Button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer navigation -->
+        <div class="flex items-center justify-between gap-3">
+            <Button variant="outline" :disabled="wizardStore.step === 0" @click="backStep">
+                <ArrowLeft class="h-4 w-4" />
+                Back
+            </Button>
+            <p class="text-sm text-gray-500">Step {{ wizardStore.step + 1 }} of 7</p>
+        </div>
+
+        <SignaturePadModal
+            :show="signModalOpen"
+            title="Sign treatment"
+            confirm-label="Accept signature"
+            @close="closeSign"
+            @confirm="confirmSign"
+        />
+    </div>
+</template>

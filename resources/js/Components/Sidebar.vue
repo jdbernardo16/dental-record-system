@@ -5,6 +5,7 @@ import { route } from '../../../vendor/tightenco/ziggy'
 import {
     BarChart3,
     CalendarDays,
+    ClipboardPlus,
     LayoutDashboard,
     Settings,
     ShieldCheck,
@@ -32,6 +33,12 @@ const navGroups = computed(() => [
         title: 'Menu',
         items: [
             { name: 'Dashboard', icon: LayoutDashboard, href: route('dashboard'), routeName: 'dashboard' },
+            {
+                name: 'New intake',
+                icon: ClipboardPlus,
+                href: route('wizard.index'),
+                routeName: 'wizard.index',
+            },
             ...(canManagePatients.value
                 ? [{
                     name: 'Patients',

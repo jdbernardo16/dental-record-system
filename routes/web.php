@@ -9,6 +9,7 @@ use App\Http\Controllers\PatientsController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TreatmentsController;
 use App\Http\Controllers\UsersController;
+use App\Http\Controllers\WizardController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -77,5 +78,7 @@ Route::middleware(['auth', 'verified', 'permission:treatments.create'])
 Route::middleware(['auth', 'verified', 'permission:treatments.sign'])
     ->post('/treatments/{treatment}/sign', [TreatmentsController::class, 'sign'])
     ->name('treatments.sign');
+
+Route::middleware(['auth', 'verified'])->get('/wizard/{patient?}', [WizardController::class, 'index'])->name('wizard.index')->whereNumber('patient');
 
 require __DIR__.'/auth.php';

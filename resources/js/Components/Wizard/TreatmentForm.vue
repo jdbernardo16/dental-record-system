@@ -44,6 +44,8 @@ const form = useForm({
 
 const submit = () => {
     form.post(route('treatments.store', props.patientId), {
+        // keep the wizard on the treatment step — a remount would resume a completed intake at step 0
+        preserveState: true,
         preserveScroll: true,
         onSuccess: () => {
             form.reset()

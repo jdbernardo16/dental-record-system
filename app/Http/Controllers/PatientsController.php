@@ -64,6 +64,10 @@ class PatientsController extends Controller
         $patient = app(RegisterPatientAction::class)
             ->handle($request->validated(), $request->user());
 
+        if ($request->boolean('wizard')) {
+            return Redirect::route('wizard.index', $patient);
+        }
+
         return Redirect::route('patients.show', $patient);
     }
 
