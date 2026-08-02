@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AppointmentsController;
+use App\Http\Controllers\AttachmentsController;
 use App\Http\Controllers\ConsentsController;
 use App\Http\Controllers\ConsultationsController;
 use App\Http\Controllers\DashboardController;
@@ -92,6 +93,13 @@ Route::middleware(['auth', 'verified', 'permission:consents.sign-patient'])
 Route::middleware(['auth', 'verified', 'permission:consents.sign-dentist'])
     ->post('/consents/{consentForm}/dentist-sign', [ConsentsController::class, 'dentistSign'])
     ->name('consents.dentist-sign');
+
+Route::middleware(['auth', 'verified', 'permission:attachments.upload'])
+    ->post('/patients/{patient}/attachments', [AttachmentsController::class, 'store'])
+    ->name('attachments.store');
+Route::middleware(['auth', 'verified', 'permission:attachments.delete'])
+    ->delete('/attachments/{attachment}', [AttachmentsController::class, 'destroy'])
+    ->name('attachments.destroy');
 
 Route::middleware(['auth', 'verified'])->get('/wizard/{patient?}', [WizardController::class, 'index'])->name('wizard.index')->whereNumber('patient');
 

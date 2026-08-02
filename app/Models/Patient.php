@@ -104,4 +104,12 @@ class Patient extends Model
     {
         return $this->hasMany(ConsentForm::class);
     }
+
+    /**
+     * @return HasMany<Attachment, $this>
+     */
+    public function attachments(): HasMany
+    {
+        return $this->hasMany(Attachment::class);
+    }
 }

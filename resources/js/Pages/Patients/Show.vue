@@ -1,9 +1,10 @@
 <script setup>
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { Head, Link, router, useForm } from '@inertiajs/vue3'
-import { CalendarDays, ChevronDown, FileText, FolderOpen, Pencil, Plus, Signature, Stethoscope, Trash2, Wrench } from 'lucide-vue-next'
+import { CalendarDays, ChevronDown, FileText, FlaskConical, Folder, FolderOpen, Image as ImageIcon, Paperclip, Pencil, Plus, Scan, Signature, Stethoscope, Trash2, Upload, Wrench } from 'lucide-vue-next'
 import { route } from '../../../../vendor/tightenco/ziggy'
 import AppLayout from '@/Layouts/AppLayout.vue'
+import AttachmentPreviewModal from '@/Components/AttachmentPreviewModal.vue'
 import Badge from '@/Components/Badge.vue'
 import Button from '@/Components/Button.vue'
 import ConsultationForm from '@/Components/Wizard/ConsultationForm.vue'
@@ -23,6 +24,8 @@ const props = defineProps({
     treatments: { type: Array, default: () => [] },
     toothOptions: { type: Array, default: () => [] },
     consentForms: { type: Array, default: () => [] },
+    attachments: { type: Array, default: () => [] },
+    attachmentOptions: { type: Object, default: () => ({}) },
     can: { type: Object, default: () => ({}) },
 })
 
@@ -195,7 +198,7 @@ const tabs = [
     { name: 'Appointments', icon: CalendarDays, phase: 'Phase 2' },
     { name: 'Chart', icon: Stethoscope, phase: 'Phase 2', href: (id) => route('patients.chart', id) },
     { name: 'Treatments', icon: Wrench, wired: true },
-    { name: 'Files', icon: FolderOpen, phase: 'Phase 3' },
+    { name: 'Files', icon: FolderOpen, wired: true },
     { name: 'Consents', icon: FileText, wired: true },
 ]
 
@@ -291,6 +294,96 @@ const closeConsentSign = () => {
 const formatConsentDate = (value) => {
     if (!value) return '—'
     return new Date(value).toLocaleDateString()
+}
+
+/* ---------------------------------------------------------------- Files tab */
+
+const categoryIcons = {
+    image: ImageIcon,
+    pdf: FileText,
+    xray: Scan,
+    prescription: FileText,
+    laboratory: FlaskConical,
+    document: Folder,
+    other: Paperclip,
+}
+
+const categoryLabels = Object.fromEntries(
+    Object.entries(props.attachmentOptions?.categories ?? {}).map(([value, meta]) => [value, meta.label]),
+)
+
+const xrayLabels = Object.fromEntries(
+    (props.attachmentOptions?.xrayTypes ?? []).map((type) => [
+        type,
+        type.replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase()),
+    ]),
+)
+
+const activeCategory = ref('all')
+
+const filteredAttachments = computed(() =>
+    activeCategory.value === 'all'
+        ? props.attachments
+        : props.attachments.filter((attachment) => attachment.category === activeCategory.value),
+)
+
+const isImageTile = (attachment) => ['image', 'xray'].includes(attachment.category)
+
+const tileCaption = (attachment) =>
+    attachment.category === 'xray'
+        ? (xrayLabels[attachment.xray_type] ?? 'X-ray')
+        : (categoryLabels[attachment.category] ?? attachment.category)
+
+const showUploadForm = ref(false)
+const uploadProgress = ref(0)
+const fileInput = ref(null)
+
+const uploadForm = useForm({
+    file: null,
+    category: 'image',
+    xray_type: '',
+    notes: '',
+})
+
+const onFileChange = (event) => {
+    uploadForm.file = event.target.files[0] ?? null
+}
+
+const submitUpload = () => {
+    uploadForm.post(route('attachments.store', props.patient.id), {
+        preserveScroll: true,
+        onProgress: (event) => {
+            uploadProgress.value = event.percentage ?? 0
+        },
+        onSuccess: () => {
+            toastStore.show('Attachment uploaded.')
+            uploadForm.reset()
+            uploadProgress.value = 0
+            if (fileInput.value) fileInput.value.value = ''
+            showUploadForm.value = false
+        },
+        onError: () => {
+            toastStore.show('Upload failed — please review the form.', 'error')
+        },
+    })
+}
+
+const previewAttachment = ref(null)
+
+const openPreview = (attachment) => {
+    previewAttachment.value = attachment
+}
+
+const confirmDeleteAttachment = (attachment) => {
+    if (window.confirm(`Delete ${attachment.original_name}? This can be restored by an administrator.`)) {
+        router.delete(route('attachments.destroy', attachment.id), {
+            preserveScroll: true,
+            onSuccess: () => {
+                previewAttachment.value = null
+                toastStore.show('Attachment deleted.')
+            },
+        })
+    }
 }
 </script>
 
@@ -743,10 +836,180 @@ const formatConsentDate = (value) => {
                 </ul>
             </div>
 
+            <div v-else-if="activeTab === 'files'">
+                <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-6 py-4">
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-800">Files &amp; attachments</h3>
+                        <p class="mt-0.5 text-xs text-gray-500">
+                            {{ attachments.length ? `${attachments.length} on record` : 'No attachments on record yet' }}
+                        </p>
+                    </div>
+                    <Button
+                        v-if="can.attachments?.upload"
+                        variant="outline"
+                        size="sm"
+                        @click="showUploadForm = !showUploadForm"
+                    >
+                        <Upload class="h-4 w-4" />
+                        {{ showUploadForm ? 'Cancel' : 'Upload file' }}
+                    </Button>
+                </div>
+
+                <form
+                    v-if="showUploadForm"
+                    class="space-y-5 border-b border-gray-100 bg-gray-50/50 p-6"
+                    @submit.prevent="submitUpload"
+                >
+                    <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                        <div class="sm:col-span-2">
+                            <label for="attachment_file" class="mb-1.5 block text-sm font-medium text-gray-700">
+                                File
+                                <span class="text-status-cancelled">*</span>
+                            </label>
+                            <input
+                                id="attachment_file"
+                                ref="fileInput"
+                                type="file"
+                                accept=".jpg,.jpeg,.png,.gif,.webp,.pdf"
+                                class="block w-full text-sm text-gray-500 file:mr-3 file:rounded-lg file:border-0 file:bg-brand-50 file:px-4 file:py-2.5 file:text-sm file:font-medium file:text-brand-700 hover:file:bg-brand-100"
+                                @change="onFileChange"
+                            />
+                            <p v-if="uploadForm.errors.file" class="mt-1.5 text-xs text-status-cancelled">
+                                {{ uploadForm.errors.file }}
+                            </p>
+                        </div>
+
+                        <div>
+                            <label for="attachment_category" class="mb-1.5 block text-sm font-medium text-gray-700">
+                                Category
+                            </label>
+                            <select
+                                id="attachment_category"
+                                v-model="uploadForm.category"
+                                class="h-11 w-full rounded-lg border bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
+                                :class="uploadForm.errors.category ? 'border-status-cancelled' : 'border-gray-300'"
+                            >
+                                <option v-for="(meta, value) in attachmentOptions?.categories ?? {}" :key="value" :value="value">
+                                    {{ meta.label }}
+                                </option>
+                            </select>
+                            <p v-if="uploadForm.errors.category" class="mt-1.5 text-xs text-status-cancelled">
+                                {{ uploadForm.errors.category }}
+                            </p>
+                        </div>
+
+                        <div v-if="uploadForm.category === 'xray'">
+                            <label for="attachment_xray_type" class="mb-1.5 block text-sm font-medium text-gray-700">
+                                X-ray type
+                            </label>
+                            <select
+                                id="attachment_xray_type"
+                                v-model="uploadForm.xray_type"
+                                class="h-11 w-full rounded-lg border bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
+                                :class="uploadForm.errors.xray_type ? 'border-status-cancelled' : 'border-gray-300'"
+                            >
+                                <option value="">Select type…</option>
+                                <option v-for="type in attachmentOptions?.xrayTypes ?? []" :key="type" :value="type">
+                                    {{ xrayLabels[type] }}
+                                </option>
+                            </select>
+                            <p v-if="uploadForm.errors.xray_type" class="mt-1.5 text-xs text-status-cancelled">
+                                {{ uploadForm.errors.xray_type }}
+                            </p>
+                        </div>
+
+                        <div class="sm:col-span-2">
+                            <label for="attachment_notes" class="mb-1.5 block text-sm font-medium text-gray-700">
+                                Notes
+                            </label>
+                            <textarea
+                                id="attachment_notes"
+                                v-model="uploadForm.notes"
+                                :rows="2"
+                                placeholder="Optional notes about this file…"
+                                class="w-full rounded-lg border bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
+                                :class="uploadForm.errors.notes ? 'border-status-cancelled' : 'border-gray-300'"
+                            />
+                            <p v-if="uploadForm.errors.notes" class="mt-1.5 text-xs text-status-cancelled">
+                                {{ uploadForm.errors.notes }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-4">
+                        <Button type="submit" :disabled="uploadForm.processing">
+                            {{ uploadForm.processing ? 'Uploading…' : 'Upload' }}
+                        </Button>
+                        <div class="flex min-w-48 flex-1 items-center gap-3">
+                            <div v-if="uploadProgress > 0" class="h-1.5 flex-1 rounded-full bg-gray-100">
+                                <div
+                                    class="h-full rounded-full bg-brand-500 transition-all"
+                                    :style="{ width: uploadProgress + '%' }"
+                                />
+                            </div>
+                            <span v-if="uploadProgress > 0" class="w-10 text-right text-xs font-medium text-gray-500">
+                                {{ Math.round(uploadProgress) }}%
+                            </span>
+                        </div>
+                    </div>
+                </form>
+
+                <div class="flex flex-wrap items-center gap-2 border-b border-gray-100 px-6 py-4">
+                    <button
+                        type="button"
+                        class="rounded-full px-4 py-2 text-sm font-medium transition"
+                        :class="activeCategory === 'all' ? 'bg-brand-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
+                        @click="activeCategory = 'all'"
+                    >
+                        All
+                    </button>
+                    <button
+                        v-for="(meta, value) in attachmentOptions?.categories ?? {}"
+                        :key="value"
+                        type="button"
+                        class="rounded-full px-4 py-2 text-sm font-medium transition"
+                        :class="activeCategory === value ? 'bg-brand-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
+                        @click="activeCategory = value"
+                    >
+                        {{ meta.label }}
+                    </button>
+                </div>
+
+                <div v-if="!filteredAttachments.length" class="px-6 py-10 text-center">
+                    <p class="text-sm text-gray-500">No files here yet — upload the first attachment.</p>
+                </div>
+
+                <ul v-else class="grid grid-cols-2 gap-4 p-6 sm:grid-cols-3 md:grid-cols-4">
+                    <li v-for="attachment in filteredAttachments" :key="attachment.id">
+                        <button
+                            type="button"
+                            class="w-full rounded-xl border border-gray-200 bg-white p-3 text-left transition hover:border-brand-300 hover:shadow-sm"
+                            @click="openPreview(attachment)"
+                        >
+                            <div class="flex h-24 w-24 items-center justify-center overflow-hidden rounded-lg bg-gray-50">
+                                <img
+                                    v-if="isImageTile(attachment)"
+                                    :src="attachment.storage_url"
+                                    :alt="attachment.original_name"
+                                    class="h-24 w-24 rounded-lg object-cover"
+                                />
+                                <component
+                                    :is="categoryIcons[attachment.category] ?? Paperclip"
+                                    v-else
+                                    class="h-10 w-10 text-gray-400"
+                                />
+                            </div>
+                            <p class="mt-2 truncate text-sm font-medium text-gray-800">{{ attachment.original_name }}</p>
+                            <p class="text-xs text-gray-500">{{ tileCaption(attachment) }}</p>
+                        </button>
+                    </li>
+                </ul>
+            </div>
+
             <div v-else class="flex flex-col items-center gap-2 px-6 py-14 text-center">
                 <p class="text-sm font-medium text-gray-700">No records yet</p>
                 <p class="text-sm text-gray-500">
-                    Appointments and files will appear here in later phases.
+                    Appointments will appear here in a later phase.
                 </p>
             </div>
         </div>
@@ -765,6 +1028,16 @@ const formatConsentDate = (value) => {
             confirm-label="Accept signature"
             @close="closeConsentSign"
             @confirm="confirmConsentSign"
+        />
+
+        <AttachmentPreviewModal
+            :show="previewAttachment !== null"
+            :attachment="previewAttachment"
+            :category-labels="categoryLabels"
+            :xray-labels="xrayLabels"
+            :can-delete="can.attachments?.delete"
+            @close="previewAttachment = null"
+            @delete="confirmDeleteAttachment"
         />
     </div>
 </template>

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Actions\RegisterPatientAction;
+use App\Enums\AttachmentCategory;
 use App\Enums\CivilStatus;
 use App\Enums\DentitionType;
 use App\Enums\Sex;
@@ -82,6 +83,7 @@ class PatientsController extends Controller
         $canViewConsultations = $request->user()->can('consultations.view');
         $canViewTreatments = $request->user()->can('treatments.view');
         $canViewConsents = $request->user()->can('consents.view');
+        $canViewAttachments = $request->user()->can('attachments.view');
 
         $props = [
             'patient' => $patient,
@@ -93,6 +95,10 @@ class PatientsController extends Controller
                 'tmd' => Consultation::tmdOptions(),
             ],
             'toothOptions' => DentitionType::meta()['adult']['teeth'],
+            'attachmentOptions' => [
+                'categories' => AttachmentCategory::meta(),
+                'xrayTypes' => AttachmentCategory::XRAY_TYPES,
+            ],
             'can' => [
                 'update' => $request->user()->can('patients.update'),
                 'delete' => $request->user()->can('patients.delete'),
@@ -112,6 +118,11 @@ class PatientsController extends Controller
                 'consents' => [
                     'view' => $canViewConsents,
                     'sign-dentist' => $request->user()->can('consents.sign-dentist'),
+                ],
+                'attachments' => [
+                    'view' => $canViewAttachments,
+                    'upload' => $request->user()->can('attachments.upload'),
+                    'delete' => $request->user()->can('attachments.delete'),
                 ],
             ],
         ];
@@ -141,6 +152,13 @@ class PatientsController extends Controller
                 ->with('patient')
                 ->latest()
                 ->limit(5)
+                ->get();
+        }
+
+        if ($canViewAttachments) {
+            $props['attachments'] = $patient->attachments()
+                ->with('uploadedBy:id,name')
+                ->latest()
                 ->get();
         }
 
