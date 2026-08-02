@@ -153,9 +153,9 @@ const pdaRows = (consultation) => [
 
 const tabs = [
     { name: 'Appointments', icon: CalendarDays, phase: 'Phase 2' },
-    { name: 'Chart', icon: Stethoscope, phase: 'Phase 2' },
+    { name: 'Chart', icon: Stethoscope, phase: 'Phase 2', href: (id) => route('patients.chart', id) },
     { name: 'Treatments', icon: Wrench, phase: 'Phase 2' },
-    { name: 'Files', icon: FolderOpen, phase: 'Phase 2' },
+    { name: 'Files', icon: FolderOpen, phase: 'Phase 3' },
     { name: 'Consents', icon: FileText, phase: 'Phase 3' },
 ]
 </script>
@@ -456,23 +456,33 @@ const tabs = [
 
         <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
             <div class="flex gap-1 border-b border-gray-100 px-4 pt-3">
-                <button
-                    v-for="tab in tabs"
-                    :key="tab.name"
-                    type="button"
-                    disabled
-                    :title="`${tab.name} — coming in ${tab.phase}`"
-                    class="inline-flex cursor-not-allowed items-center gap-2 rounded-t-lg px-4 py-2.5 text-sm font-medium text-gray-400"
-                >
-                    <component :is="tab.icon" class="h-4 w-4" />
-                    {{ tab.name }}
-                    <Badge size="sm" color="light">{{ tab.phase }}</Badge>
-                </button>
+                <template v-for="tab in tabs" :key="tab.name">
+                    <Link
+                        v-if="tab.href"
+                        :href="tab.href(patient.id)"
+                        class="inline-flex items-center gap-2 rounded-t-lg px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:text-brand-600"
+                    >
+                        <component :is="tab.icon" class="h-4 w-4" />
+                        {{ tab.name }}
+                        <Badge size="sm" color="light">{{ tab.phase }}</Badge>
+                    </Link>
+                    <button
+                        v-else
+                        type="button"
+                        disabled
+                        :title="`${tab.name} — coming in ${tab.phase}`"
+                        class="inline-flex cursor-not-allowed items-center gap-2 rounded-t-lg px-4 py-2.5 text-sm font-medium text-gray-400"
+                    >
+                        <component :is="tab.icon" class="h-4 w-4" />
+                        {{ tab.name }}
+                        <Badge size="sm" color="light">{{ tab.phase }}</Badge>
+                    </button>
+                </template>
             </div>
             <div class="flex flex-col items-center gap-2 px-6 py-14 text-center">
                 <p class="text-sm font-medium text-gray-700">No records yet</p>
                 <p class="text-sm text-gray-500">
-                    Appointments, chart, treatments, files, and consents will appear here in later phases.
+                    Appointments, treatments, files, and consents will appear here in later phases.
                 </p>
             </div>
         </div>
