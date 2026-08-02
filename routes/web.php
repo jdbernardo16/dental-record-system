@@ -9,6 +9,7 @@ use App\Http\Controllers\DentalChartController;
 use App\Http\Controllers\MedicalHistoriesController;
 use App\Http\Controllers\PatientsController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\TreatmentsController;
 use App\Http\Controllers\UsersController;
 use App\Http\Controllers\WizardController;
@@ -102,5 +103,12 @@ Route::middleware(['auth', 'verified', 'permission:attachments.delete'])
     ->name('attachments.destroy');
 
 Route::middleware(['auth', 'verified'])->get('/wizard/{patient?}', [WizardController::class, 'index'])->name('wizard.index')->whereNumber('patient');
+
+Route::middleware(['auth', 'verified', 'permission:reports.view'])
+    ->get('/reports', [ReportsController::class, 'index'])
+    ->name('reports.index');
+Route::middleware(['auth', 'verified', 'permission:reports.view'])
+    ->get('/reports/export', [ReportsController::class, 'export'])
+    ->name('reports.export');
 
 require __DIR__.'/auth.php';
