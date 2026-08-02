@@ -7,6 +7,7 @@ use App\Http\Controllers\DentalChartController;
 use App\Http\Controllers\MedicalHistoriesController;
 use App\Http\Controllers\PatientsController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\TreatmentsController;
 use App\Http\Controllers\UsersController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -69,5 +70,12 @@ Route::middleware(['auth', 'verified', 'permission:dental-chart.view'])
 Route::middleware(['auth', 'verified', 'permission:dental-chart.update'])
     ->post('/dental-chart/entries', [DentalChartController::class, 'store'])
     ->name('dental-chart.store');
+
+Route::middleware(['auth', 'verified', 'permission:treatments.create'])
+    ->post('/patients/{patient}/treatments', [TreatmentsController::class, 'store'])
+    ->name('treatments.store');
+Route::middleware(['auth', 'verified', 'permission:treatments.sign'])
+    ->post('/treatments/{treatment}/sign', [TreatmentsController::class, 'sign'])
+    ->name('treatments.sign');
 
 require __DIR__.'/auth.php';

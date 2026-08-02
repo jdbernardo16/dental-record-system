@@ -32,7 +32,10 @@ return [
 
         'local' => [
             'driver' => 'local',
-            'root' => storage_path('app/private'),
+            // Signatures (SVG) are stored on this disk and served through the
+            // public/storage symlink (storage:link), so the root is the public
+            // dir — Laravel 11+ defaults local to app/private, which would 403.
+            'root' => storage_path('app/public'),
             'serve' => true,
             'throw' => false,
             'report' => false,

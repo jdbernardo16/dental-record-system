@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Actions\RegisterPatientAction;
 use App\Enums\CivilStatus;
+use App\Enums\DentitionType;
 use App\Enums\Sex;
 use App\Http\Requests\StorePatientRequest;
 use App\Http\Requests\UpdatePatientRequest;
@@ -75,6 +76,7 @@ class PatientsController extends Controller
 
         $canViewMedicalHistory = $request->user()->can('medical-histories.view');
         $canViewConsultations = $request->user()->can('consultations.view');
+        $canViewTreatments = $request->user()->can('treatments.view');
 
         $props = [
             'patient' => $patient,
@@ -85,6 +87,7 @@ class PatientsController extends Controller
                 'appliances' => Consultation::applianceOptions(),
                 'tmd' => Consultation::tmdOptions(),
             ],
+            'toothOptions' => DentitionType::meta()['adult']['teeth'],
             'can' => [
                 'update' => $request->user()->can('patients.update'),
                 'delete' => $request->user()->can('patients.delete'),
@@ -95,6 +98,11 @@ class PatientsController extends Controller
                 'consultations' => [
                     'create' => $request->user()->can('consultations.create'),
                     'view' => $canViewConsultations,
+                ],
+                'treatments' => [
+                    'create' => $request->user()->can('treatments.create'),
+                    'sign' => $request->user()->can('treatments.sign'),
+                    'view' => $canViewTreatments,
                 ],
             ],
         ];
@@ -107,6 +115,14 @@ class PatientsController extends Controller
             $props['consultations'] = $patient->consultations()
                 ->with('dentist:id,name')
                 ->latest('consultation_date')
+                ->limit(20)
+                ->get();
+        }
+
+        if ($canViewTreatments) {
+            $props['treatments'] = $patient->treatments()
+                ->with('dentist:id,name', 'consultation:id,chief_complaint')
+                ->latest('treatment_date')
                 ->limit(20)
                 ->get();
         }

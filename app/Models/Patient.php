@@ -88,4 +88,12 @@ class Patient extends Model
     {
         return $this->hasMany(DentalChartEntry::class);
     }
+
+    /**
+     * @return HasMany<Treatment, $this>
+     */
+    public function treatments(): HasMany
+    {
+        return $this->hasMany(Treatment::class);
+    }
 }

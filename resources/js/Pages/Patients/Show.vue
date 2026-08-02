@@ -1,12 +1,14 @@
 <script setup>
 import { ref } from 'vue'
 import { Head, Link, router, useForm } from '@inertiajs/vue3'
-import { CalendarDays, ChevronDown, FileText, FolderOpen, Pencil, Plus, Stethoscope, Trash2, Wrench } from 'lucide-vue-next'
+import { CalendarDays, ChevronDown, FileText, FolderOpen, Pencil, Plus, Signature, Stethoscope, Trash2, Wrench } from 'lucide-vue-next'
 import { route } from '../../../../vendor/tightenco/ziggy'
 import AppLayout from '@/Layouts/AppLayout.vue'
 import Badge from '@/Components/Badge.vue'
 import Button from '@/Components/Button.vue'
 import ConsultationForm from '@/Components/Wizard/ConsultationForm.vue'
+import SignaturePadModal from '@/Components/SignaturePadModal.vue'
+import TreatmentForm from '@/Components/Wizard/TreatmentForm.vue'
 import { useToastStore } from '@/Stores/toast'
 
 defineOptions({ layout: AppLayout })
@@ -17,6 +19,8 @@ const props = defineProps({
     consultations: { type: Array, default: () => [] },
     consultationCount: { type: Number, default: 0 },
     consultationOptions: { type: Object, default: () => ({}) },
+    treatments: { type: Array, default: () => [] },
+    toothOptions: { type: Array, default: () => [] },
     can: { type: Object, default: () => ({}) },
 })
 
@@ -307,10 +311,56 @@ const pdaRows = (consultation) => [
 const tabs = [
     { name: 'Appointments', icon: CalendarDays, phase: 'Phase 2' },
     { name: 'Chart', icon: Stethoscope, phase: 'Phase 2', href: (id) => route('patients.chart', id) },
-    { name: 'Treatments', icon: Wrench, phase: 'Phase 2' },
+    { name: 'Treatments', icon: Wrench, wired: true },
     { name: 'Files', icon: FolderOpen, phase: 'Phase 3' },
     { name: 'Consents', icon: FileText, phase: 'Phase 3' },
 ]
+
+const activeTab = ref(null)
+const addingTreatment = ref(false)
+const expandedTreatmentId = ref(null)
+
+const toggleExpandedTreatment = (id) => {
+    expandedTreatmentId.value = expandedTreatmentId.value === id ? null : id
+}
+
+const signModalOpen = ref(false)
+const signingTreatment = ref(null)
+
+const signForm = useForm({
+    signature_svg: '',
+})
+
+const openSign = (treatment) => {
+    signingTreatment.value = treatment
+    signModalOpen.value = true
+}
+
+const confirmSign = (svg) => {
+    signForm.signature_svg = svg
+    signForm.post(route('treatments.sign', signingTreatment.value.id), {
+        preserveScroll: true,
+        onSuccess: () => {
+            signModalOpen.value = false
+            signForm.reset()
+            signingTreatment.value = null
+            toastStore.show('Treatment signed.')
+        },
+        onError: () => {
+            toastStore.show('Signing failed — please try again.', 'error')
+        },
+    })
+}
+
+const closeSign = () => {
+    signModalOpen.value = false
+    signingTreatment.value = null
+}
+
+const formatSignedAt = (value) => {
+    if (!value) return ''
+    return new Date(value).toLocaleString()
+}
 </script>
 
 <template>
@@ -888,6 +938,23 @@ const tabs = [
                         <Badge size="sm" color="light">{{ tab.phase }}</Badge>
                     </Link>
                     <button
+                        v-else-if="tab.wired"
+                        type="button"
+                        :aria-pressed="activeTab === tab.name.toLowerCase()"
+                        class="inline-flex items-center gap-2 rounded-t-lg px-4 py-2.5 text-sm font-medium transition"
+                        :class="
+                            activeTab === tab.name.toLowerCase()
+                                ? 'bg-gray-50 text-brand-600'
+                                : 'text-gray-700 hover:text-brand-600'
+                        "
+                        @click="
+                            activeTab = activeTab === tab.name.toLowerCase() ? null : tab.name.toLowerCase()
+                        "
+                    >
+                        <component :is="tab.icon" class="h-4 w-4" />
+                        {{ tab.name }}
+                    </button>
+                    <button
                         v-else
                         type="button"
                         disabled
@@ -900,12 +967,120 @@ const tabs = [
                     </button>
                 </template>
             </div>
-            <div class="flex flex-col items-center gap-2 px-6 py-14 text-center">
+
+            <div v-if="activeTab === 'treatments'">
+                <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-6 py-4">
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-800">Treatment records</h3>
+                        <p class="mt-0.5 text-xs text-gray-500">
+                            {{ treatments.length ? `${treatments.length} on record` : 'No treatments recorded yet' }}
+                        </p>
+                    </div>
+                    <Button v-if="can.treatments?.create" variant="outline" size="sm" @click="addingTreatment = !addingTreatment">
+                        <Plus class="h-4 w-4" />
+                        {{ addingTreatment ? 'Cancel' : 'Add treatment' }}
+                    </Button>
+                </div>
+
+                <TreatmentForm
+                    v-if="addingTreatment"
+                    :patient-id="patient.id"
+                    :consultations="consultations"
+                    :tooth-options="toothOptions"
+                    class="border-b border-gray-100 p-6"
+                    @saved="addingTreatment = false"
+                />
+
+                <div v-if="!treatments.length && !addingTreatment" class="px-6 py-10 text-center">
+                    <p class="text-sm text-gray-500">No treatments yet — add the first one.</p>
+                </div>
+
+                <ul v-else class="divide-y divide-gray-100">
+                    <li v-for="treatment in treatments" :key="treatment.id">
+                        <button
+                            type="button"
+                            class="flex w-full items-center justify-between gap-3 px-6 py-4 text-left"
+                            @click="toggleExpandedTreatment(treatment.id)"
+                        >
+                            <div class="flex min-w-0 items-center gap-3">
+                                <Badge size="sm" color="light">{{ treatment.treatment_date }}</Badge>
+                                <span class="truncate text-sm font-medium text-gray-800">
+                                    {{ treatment.procedure_name }}
+                                </span>
+                            </div>
+                            <div class="flex shrink-0 items-center gap-2">
+                                <Badge v-if="treatment.tooth_number" size="sm" color="primary">
+                                    Tooth {{ treatment.tooth_number }}
+                                </Badge>
+                                <Badge size="sm" :color="treatment.signed_at ? 'success' : 'warning'">
+                                    {{ treatment.signed_at ? 'Signed' : 'Pending' }}
+                                </Badge>
+                                <span class="hidden text-xs text-gray-500 sm:inline">
+                                    {{ treatment.dentist?.name ?? '—' }}
+                                </span>
+                                <ChevronDown
+                                    class="h-4 w-4 text-gray-400 transition"
+                                    :class="{ 'rotate-180': expandedTreatmentId === treatment.id }"
+                                />
+                            </div>
+                        </button>
+
+                        <div
+                            v-if="expandedTreatmentId === treatment.id"
+                            class="space-y-4 border-t border-gray-100 bg-gray-50/50 px-6 py-5"
+                        >
+                            <div v-if="treatment.description">
+                                <p class="text-xs font-medium text-gray-500">Description</p>
+                                <p class="mt-1 text-sm text-gray-800">{{ treatment.description }}</p>
+                            </div>
+                            <div v-if="treatment.notes">
+                                <p class="text-xs font-medium text-gray-500">Notes</p>
+                                <p class="mt-1 text-sm text-gray-800">{{ treatment.notes }}</p>
+                            </div>
+                            <div v-if="treatment.consultation">
+                                <p class="text-xs font-medium text-gray-500">Linked consultation</p>
+                                <p class="mt-1 text-sm text-gray-800">
+                                    {{ treatment.consultation.chief_complaint }}
+                                </p>
+                            </div>
+                            <div v-if="treatment.signed_at">
+                                <p class="text-xs font-medium text-gray-500">Dentist signature</p>
+                                <img
+                                    v-if="treatment.signature_path"
+                                    :src="'/storage/' + treatment.signature_path"
+                                    :alt="`Signature for ${treatment.procedure_name}`"
+                                    class="mt-2 max-h-40 rounded-lg border border-gray-200 bg-white"
+                                />
+                                <p class="mt-2 text-xs text-gray-500">
+                                    Signed {{ formatSignedAt(treatment.signed_at) }} by
+                                    {{ treatment.dentist?.name ?? 'the attending dentist' }}
+                                </p>
+                            </div>
+                            <div v-else-if="can.treatments?.sign" class="flex justify-end">
+                                <Button size="sm" @click="openSign(treatment)">
+                                    <Signature class="h-4 w-4" />
+                                    Sign treatment
+                                </Button>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            <div v-else class="flex flex-col items-center gap-2 px-6 py-14 text-center">
                 <p class="text-sm font-medium text-gray-700">No records yet</p>
                 <p class="text-sm text-gray-500">
-                    Appointments, treatments, files, and consents will appear here in later phases.
+                    Appointments, files, and consents will appear here in later phases.
                 </p>
             </div>
         </div>
+
+        <SignaturePadModal
+            :show="signModalOpen"
+            title="Sign treatment"
+            confirm-label="Accept signature"
+            @close="closeSign"
+            @confirm="confirmSign"
+        />
     </div>
 </template>
