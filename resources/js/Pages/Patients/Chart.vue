@@ -99,8 +99,13 @@ const restorationLabel = (key) => props.options.restorations?.[key]?.label ?? ke
 /** Editing UI is only shown when the user may update and is viewing the current state. */
 const editing = computed(() => props.can.update && !props.asOf)
 
+const hasToolSelected = computed(() => Boolean(selectedCondition.value || selectedRestoration.value))
+
 const hintText = computed(() => {
-    let text = 'Tap a condition or restoration, then tap a tooth (or its surface) to record it. Changes are saved instantly.'
+    if (!hasToolSelected.value) {
+        return 'Step 1: tap a condition or restoration below · Step 2: tap the tooth (or its surface) to record it.'
+    }
+    let text = 'Now tap a tooth (or its surface) to record the selected item.'
     if (selectedCondition.value && wholeToothOnly().includes(selectedCondition.value)) {
         text += ' This condition applies to the whole tooth only.'
     }
@@ -171,7 +176,13 @@ const chipClass = (selected) => [
                 No chart entries yet — tap a condition then a tooth to begin.
             </p>
 
-            <div v-if="editing" class="mt-4 rounded-xl bg-gray-50 px-4 py-3 text-sm text-gray-600">
+            <div
+                v-if="editing && !hasToolSelected"
+                class="mt-4 rounded-xl border border-dashed border-brand-300 bg-brand-50 px-4 py-3 text-sm font-medium text-brand-700"
+            >
+                {{ hintText }}
+            </div>
+            <div v-else-if="editing" class="mt-4 rounded-xl bg-gray-50 px-4 py-3 text-sm text-gray-600">
                 {{ hintText }}
             </div>
         </div>

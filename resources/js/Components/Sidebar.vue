@@ -39,14 +39,14 @@ const navGroups = computed(() => [
                 name: 'New intake',
                 icon: ClipboardPlus,
                 href: route('wizard.index'),
-                routeName: 'wizard.index',
+                routeName: 'wizard.*',
             },
             ...(canManagePatients.value
                 ? [{
                     name: 'Patients',
                     icon: Users,
                     href: route('patients.index'),
-                    routes: ['patients.index', 'patients.create', 'patients.show', 'patients.edit'],
+                    routes: ['patients.*'],
                 }]
                 : [{ name: 'Patients', icon: Users, badge: 'Phase 2' }]),
             ...(canManageAppointments.value
@@ -54,24 +54,29 @@ const navGroups = computed(() => [
                     name: 'Appointments',
                     icon: CalendarDays,
                     href: route('appointments.index'),
-                    routes: ['appointments.index'],
+                    routes: ['appointments.*'],
                 }]
                 : [{ name: 'Appointments', icon: CalendarDays, badge: 'No access' }]),
             ...(canManageUsers.value
-                ? [{ name: 'Users', icon: ShieldCheck, href: route('users.index'), routeName: 'users.index' }]
+                ? [{ name: 'Users', icon: ShieldCheck, href: route('users.index'), routeName: 'users.*' }]
                 : [{ name: 'Users', icon: ShieldCheck, badge: 'Admin' }]),
             ...(canViewReports.value
-                ? [{ name: 'Reports', icon: BarChart3, href: route('reports.index'), routeName: 'reports.index' }]
+                ? [{ name: 'Reports', icon: BarChart3, href: route('reports.index'), routeName: 'reports.*' }]
                 : []),
             ...(canViewSettings.value
-                ? [{ name: 'Settings', icon: Settings, href: route('settings.index'), routeName: 'settings.index' }]
+                ? [{ name: 'Settings', icon: Settings, href: route('settings.index'), routeName: 'settings.*' }]
                 : []),
         ],
     },
 ])
 
-const isActive = (item) =>
-    (item.routes ?? [item.routeName]).filter(Boolean).some((name) => route().current(name))
+const isActive = (item) => {
+    const current = route().current()
+    if (typeof current !== 'string') return false
+    return (item.routes ?? [item.routeName])
+        .filter(Boolean)
+        .some((name) => route().current(name))
+}
 </script>
 
 <template>
