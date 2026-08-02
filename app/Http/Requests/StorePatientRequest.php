@@ -25,6 +25,15 @@ class StorePatientRequest extends FormRequest
             'email_address' => ['nullable', 'email', 'max:255'],
             'emergency_contact_person' => ['required', 'string', 'max:255'],
             'emergency_contact_number' => ['required', 'string', 'regex:/^[0-9+ -]{7,20}$/'],
+            'religion' => ['nullable', 'string', 'max:100'],
+            'nickname' => ['nullable', 'string', 'max:100'],
+            'home_phone' => ['nullable', 'string', 'max:30'],
+            'office_phone' => ['nullable', 'string', 'max:30'],
+            'fax_number' => ['nullable', 'string', 'max:30'],
+            'dental_insurance' => ['nullable', 'string', 'max:255'],
+            'effective_date' => ['nullable', 'date'],
+            'guardian_name' => ['nullable', 'string', 'max:255'],
+            'guardian_occupation' => ['nullable', 'string', 'max:255'],
         ];
     }
 }

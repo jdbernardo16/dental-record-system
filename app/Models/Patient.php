@@ -21,6 +21,17 @@ class Patient extends Model
 
     protected $appends = ['age'];
 
+    /** PDA Page 1 Q13 medical conditions (36 keys). */
+    public const MEDICAL_CONDITION_KEYS = [
+        'high_blood_pressure', 'low_blood_pressure', 'epilepsy', 'aids_hiv', 'sexually_transmitted_disease',
+        'stomach_ulcers', 'fainting_seizure', 'rapid_weight_loss', 'radiation_therapy', 'joint_replacement',
+        'heart_surgery', 'heart_attack', 'thyroid_problem', 'heart_disease', 'heart_murmur',
+        'hepatitis_liver_disease', 'rheumatic_fever', 'hay_fever', 'respiratory_problems',
+        'hepatitis_jaundice', 'tuberculosis', 'swollen_ankles', 'kidney_disease', 'diabetes',
+        'chest_pain', 'stroke', 'cancer_tumors', 'anemia', 'angina', 'asthma', 'emphysema',
+        'bleeding_disorders', 'blood_diseases', 'head_injuries', 'arthritis', 'others',
+    ];
+
     /**
      * Get the attributes that should be cast.
      *
@@ -30,6 +41,7 @@ class Patient extends Model
     {
         return [
             'birth_date' => 'date:Y-m-d',
+            'effective_date' => 'date:Y-m-d',
             'sex' => Sex::class,
             'civil_status' => CivilStatus::class,
         ];

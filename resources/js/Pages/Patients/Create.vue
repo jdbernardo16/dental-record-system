@@ -29,6 +29,15 @@ const form = useForm({
     email_address: '',
     emergency_contact_person: '',
     emergency_contact_number: '',
+    religion: '',
+    nickname: '',
+    home_phone: '',
+    office_phone: '',
+    fax_number: '',
+    dental_insurance: '',
+    effective_date: '',
+    guardian_name: '',
+    guardian_occupation: '',
 })
 
 const submit = () => {
@@ -177,6 +186,67 @@ const submit = () => {
                     placeholder="0917 987 6543"
                     required
                     :error="form.errors.emergency_contact_number"
+                />
+            </section>
+
+            <hr class="border-gray-100" />
+
+            <section class="space-y-5">
+                <h2 class="text-sm font-semibold text-gray-800">PDA additional details</h2>
+                <p class="text-xs text-gray-500">Optional fields from the PDA patient information record.</p>
+                <Input
+                    v-model="form.religion"
+                    label="Religion"
+                    placeholder="Optional"
+                    :error="form.errors.religion"
+                />
+                <Input
+                    v-model="form.nickname"
+                    label="Nickname"
+                    placeholder="Optional"
+                    :error="form.errors.nickname"
+                />
+                <Input
+                    v-model="form.home_phone"
+                    label="Home phone"
+                    placeholder="02 8123 4567"
+                    :error="form.errors.home_phone"
+                />
+                <Input
+                    v-model="form.office_phone"
+                    label="Office phone"
+                    placeholder="02 8765 4321"
+                    :error="form.errors.office_phone"
+                />
+                <Input
+                    v-model="form.fax_number"
+                    label="Fax number"
+                    placeholder="Optional"
+                    :error="form.errors.fax_number"
+                />
+                <Input
+                    v-model="form.dental_insurance"
+                    label="Dental insurance"
+                    placeholder="e.g. PhilHealth"
+                    :error="form.errors.dental_insurance"
+                />
+                <Input
+                    v-model="form.effective_date"
+                    type="date"
+                    label="Effective date"
+                    :error="form.errors.effective_date"
+                />
+                <Input
+                    v-model="form.guardian_name"
+                    label="Guardian name"
+                    placeholder="For minors"
+                    :error="form.errors.guardian_name"
+                />
+                <Input
+                    v-model="form.guardian_occupation"
+                    label="Guardian occupation"
+                    placeholder="For minors"
+                    :error="form.errors.guardian_occupation"
                 />
             </section>
 

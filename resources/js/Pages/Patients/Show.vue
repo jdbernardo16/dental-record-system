@@ -67,6 +67,92 @@ const answerLabels = { no: 'No', yes: 'Yes', not_applicable: 'N/A' }
 const answerBadgeColor = (value) =>
     value === 'yes' ? 'success' : value === 'not_applicable' ? 'warning' : 'light'
 
+const pdaAnswers = ['no', 'yes']
+const pdaAnswerLabels = { no: 'No', yes: 'Yes' }
+
+const bloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']
+
+const pdaPillQuestions = [
+    { key: 'good_health', label: 'Are you in good health?', group: 'general' },
+    {
+        key: 'under_medical_treatment',
+        label: 'Are you under medical treatment now?',
+        group: 'general',
+        detailsKey: 'medical_treatment_details',
+    },
+    {
+        key: 'hospitalized',
+        label: 'Have you ever been hospitalized?',
+        group: 'general',
+        detailsKey: 'hospitalization_details',
+    },
+    {
+        key: 'drug_use',
+        label: 'Do you use alcohol, cocaine, or dangerous drugs?',
+        group: 'general',
+        detailsKey: 'drug_use_details',
+    },
+    { key: 'nursing', label: 'Are you nursing?', group: 'women' },
+    { key: 'birth_control_pills', label: 'Are you taking birth control pills?', group: 'women' },
+]
+
+const pdaQuestionsIn = (group) => pdaPillQuestions.filter((q) => q.group === group)
+
+const physicianFields = [
+    { key: 'physician_name', label: 'Physician name' },
+    { key: 'physician_specialty', label: 'Specialty' },
+    { key: 'physician_address', label: 'Office address' },
+    { key: 'physician_phone', label: 'Office number' },
+]
+
+/** PDA Page 1 Q13 medical condition labels (36 keys). */
+const pdaConditionLabels = {
+    high_blood_pressure: 'High blood pressure',
+    low_blood_pressure: 'Low blood pressure',
+    epilepsy: 'Epilepsy',
+    aids_hiv: 'AIDS or HIV infection',
+    sexually_transmitted_disease: 'Sexually transmitted disease',
+    stomach_ulcers: 'Stomach ulcers',
+    fainting_seizure: 'Fainting seizure',
+    rapid_weight_loss: 'Rapid weight loss',
+    radiation_therapy: 'Radiation therapy',
+    joint_replacement: 'Joint replacement',
+    heart_surgery: 'Heart surgery',
+    heart_attack: 'Heart attack',
+    thyroid_problem: 'Thyroid problem',
+    heart_disease: 'Heart disease',
+    heart_murmur: 'Heart murmur',
+    hepatitis_liver_disease: 'Hepatitis or liver disease',
+    rheumatic_fever: 'Rheumatic fever',
+    hay_fever: 'Hay fever',
+    respiratory_problems: 'Respiratory problems',
+    hepatitis_jaundice: 'Hepatitis or jaundice',
+    tuberculosis: 'Tuberculosis',
+    swollen_ankles: 'Swollen ankles',
+    kidney_disease: 'Kidney disease',
+    diabetes: 'Diabetes',
+    chest_pain: 'Chest pain',
+    stroke: 'Stroke',
+    cancer_tumors: 'Cancer or tumors',
+    anemia: 'Anemia',
+    angina: 'Angina',
+    asthma: 'Asthma',
+    emphysema: 'Emphysema',
+    bleeding_disorders: 'Bleeding disorders',
+    blood_diseases: 'Blood diseases',
+    head_injuries: 'Head injuries',
+    arthritis: 'Arthritis',
+    others: 'Others',
+}
+
+const toggleCondition = (key) => {
+    if (form.conditions_checklist.includes(key)) {
+        form.conditions_checklist = form.conditions_checklist.filter((item) => item !== key)
+    } else {
+        form.conditions_checklist = [...form.conditions_checklist, key]
+    }
+}
+
 const editing = ref(false)
 
 const form = useForm({
@@ -86,6 +172,26 @@ const form = useForm({
     alcohol_details: '',
     surgeries_details: '',
     remarks: '',
+    good_health: null,
+    under_medical_treatment: null,
+    medical_treatment_details: '',
+    hospitalized: null,
+    hospitalization_details: '',
+    nursing: null,
+    birth_control_pills: null,
+    bleeding_time: '',
+    blood_type: '',
+    blood_pressure: '',
+    conditions_checklist: [],
+    physician_name: '',
+    physician_specialty: '',
+    physician_address: '',
+    physician_phone: '',
+    dental_history_previous_dentist: '',
+    dental_history_last_visit: '',
+    referral_source: '',
+    drug_use: null,
+    drug_use_details: '',
 })
 
 const openEditor = () => {
@@ -94,7 +200,22 @@ const openEditor = () => {
         form[q.key] = history?.[q.key] ?? 'no'
         if (q.detailsKey) form[q.detailsKey] = history?.[q.detailsKey] ?? ''
     }
+    for (const q of pdaPillQuestions) {
+        form[q.key] = history?.[q.key] ?? null
+        if (q.detailsKey) form[q.detailsKey] = history?.[q.detailsKey] ?? ''
+    }
     form.remarks = history?.remarks ?? ''
+    form.bleeding_time = history?.bleeding_time ?? ''
+    form.blood_type = history?.blood_type ?? ''
+    form.blood_pressure = history?.blood_pressure ?? ''
+    form.conditions_checklist = history?.conditions_checklist ?? []
+    form.physician_name = history?.physician_name ?? ''
+    form.physician_specialty = history?.physician_specialty ?? ''
+    form.physician_address = history?.physician_address ?? ''
+    form.physician_phone = history?.physician_phone ?? ''
+    form.dental_history_previous_dentist = history?.dental_history_previous_dentist ?? ''
+    form.dental_history_last_visit = history?.dental_history_last_visit ?? ''
+    form.referral_source = history?.referral_source ?? ''
     editing.value = true
 }
 
@@ -112,6 +233,38 @@ const detailedAnswers = () =>
     questions.filter(
         (q) => q.detailsKey && props.medicalHistory?.[q.key] === 'yes' && props.medicalHistory?.[q.detailsKey],
     )
+
+const pdaDisplayRows = () => {
+    const rows = []
+    const history = props.medicalHistory ?? {}
+    const add = (label, value) => {
+        if (value !== null && value !== undefined && value !== '') rows.push({ label, value })
+    }
+    add('Good health', pdaAnswerLabels[history.good_health])
+    add('Under medical treatment', pdaAnswerLabels[history.under_medical_treatment])
+    add('Medical treatment details', history.medical_treatment_details)
+    add('Hospitalized', pdaAnswerLabels[history.hospitalized])
+    add('Hospitalization details', history.hospitalization_details)
+    add('Bleeding time', history.bleeding_time)
+    add('Blood type', history.blood_type)
+    add('Blood pressure', history.blood_pressure)
+    add('Drug use', pdaAnswerLabels[history.drug_use])
+    add('Drug use details', history.drug_use_details)
+    add('Nursing', pdaAnswerLabels[history.nursing])
+    add('Birth control pills', pdaAnswerLabels[history.birth_control_pills])
+    add('Physician name', history.physician_name)
+    add('Physician specialty', history.physician_specialty)
+    add('Physician address', history.physician_address)
+    add('Physician phone', history.physician_phone)
+    add('Previous dentist', history.dental_history_previous_dentist)
+    add('Last dental visit', history.dental_history_last_visit)
+    add('Referral source', history.referral_source)
+
+    return rows
+}
+
+const conditionLabels = () =>
+    (props.medicalHistory?.conditions_checklist ?? []).map((key) => pdaConditionLabels[key] ?? key)
 
 const confirmDelete = () => {
     if (window.confirm(`Delete ${fullName()}? The record can be restored by an administrator.`)) {
@@ -296,6 +449,28 @@ const tabs = [
                     <p class="text-xs font-medium text-gray-500">Remarks</p>
                     <p class="mt-1 text-sm text-gray-800">{{ medicalHistory.remarks }}</p>
                 </div>
+                <div
+                    v-if="pdaDisplayRows().length || conditionLabels().length"
+                    class="rounded-xl bg-gray-50 px-4 py-3 sm:col-span-2"
+                >
+                    <p class="text-xs font-semibold tracking-wide text-gray-400 uppercase">PDA screening</p>
+                    <dl class="mt-2 grid grid-cols-1 gap-x-8 gap-y-3 text-sm sm:grid-cols-2">
+                        <div
+                            v-for="row in pdaDisplayRows()"
+                            :key="row.label"
+                            class="flex items-start justify-between gap-4"
+                        >
+                            <dt class="text-gray-500">{{ row.label }}</dt>
+                            <dd class="text-right font-medium text-gray-800">{{ row.value }}</dd>
+                        </div>
+                    </dl>
+                    <div v-if="conditionLabels().length" class="mt-3 flex flex-wrap items-center gap-1.5">
+                        <span class="text-xs font-medium text-gray-500">Conditions</span>
+                        <Badge v-for="label in conditionLabels()" :key="label" size="sm" color="primary">
+                            {{ label }}
+                        </Badge>
+                    </div>
+                </div>
             </div>
 
             <form v-else class="space-y-6 p-6" @submit.prevent="saveMedicalHistory">
@@ -337,6 +512,252 @@ const tabs = [
                     <p v-if="q.detailsKey && form.errors[q.detailsKey]" class="text-xs text-status-cancelled">
                         {{ form.errors[q.detailsKey] }}
                     </p>
+                </div>
+
+                <div class="space-y-2 rounded-xl border border-gray-100 p-2">
+                    <details class="group rounded-lg">
+                        <summary
+                            class="flex min-h-11 cursor-pointer items-center justify-between gap-3 rounded-lg px-4 py-3 text-sm font-semibold text-gray-800 transition select-none hover:bg-gray-50"
+                        >
+                            <span>General health</span>
+                            <ChevronDown class="h-4 w-4 text-gray-400 transition group-open:rotate-180" />
+                        </summary>
+                        <div class="space-y-4 border-t border-gray-100 p-3">
+                            <template v-for="q in pdaQuestionsIn('general')" :key="q.key">
+                                <div class="space-y-2.5">
+                                    <div class="flex flex-wrap items-center justify-between gap-3">
+                                        <p class="text-sm font-medium text-gray-700">{{ q.label }}</p>
+                                        <div
+                                            class="inline-flex gap-1 rounded-full bg-gray-100 p-1"
+                                            role="radiogroup"
+                                            :aria-label="q.label"
+                                        >
+                                            <button
+                                                v-for="answer in pdaAnswers"
+                                                :key="answer"
+                                                type="button"
+                                                role="radio"
+                                                :aria-checked="form[q.key] === answer"
+                                                :class="[
+                                                    'min-h-11 rounded-full px-4 text-sm font-medium transition',
+                                                    form[q.key] === answer
+                                                        ? 'bg-white text-gray-900 shadow-sm'
+                                                        : 'text-gray-500',
+                                                ]"
+                                                @click="form[q.key] = answer"
+                                            >
+                                                {{ pdaAnswerLabels[answer] }}
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <p v-if="form.errors[q.key]" class="text-xs text-status-cancelled">
+                                        {{ form.errors[q.key] }}
+                                    </p>
+                                    <textarea
+                                        v-if="q.detailsKey && form[q.key] === 'yes'"
+                                        v-model="form[q.detailsKey]"
+                                        :rows="2"
+                                        :placeholder="`Details for ${q.label.toLowerCase()}…`"
+                                        class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
+                                    />
+                                    <p v-if="q.detailsKey && form.errors[q.detailsKey]" class="text-xs text-status-cancelled">
+                                        {{ form.errors[q.detailsKey] }}
+                                    </p>
+                                </div>
+                            </template>
+
+                            <div>
+                                <label class="mb-1.5 block text-sm font-medium text-gray-700">Bleeding time</label>
+                                <input
+                                    v-model="form.bleeding_time"
+                                    type="text"
+                                    placeholder="e.g. normal"
+                                    class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
+                                    :class="{ 'border-status-cancelled': form.errors.bleeding_time }"
+                                />
+                                <p v-if="form.errors.bleeding_time" class="mt-1.5 text-xs text-status-cancelled">
+                                    {{ form.errors.bleeding_time }}
+                                </p>
+                            </div>
+
+                            <div>
+                                <label for="blood_type" class="mb-1.5 block text-sm font-medium text-gray-700">
+                                    Blood type
+                                </label>
+                                <select
+                                    id="blood_type"
+                                    v-model="form.blood_type"
+                                    class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
+                                    :class="{ 'border-status-cancelled': form.errors.blood_type }"
+                                >
+                                    <option value="" disabled>Select blood type</option>
+                                    <option v-for="type in bloodTypes" :key="type" :value="type">{{ type }}</option>
+                                </select>
+                                <p v-if="form.errors.blood_type" class="mt-1.5 text-xs text-status-cancelled">
+                                    {{ form.errors.blood_type }}
+                                </p>
+                            </div>
+
+                            <div>
+                                <label class="mb-1.5 block text-sm font-medium text-gray-700">Blood pressure</label>
+                                <input
+                                    v-model="form.blood_pressure"
+                                    type="text"
+                                    placeholder="e.g. 120/80"
+                                    class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
+                                    :class="{ 'border-status-cancelled': form.errors.blood_pressure }"
+                                />
+                                <p v-if="form.errors.blood_pressure" class="mt-1.5 text-xs text-status-cancelled">
+                                    {{ form.errors.blood_pressure }}
+                                </p>
+                            </div>
+                        </div>
+                    </details>
+
+                    <details class="group rounded-lg">
+                        <summary
+                            class="flex min-h-11 cursor-pointer items-center justify-between gap-3 rounded-lg px-4 py-3 text-sm font-semibold text-gray-800 transition select-none hover:bg-gray-50"
+                        >
+                            <span>Physician</span>
+                            <ChevronDown class="h-4 w-4 text-gray-400 transition group-open:rotate-180" />
+                        </summary>
+                        <div class="space-y-4 border-t border-gray-100 p-3">
+                            <div v-for="field in physicianFields" :key="field.key">
+                                <label class="mb-1.5 block text-sm font-medium text-gray-700">{{ field.label }}</label>
+                                <input
+                                    v-model="form[field.key]"
+                                    type="text"
+                                    class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
+                                    :class="{ 'border-status-cancelled': form.errors[field.key] }"
+                                />
+                                <p v-if="form.errors[field.key]" class="mt-1.5 text-xs text-status-cancelled">
+                                    {{ form.errors[field.key] }}
+                                </p>
+                            </div>
+                        </div>
+                    </details>
+
+                    <details class="group rounded-lg">
+                        <summary
+                            class="flex min-h-11 cursor-pointer items-center justify-between gap-3 rounded-lg px-4 py-3 text-sm font-semibold text-gray-800 transition select-none hover:bg-gray-50"
+                        >
+                            <span>Dental history</span>
+                            <ChevronDown class="h-4 w-4 text-gray-400 transition group-open:rotate-180" />
+                        </summary>
+                        <div class="space-y-4 border-t border-gray-100 p-3">
+                            <div>
+                                <label class="mb-1.5 block text-sm font-medium text-gray-700">Previous dentist</label>
+                                <input
+                                    v-model="form.dental_history_previous_dentist"
+                                    type="text"
+                                    class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
+                                    :class="{ 'border-status-cancelled': form.errors.dental_history_previous_dentist }"
+                                />
+                                <p v-if="form.errors.dental_history_previous_dentist" class="mt-1.5 text-xs text-status-cancelled">
+                                    {{ form.errors.dental_history_previous_dentist }}
+                                </p>
+                            </div>
+                            <div>
+                                <label class="mb-1.5 block text-sm font-medium text-gray-700">Last dental visit</label>
+                                <input
+                                    v-model="form.dental_history_last_visit"
+                                    type="date"
+                                    class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
+                                    :class="{ 'border-status-cancelled': form.errors.dental_history_last_visit }"
+                                />
+                                <p v-if="form.errors.dental_history_last_visit" class="mt-1.5 text-xs text-status-cancelled">
+                                    {{ form.errors.dental_history_last_visit }}
+                                </p>
+                            </div>
+                            <div>
+                                <label class="mb-1.5 block text-sm font-medium text-gray-700">Referral source</label>
+                                <input
+                                    v-model="form.referral_source"
+                                    type="text"
+                                    placeholder="Who may we thank for referring you?"
+                                    class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
+                                    :class="{ 'border-status-cancelled': form.errors.referral_source }"
+                                />
+                                <p v-if="form.errors.referral_source" class="mt-1.5 text-xs text-status-cancelled">
+                                    {{ form.errors.referral_source }}
+                                </p>
+                            </div>
+                        </div>
+                    </details>
+
+                    <details class="group rounded-lg">
+                        <summary
+                            class="flex min-h-11 cursor-pointer items-center justify-between gap-3 rounded-lg px-4 py-3 text-sm font-semibold text-gray-800 transition select-none hover:bg-gray-50"
+                        >
+                            <span>For women only</span>
+                            <ChevronDown class="h-4 w-4 text-gray-400 transition group-open:rotate-180" />
+                        </summary>
+                        <div class="space-y-4 border-t border-gray-100 p-3">
+                            <template v-for="q in pdaQuestionsIn('women')" :key="q.key">
+                                <div class="space-y-2.5">
+                                    <div class="flex flex-wrap items-center justify-between gap-3">
+                                        <p class="text-sm font-medium text-gray-700">{{ q.label }}</p>
+                                        <div
+                                            class="inline-flex gap-1 rounded-full bg-gray-100 p-1"
+                                            role="radiogroup"
+                                            :aria-label="q.label"
+                                        >
+                                            <button
+                                                v-for="answer in pdaAnswers"
+                                                :key="answer"
+                                                type="button"
+                                                role="radio"
+                                                :aria-checked="form[q.key] === answer"
+                                                :class="[
+                                                    'min-h-11 rounded-full px-4 text-sm font-medium transition',
+                                                    form[q.key] === answer
+                                                        ? 'bg-white text-gray-900 shadow-sm'
+                                                        : 'text-gray-500',
+                                                ]"
+                                                @click="form[q.key] = answer"
+                                            >
+                                                {{ pdaAnswerLabels[answer] }}
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <p v-if="form.errors[q.key]" class="text-xs text-status-cancelled">
+                                        {{ form.errors[q.key] }}
+                                    </p>
+                                </div>
+                            </template>
+                        </div>
+                    </details>
+
+                    <details class="group rounded-lg">
+                        <summary
+                            class="flex min-h-11 cursor-pointer items-center justify-between gap-3 rounded-lg px-4 py-3 text-sm font-semibold text-gray-800 transition select-none hover:bg-gray-50"
+                        >
+                            <span>Medical conditions checklist</span>
+                            <ChevronDown class="h-4 w-4 text-gray-400 transition group-open:rotate-180" />
+                        </summary>
+                        <div class="space-y-3 border-t border-gray-100 p-3">
+                            <div class="flex flex-wrap gap-2">
+                                <button
+                                    v-for="(label, key) in pdaConditionLabels"
+                                    :key="key"
+                                    type="button"
+                                    :aria-pressed="form.conditions_checklist.includes(key)"
+                                    :class="[
+                                        'min-h-11 min-w-11 rounded-lg border px-4 py-2 text-sm font-medium transition',
+                                        form.conditions_checklist.includes(key)
+                                            ? 'border-brand-500 bg-brand-50 text-brand-700'
+                                            : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300',
+                                    ]"
+                                    @click="toggleCondition(key)"
+                                >
+                                    {{ label }}
+                                </button>
+                            </div>
+                            <p v-if="form.errors.conditions_checklist" class="text-xs text-status-cancelled">
+                                {{ form.errors.conditions_checklist }}
+                            </p>
+                        </div>
+                    </details>
                 </div>
 
                 <div>
