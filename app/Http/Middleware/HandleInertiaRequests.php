@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\SettingsService;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -40,6 +41,10 @@ class HandleInertiaRequests extends Middleware
                     'reports' => $request->user()?->can('reports.view') ?? false,
                     'settings' => $request->user()?->can('settings.view') ?? false,
                 ],
+            ],
+            'clinic' => [
+                'name' => app(SettingsService::class)->get('clinic.name', 'Dental Clinic'),
+                'address' => app(SettingsService::class)->get('clinic.address', ''),
             ],
             'can' => [
                 'reports' => fn () => $request->user()?->can('reports.view') ?? false,
