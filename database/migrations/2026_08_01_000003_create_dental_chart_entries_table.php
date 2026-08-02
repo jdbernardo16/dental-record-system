@@ -22,7 +22,7 @@ return new class extends Migration
             $table->foreignId('recorded_by')->constrained('users')->cascadeOnDelete();
             $table->timestamps();
 
-            $table->index(['patient_id', 'tooth_number', 'surface', 'recorded_at']);
+            $table->index(['patient_id', 'tooth_number', 'surface', 'recorded_at'], 'dental_chart_entries_patient_tooth_surface_date_idx');
         });
     }
 
