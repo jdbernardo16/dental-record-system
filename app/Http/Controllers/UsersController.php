@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
+use App\Mail\WelcomeMail;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -52,6 +54,8 @@ class UsersController extends Controller
 
         $user = User::create($request->validated());
         $user->assignRole($request->validated('role'));
+
+        Mail::to($user)->queue(new WelcomeMail($user, $request->validated('role')));
 
         activity()
             ->performedOn($user)
