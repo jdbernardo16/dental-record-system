@@ -1,0 +1,2263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DCPRS CMS Manual</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cover-bg: #0a0a0a;
+    --cover-text: #FFFFFF;
+    --cover-accent: #FFD700;
+    --section-bg: #1a1a1a;
+    --section-accent: #FFD700;
+    --content-bg: #FFFFFF;
+    --content-text: #1a1a1a;
+    --content-title: #1a1a1a;
+    --step-header: #1a1a1a;
+    --note-bg: #FFF9E6;
+    --note-border: #FFD700;
+    --epilogue-text: #666666;
+    --prologue-text: #666666;
+    --muted: #888888;
+    --border-light: #e5e5e5;
+    --panel-left-bg: #fafafa;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    width: 100%; height: 100%;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--content-bg);
+    overflow: hidden;
+    color: var(--content-text);
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* ===== DECK ===== */
+  .deck {
+    position: relative;
+    width: 100%; height: 100%;
+    overflow: hidden;
+  }
+
+  .slides-container {
+    position: relative;
+    width: 100%; height: 100%;
+  }
+
+  .slide {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    opacity: 0;
+    transform: translateX(40px);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+    pointer-events: none;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    background: var(--content-bg);
+  }
+
+  .slide.active {
+    opacity: 1;
+    transform: translateX(0);
+    pointer-events: auto;
+    z-index: 10;
+  }
+
+  .slide.prev {
+    opacity: 0;
+    transform: translateX(-40px);
+    z-index: 5;
+  }
+
+  /* ===== TOP BAR ===== */
+  .top-bar {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 48px;
+    background: var(--content-bg);
+    border-bottom: 1px solid var(--border-light);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 32px;
+    z-index: 100;
+    flex-shrink: 0;
+  }
+
+  .top-bar-section {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--cover-accent);
+    min-width: 160px;
+  }
+
+  .top-bar-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .top-bar-counter {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+    min-width: 160px;
+    text-align: right;
+  }
+
+  .top-bar-counter span {
+    color: var(--cover-accent);
+    font-weight: 700;
+  }
+
+  /* ===== COVER SLIDE ===== */
+  .slide-cover {
+    background: var(--cover-bg);
+    width: 100%; height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cover-inner {
+    text-align: center;
+    z-index: 1;
+    padding: 40px;
+    max-width: 900px;
+  }
+
+  .cover-accent-bar {
+    width: 80px; height: 4px;
+    background: var(--cover-accent);
+    margin: 0 auto 40px;
+    border-radius: 2px;
+  }
+
+  .cover-title {
+    font-size: clamp(36px, 5vw, 64px);
+    font-weight: 900;
+    color: var(--cover-text);
+    line-height: 1.1;
+    margin: 0 0 20px;
+    letter-spacing: -0.02em;
+  }
+
+  .cover-subtitle {
+    font-size: clamp(14px, 2vw, 20px);
+    font-weight: 700;
+    color: var(--cover-accent);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin: 0 0 32px;
+  }
+
+  .cover-tagline {
+    font-size: clamp(13px, 1.3vw, 16px);
+    color: var(--muted);
+    font-weight: 400;
+    margin: 0 auto 48px;
+    max-width: 520px;
+    line-height: 1.6;
+  }
+
+  .cover-logo-placeholder {
+    width: 120px; height: 120px;
+    border: 2px solid var(--cover-accent);
+    border-radius: 50%;
+    margin: 0 auto 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--cover-accent);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .cover-date {
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    padding-top: 24px;
+    display: inline-block;
+    width: 100%;
+    text-align: center;
+  }
+
+  /* ===== SECTION DIVIDER ===== */
+  .slide-divider {
+    background: var(--section-bg);
+    width: 100%; height: 100%;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .divider-accent-bar {
+    width: 100%; height: 4px;
+    background: var(--section-accent);
+    flex-shrink: 0;
+  }
+
+  .divider-body {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    padding: 0 80px;
+    margin-top: 48px;
+    gap: 60px;
+    z-index: 1;
+  }
+
+  .divider-left {
+    flex: 1;
+  }
+
+  .divider-section-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+
+  .divider-number {
+    font-size: clamp(72px, 9vw, 120px);
+    font-weight: 900;
+    color: var(--section-accent);
+    line-height: 0.9;
+    margin: 0 0 24px;
+    letter-spacing: -0.02em;
+  }
+
+  .divider-line {
+    width: 48px; height: 3px;
+    background: var(--section-accent);
+    border-radius: 2px;
+    margin-bottom: 24px;
+  }
+
+  .divider-title {
+    font-size: clamp(28px, 3.5vw, 48px);
+    font-weight: 800;
+    color: var(--cover-text);
+    line-height: 1.15;
+    margin: 0 0 16px;
+    letter-spacing: -0.01em;
+  }
+
+  .divider-subtitle {
+    font-size: clamp(13px, 1.3vw, 16px);
+    color: var(--muted);
+    font-weight: 400;
+    line-height: 1.6;
+    max-width: 480px;
+  }
+
+  .divider-right {
+    width: 200px;
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .divider-icon {
+    font-size: 100px;
+    opacity: 0.15;
+    color: var(--cover-text);
+    line-height: 1;
+    user-select: none;
+  }
+
+  /* ===== CONTENT SLIDE ===== */
+  .slide-content {
+    width: 100%; height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: var(--content-bg);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .content-header {
+    padding: 16px 32px 12px;
+    border-bottom: 1px solid var(--border-light);
+    flex-shrink: 0;
+    margin-top: 48px;
+  }
+
+  .content-title {
+    font-size: clamp(18px, 1.8vw, 24px);
+    font-weight: 800;
+    color: var(--content-title);
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+  }
+
+  .content-body {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  .panel-left {
+    width: 40%;
+    min-width: 320px;
+    max-width: 480px;
+    background: var(--panel-left-bg);
+    display: flex;
+    flex-direction: column;
+    padding: 28px 32px;
+    overflow-y: auto;
+    flex-shrink: 0;
+    border-right: 1px solid var(--border-light);
+  }
+
+  .panel-right {
+    flex: 1;
+    background: var(--content-bg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 28px 32px;
+    overflow-y: auto;
+    gap: 20px;
+  }
+
+  .panel-left::-webkit-scrollbar,
+  .panel-right::-webkit-scrollbar { width: 5px; }
+  .panel-left::-webkit-scrollbar-track,
+  .panel-right::-webkit-scrollbar-track { background: transparent; }
+  .panel-left::-webkit-scrollbar-thumb,
+  .panel-right::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 3px; }
+
+  /* Prologue / Epilogue */
+  .prologue {
+    font-size: clamp(12px, 1.1vw, 14px);
+    color: var(--prologue-text);
+    line-height: 1.7;
+    margin-bottom: 20px;
+    font-style: italic;
+  }
+
+  .epilogue {
+    font-size: clamp(12px, 1.1vw, 14px);
+    color: var(--epilogue-text);
+    line-height: 1.7;
+    margin-top: 20px;
+    border-top: 1px solid var(--border-light);
+    padding-top: 16px;
+  }
+
+  /* Step */
+  .step {
+    margin-bottom: 18px;
+  }
+
+  .step-header {
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--step-header);
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .step-header::before {
+    content: '';
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--cover-accent);
+    flex-shrink: 0;
+  }
+
+  .step-body {
+    font-size: clamp(12px, 1.05vw, 14px);
+    color: var(--content-text);
+    line-height: 1.7;
+    padding-left: 14px;
+  }
+
+  /* Note box */
+  .note-box {
+    background: var(--note-bg);
+    border-left: 3px solid var(--note-border);
+    border-radius: 0 8px 8px 0;
+    padding: 14px 16px;
+    margin-top: auto;
+    margin-bottom: 18px;
+  }
+
+  .note-label {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--cover-accent);
+    margin-bottom: 6px;
+  }
+
+  .note-text {
+    font-size: 12px;
+    color: var(--content-text);
+    line-height: 1.6;
+  }
+
+  /* Screenshot */
+  .screenshot-wrapper {
+    position: relative;
+    max-width: 100%;
+    max-height: 72vh;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08), 0 8px 24px rgba(0,0,0,0.1);
+    flex-shrink: 0;
+  }
+
+  .screenshot {
+    display: block;
+    max-width: 100%;
+    max-height: 72vh;
+    object-fit: contain;
+    border-radius: 8px;
+  }
+
+  .screenshot-label {
+    text-align: center;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--cover-accent);
+    margin-bottom: 6px;
+  }
+
+  /* ===== TOC SLIDE ===== */
+  .slide-toc {
+    background: var(--content-bg);
+    width: 100%; height: 100%;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .toc-body {
+    flex: 1;
+    padding: 24px 48px 32px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    margin-top: 48px;
+    z-index: 1;
+  }
+
+  .toc-heading {
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--cover-accent);
+    margin: 0 0 28px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--cover-accent);
+    display: inline-block;
+  }
+
+  .toc-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 8px;
+  }
+
+  .toc-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: var(--panel-left-bg);
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    padding: 14px 18px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+
+  .toc-item:hover {
+    border-color: var(--cover-accent);
+    transform: translateX(4px);
+  }
+
+  .toc-num {
+    font-size: 20px;
+    font-weight: 900;
+    color: var(--cover-accent);
+    min-width: 36px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .toc-text-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--content-text);
+    line-height: 1.3;
+  }
+
+  .toc-text-sub {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  /* ===== NAVIGATION ===== */
+  .nav-arrows {
+    position: fixed;
+    bottom: 20px;
+    right: 72px;
+    display: flex;
+    gap: 8px;
+    z-index: 1000;
+  }
+
+  .nav-btn {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    border: 1px solid var(--border-light);
+    background: var(--content-bg);
+    color: var(--content-text);
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    user-select: none;
+    font-weight: 700;
+  }
+
+  .nav-btn:hover {
+    border-color: var(--cover-accent);
+    color: var(--cover-accent);
+  }
+
+  .nav-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  /* ===== PROGRESS BAR ===== */
+  .progress-bar {
+    position: fixed;
+    bottom: 0; left: 0;
+    height: 3px;
+    background: var(--cover-accent);
+    transition: width 0.3s ease;
+    z-index: 1000;
+  }
+
+  /* ===== THUMBNAIL SIDEBAR ===== */
+  .thumb-sidebar {
+    position: fixed;
+    top: 48px; right: 0;
+    width: 56px;
+    height: calc(100% - 48px);
+    background: var(--panel-left-bg);
+    border-left: 1px solid var(--border-light);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px 0;
+    gap: 6px;
+    z-index: 90;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  .thumb-item {
+    width: 40px; height: 30px;
+    border-radius: 4px;
+    border: 2px solid transparent;
+    background: var(--content-bg);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    color: var(--muted);
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+    font-weight: 700;
+  }
+
+  .thumb-item:hover {
+    border-color: var(--cover-accent);
+    color: var(--content-text);
+  }
+
+  .thumb-item.active {
+    border-color: var(--cover-accent);
+    background: var(--note-bg);
+    color: var(--content-text);
+  }
+
+  /* ===== KEYBOARD HINT ===== */
+  .keyboard-hint {
+    position: fixed;
+    bottom: 20px; left: 24px;
+    font-size: 11px;
+    color: var(--muted);
+    opacity: 0.5;
+    z-index: 1000;
+    font-family: 'Inter', monospace;
+    pointer-events: none;
+  }
+
+  .keyboard-hint kbd {
+    background: var(--panel-left-bg);
+    border: 1px solid var(--border-light);
+    border-radius: 3px;
+    padding: 2px 5px;
+    font-size: 10px;
+    margin: 0 2px;
+  }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 1024px) {
+    .content-body { flex-direction: column; }
+    .panel-left {
+      width: 100%;
+      max-width: none;
+      min-width: auto;
+      padding: 20px 24px;
+      max-height: 40%;
+      border-right: none;
+      border-bottom: 1px solid var(--border-light);
+    }
+    .panel-right {
+      padding: 16px 24px;
+    }
+    .screenshot-wrapper { max-height: 50vh; }
+    .divider-body { padding: 0 40px; }
+    .thumb-sidebar { display: none; }
+    .nav-arrows { right: 24px; }
+  }
+
+  @media (max-width: 640px) {
+    .toc-grid { grid-template-columns: 1fr; }
+    .divider-body { flex-direction: column; gap: 20px; padding: 20px; }
+    .divider-right { display: none; }
+    .top-bar { padding: 0 16px; }
+    .top-bar-title { display: none; }
+    .panel-left { padding: 16px 20px; }
+    .content-header { padding: 12px 20px 10px; }
+  }
+
+  /* ===== PRINT STYLES ===== */
+  @media print {
+    body { background: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .slide {
+      page-break-before: always;
+      page-break-inside: avoid;
+      position: static !important;
+      opacity: 1 !important;
+      display: block !important;
+      transform: none !important;
+      width: 100% !important;
+      height: auto !important;
+      min-height: 100vh;
+      overflow: visible !important;
+      border: none !important;
+    }
+    .slide:first-child { page-break-before: avoid; }
+    .top-bar { display: none !important; }
+    .thumb-sidebar { display: none !important; }
+    .nav-arrows, .nav-btn { display: none !important; }
+    .progress-bar { display: none !important; }
+    .keyboard-hint { display: none !important; }
+    .deck { width: 100% !important; height: auto !important; overflow: visible !important; }
+    .slides-container { width: 100% !important; height: auto !important; overflow: visible !important; }
+    .content-body { overflow: visible !important; }
+    .panel-left { overflow: visible !important; }
+    .panel-right { overflow: visible !important; }
+    .screenshot-wrapper { max-height: none !important; box-shadow: none !important; }
+    .screenshot { max-height: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="deck">
+  <div class="slides-container" id="slidesContainer">
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 1: COVER -->
+    <!-- ============================================================ -->
+    <div class="slide active" data-type="cover">
+      <div class="slide-cover">
+        <div class="cover-inner">
+          <div class="cover-accent-bar"></div>
+          <div class="cover-title">Dental Clinic Patient Record System<br>CMS Manual</div>
+          <div class="cover-subtitle">Administrator Guide</div>
+          <div class="cover-tagline">A comprehensive guide for clinic staff managing patients, dental charts, treatments, consents, and appointments</div>
+          <div class="cover-logo-placeholder">DCPRS</div>
+          <div class="cover-date">August 2026</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 2: TABLE OF CONTENTS -->
+    <!-- ============================================================ -->
+    <div class="slide" data-type="toc">
+      <div class="slide-toc">
+        <div class="top-bar">
+          <span class="top-bar-section">Overview</span>
+          <span class="top-bar-title">CMS Manual</span>
+          <span class="top-bar-counter"><span>02</span> / 35</span>
+        </div>
+        <div class="toc-body">
+          <div class="toc-heading">Table of Contents</div>
+          <div class="toc-grid">
+            <div class="toc-item" data-slide="2">
+              <div class="toc-num">I</div>
+              <div class="toc-text">
+                <div class="toc-text-title">Getting Started</div>
+                <div class="toc-text-sub">Signing in &amp; the dashboard</div>
+              </div>
+            </div>
+            <div class="toc-item" data-slide="5">
+              <div class="toc-num">II</div>
+              <div class="toc-text">
+                <div class="toc-text-title">Patients &amp; Records</div>
+                <div class="toc-text-sub">Registry, registration, medical history, consultations</div>
+              </div>
+            </div>
+            <div class="toc-item" data-slide="11">
+              <div class="toc-num">III</div>
+              <div class="toc-text">
+                <div class="toc-text-title">Clinical Charting &amp; Care</div>
+                <div class="toc-text-sub">Dental chart, treatments, signatures, consents, files</div>
+              </div>
+            </div>
+            <div class="toc-item" data-slide="22">
+              <div class="toc-num">IV</div>
+              <div class="toc-text">
+                <div class="toc-text-title">Intake Wizard</div>
+                <div class="toc-text-sub">The 7-step guided patient intake</div>
+              </div>
+            </div>
+            <div class="toc-item" data-slide="27">
+              <div class="toc-num">V</div>
+              <div class="toc-text">
+                <div class="toc-text-title">Appointments &amp; Administration</div>
+                <div class="toc-text-sub">Scheduling, users, settings, reports</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 3: SECTION DIVIDER — Getting Started -->
+    <!-- ============================================================ -->
+    <div class="slide" data-type="divider">
+      <div class="slide-divider">
+        <div class="top-bar">
+          <span class="top-bar-section">Section I</span>
+          <span class="top-bar-title">CMS Manual</span>
+          <span class="top-bar-counter"><span>03</span> / 35</span>
+        </div>
+        <div class="divider-accent-bar"></div>
+        <div class="divider-body">
+          <div class="divider-left">
+            <div class="divider-section-label">Section</div>
+            <div class="divider-number">I</div>
+            <div class="divider-line"></div>
+            <div class="divider-title">Getting Started</div>
+            <div class="divider-subtitle">Signing in and reading the day-start dashboard</div>
+          </div>
+          <div class="divider-right">
+            <div class="divider-icon">&#x1F511;</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 4: I.A. Logging In -->
+    <!-- ============================================================ -->
+    <div class="slide" data-type="content">
+      <div class="slide-content">
+        <div class="top-bar">
+          <span class="top-bar-section">Getting Started</span>
+          <span class="top-bar-title">CMS Manual</span>
+          <span class="top-bar-counter"><span>04</span> / 35</span>
+        </div>
+        <div class="content-header">
+          <div class="content-title">I.A. Logging In</div>
+        </div>
+        <div class="content-body">
+          <div class="panel-left">
+            <div class="prologue">Open the clinic's app URL on a tablet or desktop browser. The branded login screen is the entry point for all staff.</div>
+            <div class="step">
+              <div class="step-header">Step 1</div>
+              <div class="step-body">Enter your staff username (e.g. <strong>admin</strong>, <strong>dentist</strong>, <strong>assistant</strong>, <strong>receptionist</strong>).</div>
+            </div>
+            <div class="step">
+              <div class="step-header">Step 2</div>
+              <div class="step-body">Enter your password.</div>
+            </div>
+            <div class="step">
+              <div class="step-header">Step 3</div>
+              <div class="step-body">Tick <strong>Remember me</strong> on clinic tablets to stay signed in between shifts.</div>
+            </div>
+            <div class="step">
+              <div class="step-header">Step 4</div>
+              <div class="step-body">Click <strong>Log in</strong> to open the dashboard.</div>
+            </div>
+            <div class="note-box">
+              <div class="note-label">Note</div>
+              <div class="note-text">Development accounts use the password <strong>password</strong>. In production, every staff member gets a personal account from the Administrator.</div>
+            </div>
+          </div>
+          <div class="panel-right">
+            <div class="screenshot-wrapper">
+              <img src="screenshots/login.png" alt="Login screen" class="screenshot">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 5: I.B. The Dashboard -->
+    <!-- ============================================================ -->
+    <div class="slide" data-type="content">
+      <div class="slide-content">
+        <div class="top-bar">
+          <span class="top-bar-section">Getting Started</span>
+          <span class="top-bar-title">CMS Manual</span>
+          <span class="top-bar-counter"><span>05</span> / 35</span>
+        </div>
+        <div class="content-header">
+          <div class="content-title">I.B. The Dashboard</div>
+        </div>
+        <div class="content-body">
+          <div class="panel-left">
+            <div class="prologue">The dashboard is your day-start screen. It summarizes what needs attention before you open any patient record.</div>
+            <div class="step">
+              <div class="step-header">Step 1</div>
+              <div class="step-body">Review <strong>Today's appointments</strong> (pending and confirmed) to plan the day.</div>
+            </div>
+            <div class="step">
+              <div class="step-header">Step 2</div>
+              <div class="step-body">Check <strong>Recent patients</strong> and <strong>Pending procedures</strong> (unsigned treatments, dentist view).</div>
+            </div>
+            <div class="step">
+              <div class="step-header">Step 3</div>
+              <div class="step-body">Scan <strong>Follow-ups</strong> for confirmed appointments in the next 7 days.</div>
+            </div>
+            <div class="step">
+              <div class="step-header">Step 4</div>
+              <div class="step-body">Use the <strong>Monthly statistics</strong> chart to see patient and appointment growth.</div>
+            </div>
+            <div class="epilogue">Tap any widget's <strong>View all</strong> link to drill into the full list.</div>
+          </div>
+          <div class="panel-right">
+            <div class="screenshot-wrapper">
+              <img src="screenshots/dashboard.png" alt="Dashboard with widgets" class="screenshot">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 6: SECTION DIVIDER — Patients & Records -->
+    <!-- ============================================================ -->
+    <div class="slide" data-type="divider">
+      <div class="slide-divider">
+        <div class="top-bar">
+          <span class="top-bar-section">Section II</span>
+          <span class="top-bar-title">CMS Manual</span>
+          <span class="top-bar-counter"><span>06</span> / 35</span>
+        </div>
+        <div class="divider-accent-bar"></div>
+        <div class="divider-body">
+          <div class="divider-left">
+            <div class="divider-section-label">Section</div>
+            <div class="divider-number">II</div>
+            <div class="divider-line"></div>
+            <div class="divider-title">Patients &amp; Records</div>
+            <div class="divider-subtitle">The registry, registration form, record view, and medical history</div>
+          </div>
+          <div class="divider-right">
+            <div class="divider-icon">&#x1F465;</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 7: II.A. Finding a Patient -->
+    <!-- ============================================================ -->
+    <div class="slide" data-type="content">
+      <div class="slide-content">
+        <div class="top-bar">
+          <span class="top-bar-section">Patients &amp; Records</span>
+          <span class="top-bar-title">CMS Manual</span>
+          <span class="top-bar-counter"><span>07</span> / 35</span>
+        </div>
+        <div class="content-header">
+          <div class="content-title">II.A. Finding a Patient</div>
+        </div>
+        <div class="content-body">
+          <div class="panel-left">
+            <div class="prologue">The patient registry lists everyone on record. Search works on name, patient number, or contact number as you type.</div>
+            <div class="step">
+              <div class="step-header">Step 1</div>
+              <div class="step-body">Open <strong>Patients</strong> from the sidebar.</div>
+            </div>
+            <div class="step">
+              <div class="step-header">Step 2</div>
+              <div class="step-body">Type in the <strong>Search</strong> box — results filter live.</div>
+            </div>
+            <div class="step">
+              <div class="step-header">Step 3</div>
+              <div class="step-body">Tap the row to open the full patient record.</div>
+            </div>
+            <div class="note-box">
+              <div class="note-label">Note</div>
+              <div class="note-text">Patient numbers follow the year format (e.g. <strong>2026-0101</strong>) and are assigned automatically at registration.</div>
+            </div>
+          </div>
+          <div class="panel-right">
+            <div class="screenshot-wrapper">
+              <img src="screenshots/patients-list.png" alt="Patient registry with search" class="screenshot">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 8: II.B. Registering a Patient -->
+    <!-- ============================================================ -->
+    <div class="slide" data-type="content">
+      <div class="slide-content">
+        <div class="top-bar">
+          <span class="top-bar-section">Patients &amp; Records</span>
+          <span class="top-bar-title">CMS Manual</span>
+          <span class="top-bar-counter"><span>08</span> / 35</span>
+        </div>
+        <div class="content-header">
+          <div class="content-title">II.B. Registering a Patient</div>
+        </div>
+        <div class="content-body">
+          <div class="panel-left">
+            <div class="prologue">Registration captures the PDA patient information record. Only the required fields are mandatory; everything else can be added later.</div>
+            <div class="step">
+              <div class="step-header">Step 1</div>
+              <div class="step-body">Click <strong>Register patient</strong> (or start a <strong>New intake</strong> from the sidebar for the full wizard).</div>
+            </div>
+            <div class="step">
+              <div class="step-header">Step 2</div>
+              <div class="step-body">Fill <strong>Identity</strong>: first name, middle name (optional), last name, sex, birth date, civil status, nationality.</div>
+            </div>
+            <div class="step">
+              <div class="step-header">Step 3</div>
+              <div class="step-body">Fill <strong>Contact</strong> (contact number and address required) and <strong>Emergency contact</strong>.</div>
+            </div>
+            <div class="step">
+              <div class="step-header">Step 4</div>
+              <div class="step-body">Optionally complete the <strong>PDA additional details</strong> section (religion, nickname, phones, insurance, guardian for minors).</div>
+            </div>
+            <div class="step">
+              <div class="step-header">Step 5</div>
+              <div class="step-body">Click <strong>Register patient</strong> to save. The patient number is assigned automatically.</div>
+            </div>
+            <div class="epilogue">You land on the new patient's record, ready for medical history and clinical data.</div>
+          </div>
+          <div class="panel-right">
+            <div class="screenshot-wrapper">
+              <img src="screenshots/patients-create.png" alt="Patient registration form" class="screenshot">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 9: II.C. The Patient Record -->
+    <!-- ============================================================ -->
+    <div class="slide" data-type="content">
+      <div class="slide-content">
+        <div class="top-bar">
+          <span class="top-bar-section">Patients &amp; Records</span>
+          <span class="top-bar-title">CMS Manual</span>
+          <span class="top-bar-counter"><span>09</span> / 35</span>
+        </div>
+        <div class="content-header">
+          <div class="content-title">II.C. The Patient Record</div>
+        </div>
+        <div class="content-body">
+          <div class="panel-left">
+            <div class="prologue">Every patient's digital chart lives on one page: identity, contact, medical history, consultations, and five clinical tabs.</div>
+            <div class="step">
+              <div class="step-header">Step 1</div>
+              <div class="step-body">Read the header card: initials, age, sex, and civil status badges.</div>
+            </div>
+            <div class="step">
+              <div class="step-header">Step 2</div>
+              <div class="step-body">Use <strong>Edit</strong> to update demographics (permission-based).</div>
+            </div>
+            <div class="step">
+              <div class="step-header">Step 3</div>
+              <div class="step-body">Open the tabs: <strong>Appointments</strong>, <strong>Chart</strong>, <strong>Treatments</strong>, <strong>Files</strong>, and <strong>Consents</strong>.</div>
+            </div>
+            <div class="note-box">
+              <div class="note-label">Note</div>
+              <div class="note-text">Only an Administrator can delete a record, and it is a soft delete — clinical history is retained until archival.</div>
+            </div>
+          </div>
+          <div class="panel-right">
+            <div class="screenshot-wrapper">
+              <img src="screenshots/patients-show.png" alt="Patient record page" class="screenshot">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 10: II.D. Medical History -->
+    <!-- ============================================================ -->
+    <div class="slide" data-type="content">
+      <div class="slide-content">
+        <div class="top-bar">
+          <span class="top-bar-section">Patients &amp; Records</span>
+          <span class="top-bar-title">CMS Manual</span>
+          <span class="top-bar-counter"><span>10</span> / 35</span>
+        </div>
+        <div class="content-header">
+          <div class="content-title">II.D. Medical History</div>
+        </div>
+        <div class="content-body">
+          <div class="panel-left">
+            <div class="prologue">The pre-treatment screening mirrors PDA Page 1: ten yes/no questions plus the extended general-health, physician, dental history, women's health, and conditions checklist groups.</div>
+            <div class="step">
+              <div class="step-header">Step 1</div>
+              <div class="step-body">Click <strong>Edit</strong> on the Medical history card.</div>
+            </div>
+            <div class="step">
+              <div class="step-header">Step 2</div>
+              <div class="step-body">Answer each question with the <strong>No / Yes / N/A</strong> pills. A details box appears for every <strong>Yes</strong>.</div>
+            </div>
+            <div class="step">
+              <div class="step-header">Step 3</div>
+              <div class="step-body">Expand the optional groups and tick the <strong>Medical conditions checklist</strong> chips that apply.</div>
+            </div>
+            <div class="step">
+              <div class="step-header">Step 4</div>
+              <div class="step-body">Click <strong>Save</strong>. The display view shows badges for every answer.</div>
+            </div>
+            <div class="note-box">
+              <div class="note-label">Note</div>
+              <div class="note-text">Medical history is only visible to the Dentist and Administrator roles.</div>
+            </div>
+          </div>
+          <div class="panel-right">
+            <div class="screenshot-wrapper">
+              <img src="screenshots/patients-medical-history.png" alt="Medical history editor" class="screenshot">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 11: II.E. Consultations -->
+    <!-- ============================================================ -->
+    <div class="slide" data-type="content">
+      <div class="slide-content">
+        <div class="top-bar">
+          <span class="top-bar-section">Patients &amp; Records</span>
+          <span class="top-bar-title">CMS Manual</span>
+          <span class="top-bar-counter"><span>11</span> / 35</span>
+        </div>
+        <div class="content-header">
+          <div class="content-title">II.E. Consultations</div>
+        </div>
+        <div class="content-body">
+          <div class="panel-left">
+            <div class="prologue">Consultations capture the findings of each visit, including the PDA intraoral examination fields.</div>
+            <div class="step">
+              <div class="step-header">Step 1</div>
+              <div class="step-body">In the <strong>Consultations</strong> card, click <strong>Add consultation</strong>.</div>
+            </div>
+            <div class="step">
+              <div class="step-header">Step 2</div>
+              <div class="step-body">Enter the <strong>chief complaint</strong> (required) plus findings, diagnosis, treatment plan, and recommendations.</div>
+            </div>
+            <div class="step">
+              <div class="step-header">Step 3</div>
+              <div class="step-body">Record the <strong>Intraoral examination</strong>: periodontal screening, occlusion class, overjet/overbite, appliances, and TMD findings.</div>
+            </div>
+            <div class="step">
+              <div class="step-header">Step 4</div>
+              <div class="step-body">Tap <strong>Save consultation</strong> — it appears in the timeline, newest first.</div>
+            </div>
+            <div class="epilogue">Only the authoring dentist (or Administrator) can edit a consultation.</div>
+          </div>
+          <div class="panel-right">
+            <div class="screenshot-wrapper">
+              <img src="screenshots/consultations.png" alt="Expanded consultation" class="screenshot">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 12: SECTION DIVIDER — Clinical Charting & Care -->
+    <!-- ============================================================ -->
+    <div class="slide" data-type="divider">
+      <div class="slide-divider">
+        <div class="top-bar">
+          <span class="top-bar-section">Section III</span>
+          <span class="top-bar-title">CMS Manual</span>
+          <span class="top-bar-counter"><span>12</span> / 35</span>
+        </div>
+        <div class="divider-accent-bar"></div>
+        <div class="divider-body">
+          <div class="divider-left">
+            <div class="divider-section-label">Section</div>
+            <div class="divider-number">III</div>
+            <div class="divider-line"></div>
+            <div class="divider-title">Clinical Charting &amp; Care</div>
+            <div class="divider-subtitle">Dental chart, treatment records, signatures, consents, and files</div>
+          </div>
+          <div class="divider-right">
+            <div class="divider-icon">&#x1F9B7;</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 13: III.A. The Dental Chart Tab -->
+    <!-- ============================================================ -->
+    <div class="slide" data-type="content">
+      <div class="slide-content">
+        <div class="top-bar">
+          <span class="top-bar-section">Clinical Charting &amp; Care</span>
+          <span class="top-bar-title">CMS Manual</span>
+          <span class="top-bar-counter"><span>13</span> / 35</span>
+        </div>
+        <div class="content-header">
+          <div class="content-title">III.A. The Dental Chart Tab</div>
+        </div>
+        <div class="content-body">
+          <div class="panel-left">
+            <div class="prologue">The <strong>Chart</strong> tab renders the patient's current dental state right on the record — no need to leave the page to see it.</div>
+            <div class="step">
+              <div class="step-header">Step 1</div>
+              <div class="step-body">Open the patient record and tap the <strong>Chart</strong> tab.</div>
+            </div>
+            <div class="step">
+              <div class="step-header">Step 2</div>
+              <div class="step-body">Read the colored twin-arch chart: each mark shows a condition or restoration per tooth.</div>
+            </div>
+            <div class="step">
+              <div class="step-header">Step 3</div>
+              <div class="step-body">Tap <strong>Open chart editor</strong> to mark new findings on the full interactive chart page.</div>
+            </div>
+            <div class="epilogue">The tab shows the entry count so you can confirm the chart has data at a glance.</div>
+          </div>
+          <div class="panel-right">
+            <div class="screenshot-wrapper">
+              <img src="screenshots/chart-inline-tab.png" alt="Inline dental chart tab" class="screenshot">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 14: III.B. Charting a Tooth -->
+    <!-- ============================================================ -->
+    <div class="slide" data-type="content">
+      <div class="slide-content">
+        <div class="top-bar">
+          <span class="top-bar-section">Clinical Charting &amp; Care</span>
+          <span class="top-bar-title">CMS Manual</span>
+          <span class="top-bar-counter"><span>14</span> / 35</span>
+        </div>
+        <div class="content-header">
+          <div class="content-title">III.B. Charting a Tooth</div>
+        </div>
+        <div class="content-body">
+          <div class="panel-left">
+            <div class="prologue">The chart uses a tool-first workflow: pick what you found, then tap where you found it. Every tap saves instantly and permanently.</div>
+            <div class="step">
+              <div class="step-header">Step 1</div>
+              <div class="step-body">Tap a <strong>condition</strong> chip (✓ D M MO Im Sp Rf Un) or a <strong>restoration</strong> chip (Am Co JC Ab Att P In Imp S Rm).</div>
+            </div>
+            <div class="step">
+              <div class="step-header">Step 2</div>
+              <div class="step-body">Tap the <strong>tooth</strong> for a whole-tooth finding, or one of its 5 surface zones (Occlusal, Mesial, Distal, Buccal, Lingual).</div>
+            </div>
+            <div class="step">
+              <div class="step-header">Step 3</div>
+              <div class="step-body">The mark colors in immediately with a confirmation toast.</div>
+            </div>
+            <div class="note-box">
+              <div class="note-label">Note</div>
+              <div class="note-text">Whole-tooth-only conditions (M, MO, Im, Sp, Un) disable the surface zones automatically. Switch <strong>Adult / Primary</strong> for children's charts.</div>
+            </div>
+            <div class="epilogue">The chart never erases — corrections are new entries, and the full history stays available.</div>
+          </div>
+          <div class="panel-right">
+            <div class="screenshot-wrapper">
+              <img src="screenshots/chart-editor.png" alt="Dental chart editor with legend" class="screenshot">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 15: III.C. Chart History -->
+    <!-- ============================================================ -->
+    <div class="slide" data-type="content">
+      <div class="slide-content">
+        <div class="top-bar">
+          <span class="top-bar-section">Clinical Charting &amp; Care</span>
+          <span class="top-bar-title">CMS Manual</span>
+          <span class="top-bar-counter"><span>15</span> / 35</span>
+        </div>
+        <div class="content-header">
+          <div class="content-title">III.C. Chart History</div>
+        </div>
+        <div class="content-body">
+          <div class="panel-left">
+            <div class="prologue">Every chart entry is logged with the date and the clinician who recorded it. Tap a date to render the chart as it looked that day.</div>
+            <div class="step">
+              <div class="step-header">Step 1</div>
+              <div class="step-body">Click <strong>History</strong> on the chart page to open the entry log.</div>
+            </div>
+            <div class="step">
+              <div class="step-header">Step 2</div>
+              <div class="step-body">Tap a dated entry to view the chart state <strong>as of</strong> that date.</div>
+            </div>
+            <div class="step">
+              <div class="step-header">Step 3</div>
+              <div class="step-body">Use <strong>Back to current</strong> to return to today's view.</div>
+            </div>
+            <div class="epilogue">This is the audit trail — ideal for showing treatment progress at review visits.</div>
+          </div>
+          <div class="panel-right">
+            <div class="screenshot-wrapper">
+              <img src="screenshots/chart-history.png" alt="Chart history drawer" class="screenshot">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 16: III.D. Treatment Records -->
+    <!-- ============================================================ -->
+    <div class="slide" data-type="content">
+      <div class="slide-content">
+        <div class="top-bar">
+          <span class="top-bar-section">Clinical Charting &amp; Care</span>
+          <span class="top-bar-title">CMS Manual</span>
+          <span class="top-bar-counter"><span>16</span> / 35</span>
+        </div>
+        <div class="content-header">
+          <div class="content-title">III.D. Treatment Records</div>
+        </div>
+        <div class="content-body">
+          <div class="panel-left">
+            <div class="prologue">The Treatments tab lists procedures performed for the patient, with a <strong>Signed</strong> or <strong>Pending</strong> badge per record.</div>
+            <div class="step">
+              <div class="step-header">Step 1</div>
+              <div class="step-body">Open <strong>Treatments</strong> and tap <strong>Add treatment</strong>.</div>
+            </div>
+            <div class="step">
+              <div class="step-header">Step 2</div>
+              <div class="step-body">Pick the date, tooth (or Non-tooth procedure), and procedure from the suggestions or type your own.</div>
+            </div>
+            <div class="step">
+              <div class="step-header">Step 3</div>
+              <div class="step-body">Optionally link the related consultation and add a description.</div>
+            </div>
+            <div class="step">
+              <div class="step-header">Step 4</div>
+              <div class="step-body">Tap <strong>Save treatment</strong> — it appears with a <strong>Pending</strong> badge until signed.</div>
+            </div>
+            <div class="note-box">
+              <div class="note-label">Note</div>
+              <div class="note-text">Tap a row to expand details, including the embedded signature once signed.</div>
+            </div>
+          </div>
+          <div class="panel-right">
+            <div class="screenshot-wrapper">
+              <img src="screenshots/treatments.png" alt="Signed treatment list" class="screenshot">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 17: III.E. Signing a Treatment -->
+    <!-- ============================================================ -->
+    <div class="slide" data-type="content">
+      <div class="slide-content">
+        <div class="top-bar">
+          <span class="top-bar-section">Clinical Charting &amp; Care</span>
+          <span class="top-bar-title">CMS Manual</span>
+          <span class="top-bar-counter"><span>17</span> / 35</span>
+        </div>
+        <div class="content-header">
+          <div class="content-title">III.E. Signing a Treatment</div>
+        </div>
+        <div class="content-body">
+          <div class="panel-left">
+            <div class="prologue">A treatment record is complete once the dentist signs it. Signing captures a vector signature, the signer, and the timestamp.</div>
+            <div class="step">
+              <div class="step-header">Step 1</div>
+              <div class="step-body">Open the <strong>Treatments</strong> tab and expand a <strong>Pending</strong> record.</div>
+            </div>
+            <div class="step">
+              <div class="step-header">Step 2</div>
+              <div class="step-body">Tap <strong>Sign treatment</strong> to open the signature pad.</div>
+            </div>
+            <div class="note-box">
+              <div class="note-label">Note</div>
+              <div class="note-text">Only the dentist who created the treatment (or the Administrator) can sign it.</div>
+            </div>
+          </div>
+          <div class="panel-right">
+            <div class="screenshot-wrapper">
+              <img src="screenshots/treatments-pending.png" alt="Pending treatment with sign action" class="screenshot">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 18: III.F. The Signature Pad -->
+    <!-- ============================================================ -->
+    <div class="slide" data-type="content">
+      <div class="slide-content">
+        <div class="top-bar">
+          <span class="top-bar-section">Clinical Charting &amp; Care</span>
+          <span class="top-bar-title">CMS Manual</span>
+          <span class="top-bar-counter"><span>18</span> / 35</span>
+        </div>
+        <div class="content-header">
+          <div class="content-title">III.F. The Signature Pad</div>
+        </div>
+        <div class="content-body">
+          <div class="panel-left">
+            <div class="prologue">Draw your signature with a finger or stylus. The pad stores a crisp vector SVG — infinitely zoomable for printing.</div>
+            <div class="step">
+              <div class="step-header">Step 1</div>
+              <div class="step-body">Draw your signature on the pad.</div>
+            </div>
+            <div class="step">
+              <div class="step-header">Step 2</div>
+              <div class="step-body">Tap <strong>Clear</strong> to start over if needed.</div>
+            </div>
+            <div class="step">
+              <div class="step-header">Step 3</div>
+              <div class="step-body">Tap <strong>Accept signature</strong> to lock it in — the badge flips to <strong>Signed</strong>.</div>
+            </div>
+            <div class="note-box">
+              <div class="note-label">Note</div>
+              <div class="note-text">The accept button stays disabled until the pad has ink, preventing accidental empty signatures.</div>
+            </div>
+          </div>
+          <div class="panel-right">
+            <div class="screenshot-wrapper">
+              <img src="screenshots/treatments-sign.png" alt="Signature pad modal" class="screenshot">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 19: III.G. Consents on the Record -->
+    <!-- ============================================================ -->
+    <div class="slide" data-type="content">
+      <div class="slide-content">
+        <div class="top-bar">
+          <span class="top-bar-section">Clinical Charting &amp; Care</span>
+          <span class="top-bar-title">CMS Manual</span>
+          <span class="top-bar-counter"><span>19</span> / 35</span>
+        </div>
+        <div class="content-header">
+          <div class="content-title">III.G. Consents on the Record</div>
+        </div>
+        <div class="content-body">
+          <div class="panel-left">
+            <div class="prologue">The Consents tab lists every waiver form for the patient with its signing status.</div>
+            <div class="step">
+              <div class="step-header">Step 1</div>
+              <div class="step-body">Open the <strong>Consents</strong> tab to see each form, its version, and status badge.</div>
+            </div>
+            <div class="step">
+              <div class="step-header">Step 2</div>
+              <div class="step-body">Tap <strong>View</strong> to open the printable form.</div>
+            </div>
+            <div class="step">
+              <div class="step-header">Step 3</div>
+              <div class="step-body">For a <strong>Patient signed</strong> form, tap <strong>Dentist sign</strong> to countersign with the signature pad.</div>
+            </div>
+            <div class="epilogue">Fully signed forms show the <strong>Signed</strong> badge; superseded drafts are kept as <strong>Voided</strong> for the audit trail.</div>
+          </div>
+          <div class="panel-right">
+            <div class="screenshot-wrapper">
+              <img src="screenshots/consents.png" alt="Consents tab on patient record" class="screenshot">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 20: III.H. The Printable Consent Form -->
+    <!-- ============================================================ -->
+    <div class="slide" data-type="content">
+      <div class="slide-content">
+        <div class="top-bar">
+          <span class="top-bar-section">Clinical Charting &amp; Care</span>
+          <span class="top-bar-title">CMS Manual</span>
+          <span class="top-bar-counter"><span>20</span> / 35</span>
+        </div>
+        <div class="content-header">
+          <div class="content-title">III.H. The Printable Consent Form</div>
+        </div>
+        <div class="content-body">
+          <div class="panel-left">
+            <div class="prologue">The signed form is an A4-ready legal document: all ten PDA statements with initials, both signatures, names, timestamps, and device info.</div>
+            <div class="step">
+              <div class="step-header">Step 1</div>
+              <div class="step-body">Open the form via <strong>View</strong> on the Consents tab.</div>
+            </div>
+            <div class="step">
+              <div class="step-header">Step 2</div>
+              <div class="step-body">Scroll through the ten sections, acknowledgment, authorization, and signature blocks.</div>
+            </div>
+            <div class="step">
+              <div class="step-header">Step 3</div>
+              <div class="step-body">Click <strong>Print</strong> to send it to a printer or save as PDF.</div>
+            </div>
+            <div class="note-box">
+              <div class="note-label">Note</div>
+              <div class="note-text">The footer records the IP address and device — part of the medico-legal evidence set.</div>
+            </div>
+          </div>
+          <div class="panel-right">
+            <div class="screenshot-wrapper">
+              <img src="screenshots/consents-form.png" alt="Printable consent form" class="screenshot">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 21: III.I. Patient Files -->
+    <!-- ============================================================ -->
+    <div class="slide" data-type="content">
+      <div class="slide-content">
+        <div class="top-bar">
+          <span class="top-bar-section">Clinical Charting &amp; Care</span>
+          <span class="top-bar-title">CMS Manual</span>
+          <span class="top-bar-counter"><span>21</span> / 35</span>
+        </div>
+        <div class="content-header">
+          <div class="content-title">III.I. Patient Files</div>
+        </div>
+        <div class="content-body">
+          <div class="panel-left">
+            <div class="prologue">The Files tab stores X-rays, images, PDFs, prescriptions, and lab results per patient, filterable by category.</div>
+            <div class="step">
+              <div class="step-header">Step 1</div>
+              <div class="step-body">Open the <strong>Files</strong> tab and tap <strong>Upload file</strong>.</div>
+            </div>
+            <div class="step">
+              <div class="step-header">Step 2</div>
+              <div class="step-body">Pick a <strong>category</strong>; for X-rays also pick the <strong>X-ray type</strong> (Periapical, Panoramic, Cephalometric, Occlusal).</div>
+            </div>
+            <div class="step">
+              <div class="step-header">Step 3</div>
+              <div class="step-body">Choose the file (JPG, PNG, GIF, WebP, or PDF) and watch the progress bar.</div>
+            </div>
+            <div class="note-box">
+              <div class="note-label">Note</div>
+              <div class="note-text">Accepted files are limited to 25 MB by default — the limit is configurable in Settings.</div>
+            </div>
+          </div>
+          <div class="panel-right">
+            <div class="screenshot-wrapper">
+              <img src="screenshots/files.png" alt="Files tab with category chips" class="screenshot">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 22: III.J. Viewing a File -->
+    <!-- ============================================================ -->
+    <div class="slide" data-type="content">
+      <div class="slide-content">
+        <div class="top-bar">
+          <span class="top-bar-section">Clinical Charting &amp; Care</span>
+          <span class="top-bar-title">CMS Manual</span>
+          <span class="top-bar-counter"><span>22</span> / 35</span>
+        </div>
+        <div class="content-header">
+          <div class="content-title">III.J. Viewing a File</div>
+        </div>
+        <div class="content-body">
+          <div class="panel-left">
+            <div class="prologue">Tap any thumbnail or tile to open the full-screen viewer — ideal for inspecting X-rays.</div>
+            <div class="step">
+              <div class="step-header">Step 1</div>
+              <div class="step-body">Tap an image or X-ray thumbnail.</div>
+            </div>
+            <div class="step">
+              <div class="step-header">Step 2</div>
+              <div class="step-body">Use the zoom buttons to inspect details (0.5&times; to 3&times;).</div>
+            </div>
+            <div class="step">
+              <div class="step-header">Step 3</div>
+              <div class="step-body">PDFs open in an inline viewer; press <strong>Esc</strong> or tap outside to close.</div>
+            </div>
+            <div class="note-box">
+              <div class="note-label">Note</div>
+              <div class="note-text">Only an Administrator can delete attachments, and deletions are soft (audited) for medico-legal reasons.</div>
+            </div>
+          </div>
+          <div class="panel-right">
+            <div class="screenshot-wrapper">
+              <img src="screenshots/files-preview.png" alt="Full-screen file viewer" class="screenshot">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 23: SECTION DIVIDER — Intake Wizard -->
+    <!-- ============================================================ -->
+    <div class="slide" data-type="divider">
+      <div class="slide-divider">
+        <div class="top-bar">
+          <span class="top-bar-section">Section IV</span>
+          <span class="top-bar-title">CMS Manual</span>
+          <span class="top-bar-counter"><span>23</span> / 35</span>
+        </div>
+        <div class="divider-accent-bar"></div>
+        <div class="divider-body">
+          <div class="divider-left">
+            <div class="divider-section-label">Section</div>
+            <div class="divider-number">IV</div>
+            <div class="divider-line"></div>
+            <div class="divider-title">Intake Wizard</div>
+            <div class="divider-subtitle">The 7-step guided patient intake, saved at every step</div>
+          </div>
+          <div class="divider-right">
+            <div class="divider-icon">&#x1F4CB;</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 24: IV.A. Starting Intake -->
+    <!-- ============================================================ -->
+    <div class="slide" data-type="content">
+      <div class="slide-content">
+        <div class="top-bar">
+          <span class="top-bar-section">Intake Wizard</span>
+          <span class="top-bar-title">CMS Manual</span>
+          <span class="top-bar-counter"><span>24</span> / 35</span>
+        </div>
+        <div class="content-header">
+          <div class="content-title">IV.A. Starting Intake</div>
+        </div>
+        <div class="content-body">
+          <div class="panel-left">
+            <div class="prologue">The wizard registers a walk-in patient and completes the whole intake in one sitting — Patient, Medical history, Waiver, Signature, Consultation, Dental chart, Treatment.</div>
+            <div class="step">
+              <div class="step-header">Step 1</div>
+              <div class="step-body">Click <strong>New intake</strong> in the sidebar.</div>
+            </div>
+            <div class="step">
+              <div class="step-header">Step 2</div>
+              <div class="step-body">Fill in the patient form (identity, contact, emergency, optional PDA details).</div>
+            </div>
+            <div class="step">
+              <div class="step-header">Step 3</div>
+              <div class="step-body">Tap <strong>Register &amp; continue</strong> — the patient number is assigned automatically.</div>
+            </div>
+            <div class="note-box">
+              <div class="note-label">Note</div>
+              <div class="note-text">Every step saves independently. If the tablet dies mid-intake, re-open the wizard and it resumes at the first incomplete step.</div>
+            </div>
+          </div>
+          <div class="panel-right">
+            <div class="screenshot-wrapper">
+              <img src="screenshots/wizard-step1.png" alt="Wizard step 1 patient form" class="screenshot">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 25: IV.B. Medical History Step -->
+    <!-- ============================================================ -->
+    <div class="slide" data-type="content">
+      <div class="slide-content">
+        <div class="top-bar">
+          <span class="top-bar-section">Intake Wizard</span>
+          <span class="top-bar-title">CMS Manual</span>
+          <span class="top-bar-counter"><span>25</span> / 35</span>
+        </div>
+        <div class="content-header">
+          <div class="content-title">IV.B. Medical History Step</div>
+        </div>
+        <div class="content-body">
+          <div class="panel-left">
+            <div class="prologue">Step 2 captures the full PDA screening: ten questions plus the extended groups and 36-condition checklist.</div>
+            <div class="step">
+              <div class="step-header">Step 1</div>
+              <div class="step-body">Answer the ten questions with <strong>No / Yes / N/A</strong> pills; detail boxes appear on <strong>Yes</strong>.</div>
+            </div>
+            <div class="step">
+              <div class="step-header">Step 2</div>
+              <div class="step-body">Open the optional groups (General health, Physician, Dental history, Women's health, Conditions checklist).</div>
+            </div>
+            <div class="step">
+              <div class="step-header">Step 3</div>
+              <div class="step-body">Tap <strong>Save &amp; continue</strong> to move to the waiver.</div>
+            </div>
+            <div class="epilogue">The stepper shows completed steps with a check — you can jump back anytime.</div>
+          </div>
+          <div class="panel-right">
+            <div class="screenshot-wrapper">
+              <img src="screenshots/wizard-medical-history.png" alt="Wizard medical history step" class="screenshot">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 26: IV.C. Waiver & Initials -->
+    <!-- ============================================================ -->
+    <div class="slide" data-type="content">
+      <div class="slide-content">
+        <div class="top-bar">
+          <span class="top-bar-section">Intake Wizard</span>
+          <span class="top-bar-title">CMS Manual</span>
+          <span class="top-bar-counter"><span>26</span> / 35</span>
+        </div>
+        <div class="content-header">
+          <div class="content-title">IV.C. Waiver &amp; Initials</div>
+        </div>
+        <div class="content-body">
+          <div class="panel-left">
+            <div class="prologue">Hand the tablet to the patient. Step 3 shows the ten PDA consent statements, each requiring the patient's initial on its own pad.</div>
+            <div class="step">
+              <div class="step-header">Step 1</div>
+              <div class="step-body">Read each statement and draw the patient's initials in the box beside it.</div>
+            </div>
+            <div class="step">
+              <div class="step-header">Step 2</div>
+              <div class="step-body">Review the acknowledgment and authorization blocks.</div>
+            </div>
+            <div class="step">
+              <div class="step-header">Step 3</div>
+              <div class="step-body">Tap <strong>Save &amp; continue</strong> — it stays disabled until all 10 sections are initialed.</div>
+            </div>
+            <div class="note-box">
+              <div class="note-label">Note</div>
+              <div class="note-text">For patients under 18, a guardian signature is required on the next step.</div>
+            </div>
+          </div>
+          <div class="panel-right">
+            <div class="screenshot-wrapper">
+              <img src="screenshots/wizard-waiver.png" alt="Waiver step with initial pads" class="screenshot">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 27: IV.D. Patient Signature -->
+    <!-- ============================================================ -->
+    <div class="slide" data-type="content">
+      <div class="slide-content">
+        <div class="top-bar">
+          <span class="top-bar-section">Intake Wizard</span>
+          <span class="top-bar-title">CMS Manual</span>
+          <span class="top-bar-counter"><span>27</span> / 35</span>
+        </div>
+        <div class="content-header">
+          <div class="content-title">IV.D. Patient Signature</div>
+        </div>
+        <div class="content-body">
+          <div class="panel-left">
+            <div class="prologue">Step 4 captures the patient's full signature on the consent form. For minors, a guardian name and signature pad appear automatically.</div>
+            <div class="step">
+              <div class="step-header">Step 1</div>
+              <div class="step-body">Draw the patient's signature and tap <strong>Accept signature</strong>.</div>
+            </div>
+            <div class="step">
+              <div class="step-header">Step 2</div>
+              <div class="step-body">If the patient is under 18, confirm the guardian name and capture the guardian's signature.</div>
+            </div>
+            <div class="step">
+              <div class="step-header">Step 3</div>
+              <div class="step-body">Tap <strong>Sign &amp; continue</strong> — the form is stored with names, timestamps, and device info.</div>
+            </div>
+            <div class="epilogue">The wizard then continues to the consultation, dental chart, and treatment steps.</div>
+          </div>
+          <div class="panel-right">
+            <div class="screenshot-wrapper">
+              <img src="screenshots/wizard-signature.png" alt="Signature step" class="screenshot">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 28: SECTION DIVIDER — Appointments & Administration -->
+    <!-- ============================================================ -->
+    <div class="slide" data-type="divider">
+      <div class="slide-divider">
+        <div class="top-bar">
+          <span class="top-bar-section">Section V</span>
+          <span class="top-bar-title">CMS Manual</span>
+          <span class="top-bar-counter"><span>28</span> / 35</span>
+        </div>
+        <div class="divider-accent-bar"></div>
+        <div class="divider-body">
+          <div class="divider-left">
+            <div class="divider-section-label">Section</div>
+            <div class="divider-number">V</div>
+            <div class="divider-line"></div>
+            <div class="divider-title">Appointments &amp; Administration</div>
+            <div class="divider-subtitle">Scheduling, user management, settings, and reports</div>
+          </div>
+          <div class="divider-right">
+            <div class="divider-icon">&#x1F4C5;</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 29: V.A. The Day View -->
+    <!-- ============================================================ -->
+    <div class="slide" data-type="content">
+      <div class="slide-content">
+        <div class="top-bar">
+          <span class="top-bar-section">Appointments &amp; Administration</span>
+          <span class="top-bar-title">CMS Manual</span>
+          <span class="top-bar-counter"><span>29</span> / 35</span>
+        </div>
+        <div class="content-header">
+          <div class="content-title">V.A. The Day View</div>
+        </div>
+        <div class="content-body">
+          <div class="panel-left">
+            <div class="prologue">Appointments open on a one-day view — the tablet-friendly schedule. Each row shows the time, patient, reason, dentist, and status.</div>
+            <div class="step">
+              <div class="step-header">Step 1</div>
+              <div class="step-body">Use the <strong>&#8592; / &#8594;</strong> chevrons to change days, or <strong>Today</strong> to jump back.</div>
+            </div>
+            <div class="step">
+              <div class="step-header">Step 2</div>
+              <div class="step-body">Read the status badges: Pending, Confirmed, Completed, No-show, Cancelled.</div>
+            </div>
+            <div class="step">
+              <div class="step-header">Step 3</div>
+              <div class="step-body">Tap <strong>New appointment</strong> to schedule.</div>
+            </div>
+            <div class="note-box">
+              <div class="note-label">Note</div>
+              <div class="note-text">Overlapping appointments for the same dentist are rejected automatically unless overlapping is allowed in Settings.</div>
+            </div>
+          </div>
+          <div class="panel-right">
+            <div class="screenshot-wrapper">
+              <img src="screenshots/appointments-day.png" alt="Appointments day view" class="screenshot">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 30: V.B. Creating an Appointment -->
+    <!-- ============================================================ -->
+    <div class="slide" data-type="content">
+      <div class="slide-content">
+        <div class="top-bar">
+          <span class="top-bar-section">Appointments &amp; Administration</span>
+          <span class="top-bar-title">CMS Manual</span>
+          <span class="top-bar-counter"><span>30</span> / 35</span>
+        </div>
+        <div class="content-header">
+          <div class="content-title">V.B. Creating an Appointment</div>
+        </div>
+        <div class="content-body">
+          <div class="panel-left">
+            <div class="prologue">The create dialog keeps scheduling to one screen: search the patient, pick the dentist, set the time window.</div>
+            <div class="step">
+              <div class="step-header">Step 1</div>
+              <div class="step-body">Tap <strong>New appointment</strong>.</div>
+            </div>
+            <div class="step">
+              <div class="step-header">Step 2</div>
+              <div class="step-body">Type to <strong>search the patient</strong> by name or patient number, then tap the result.</div>
+            </div>
+            <div class="step">
+              <div class="step-header">Step 3</div>
+              <div class="step-body">Optionally assign a <strong>dentist</strong>, set the <strong>date and time window</strong>, and add a reason.</div>
+            </div>
+            <div class="step">
+              <div class="step-header">Step 4</div>
+              <div class="step-body">Tap <strong>Create appointment</strong> — it appears as <strong>Pending</strong>.</div>
+            </div>
+            <div class="epilogue">Useful reasons like "Follow-up after composite restoration" feed the dashboard's Follow-ups widget.</div>
+          </div>
+          <div class="panel-right">
+            <div class="screenshot-wrapper">
+              <img src="screenshots/appointments-create.png" alt="Create appointment modal" class="screenshot">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 31: V.C. Appointment Actions -->
+    <!-- ============================================================ -->
+    <div class="slide" data-type="content">
+      <div class="slide-content">
+        <div class="top-bar">
+          <span class="top-bar-section">Appointments &amp; Administration</span>
+          <span class="top-bar-title">CMS Manual</span>
+          <span class="top-bar-counter"><span>31</span> / 35</span>
+        </div>
+        <div class="content-header">
+          <div class="content-title">V.C. Appointment Actions</div>
+        </div>
+        <div class="content-body">
+          <div class="panel-left">
+            <div class="prologue">Tapping an appointment opens its detail sheet with state-aware actions — the buttons shown depend on the current status.</div>
+            <div class="step">
+              <div class="step-header">Step 1</div>
+              <div class="step-body">Tap an appointment row to open the detail sheet.</div>
+            </div>
+            <div class="step">
+              <div class="step-header">Step 2</div>
+              <div class="step-body"><strong>Confirm</strong> a pending appointment to lock the schedule.</div>
+            </div>
+            <div class="step">
+              <div class="step-header">Step 3</div>
+              <div class="step-body">On the day: <strong>Mark attended</strong> or <strong>Mark no-show</strong>.</div>
+            </div>
+            <div class="step">
+              <div class="step-header">Step 4</div>
+              <div class="step-body"><strong>Reschedule</strong> moves it back to Pending; <strong>Cancel</strong> requires a reason.</div>
+            </div>
+            <div class="note-box">
+              <div class="note-label">Note</div>
+              <div class="note-text">Cancelled, completed, and no-show appointments are closed — no further actions apply.</div>
+            </div>
+          </div>
+          <div class="panel-right">
+            <div class="screenshot-wrapper">
+              <img src="screenshots/appointments-detail.png" alt="Appointment detail with actions" class="screenshot">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 32: V.D. Managing Users -->
+    <!-- ============================================================ -->
+    <div class="slide" data-type="content">
+      <div class="slide-content">
+        <div class="top-bar">
+          <span class="top-bar-section">Appointments &amp; Administration</span>
+          <span class="top-bar-title">CMS Manual</span>
+          <span class="top-bar-counter"><span>32</span> / 35</span>
+        </div>
+        <div class="content-header">
+          <div class="content-title">V.D. Managing Users</div>
+        </div>
+        <div class="content-body">
+          <div class="panel-left">
+            <div class="prologue">Users is Administrator-only. Staff accounts are created with a username, email, password, and role.</div>
+            <div class="step">
+              <div class="step-header">Step 1</div>
+              <div class="step-body">Open <strong>Users</strong> from the sidebar to see the staff list with roles and status.</div>
+            </div>
+            <div class="step">
+              <div class="step-header">Step 2</div>
+              <div class="step-body">Use <strong>Edit</strong> to change details or <strong>deactivate</strong> a departing staff member's account.</div>
+            </div>
+            <div class="note-box">
+              <div class="note-label">Note</div>
+              <div class="note-text">Roles control what each person sees: Administrator, Dentist, Assistant, Receptionist. You cannot deactivate your own account.</div>
+            </div>
+          </div>
+          <div class="panel-right">
+            <div class="screenshot-wrapper">
+              <img src="screenshots/users-list.png" alt="Users list" class="screenshot">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 33: V.E. Adding a User -->
+    <!-- ============================================================ -->
+    <div class="slide" data-type="content">
+      <div class="slide-content">
+        <div class="top-bar">
+          <span class="top-bar-section">Appointments &amp; Administration</span>
+          <span class="top-bar-title">CMS Manual</span>
+          <span class="top-bar-counter"><span>33</span> / 35</span>
+        </div>
+        <div class="content-header">
+          <div class="content-title">V.E. Adding a User</div>
+        </div>
+        <div class="content-body">
+          <div class="panel-left">
+            <div class="prologue">New staff get a username (their login), an email (for system mail), a password, and one of the four roles.</div>
+            <div class="step">
+              <div class="step-header">Step 1</div>
+              <div class="step-body">Click <strong>Add user</strong>.</div>
+            </div>
+            <div class="step">
+              <div class="step-header">Step 2</div>
+              <div class="step-body">Enter name, <strong>username</strong> (unique — used to sign in), email, and an initial password.</div>
+            </div>
+            <div class="step">
+              <div class="step-header">Step 3</div>
+              <div class="step-body">Select the <strong>role</strong> and save.</div>
+            </div>
+            <div class="note-box">
+              <div class="note-label">Note</div>
+              <div class="note-text">A welcome email is queued automatically; it reads the clinic name from Settings.</div>
+            </div>
+          </div>
+          <div class="panel-right">
+            <div class="screenshot-wrapper">
+              <img src="screenshots/users-create.png" alt="Add user form" class="screenshot">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 34: V.F. Clinic Settings -->
+    <!-- ============================================================ -->
+    <div class="slide" data-type="content">
+      <div class="slide-content">
+        <div class="top-bar">
+          <span class="top-bar-section">Appointments &amp; Administration</span>
+          <span class="top-bar-title">CMS Manual</span>
+          <span class="top-bar-counter"><span>34</span> / 35</span>
+        </div>
+        <div class="content-header">
+          <div class="content-title">V.F. Clinic Settings</div>
+        </div>
+        <div class="content-body">
+          <div class="panel-left">
+            <div class="prologue">Settings holds clinic-wide values grouped by area. Changes apply immediately — including the landing page brand and upload limits.</div>
+            <div class="step">
+              <div class="step-header">Step 1</div>
+              <div class="step-body">Open <strong>Settings</strong> (Administrator only).</div>
+            </div>
+            <div class="step">
+              <div class="step-header">Step 2</div>
+              <div class="step-body">Edit any group: General, Scheduling, Patient records, Consent, Uploads, Archiving.</div>
+            </div>
+            <div class="step">
+              <div class="step-header">Step 3</div>
+              <div class="step-body">Tap <strong>Save settings</strong> — a toast confirms the update.</div>
+            </div>
+            <div class="note-box">
+              <div class="note-label">Note</div>
+              <div class="note-text">The Archiving group sets how many years of inactivity trigger patient archival (default 5).</div>
+            </div>
+          </div>
+          <div class="panel-right">
+            <div class="screenshot-wrapper">
+              <img src="screenshots/settings.png" alt="Settings page" class="screenshot">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 35: V.G. Reports -->
+    <!-- ============================================================ -->
+    <div class="slide" data-type="content">
+      <div class="slide-content">
+        <div class="top-bar">
+          <span class="top-bar-section">Appointments &amp; Administration</span>
+          <span class="top-bar-title">CMS Manual</span>
+          <span class="top-bar-counter"><span>35</span> / 35</span>
+        </div>
+        <div class="content-header">
+          <div class="content-title">V.G. Reports</div>
+        </div>
+        <div class="content-body">
+          <div class="panel-left">
+            <div class="prologue">Reports summarizes the whole clinic over a date range — growth, attendance, procedures, chart conditions, and dentist workload.</div>
+            <div class="step">
+              <div class="step-header">Step 1</div>
+              <div class="step-body">Open <strong>Reports</strong> (Administrator only) and set the <strong>From / To</strong> dates.</div>
+            </div>
+            <div class="step">
+              <div class="step-header">Step 2</div>
+              <div class="step-body">Read the metric cards: new patients, appointments, procedures, average attendance.</div>
+            </div>
+            <div class="step">
+              <div class="step-header">Step 3</div>
+              <div class="step-body">Review the five charts: patient growth, appointment summary, procedures, conditions, dentist workload.</div>
+            </div>
+            <div class="step">
+              <div class="step-header">Step 4</div>
+              <div class="step-body">Click <strong>CSV</strong> to export any chart's data, or <strong>Print</strong> for a PDF copy.</div>
+            </div>
+            <div class="note-box">
+              <div class="note-label">Note</div>
+              <div class="note-text">Condition summary doubles as a clinical audit — spot frequently recorded conditions early.</div>
+            </div>
+          </div>
+          <div class="panel-right">
+            <div class="screenshot-wrapper">
+              <img src="screenshots/reports.png" alt="Reports page with charts" class="screenshot">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+<!-- Progress Bar -->
+<div class="progress-bar" id="progressBar" style="width: 2.86%;"></div>
+
+<!-- Thumbnail Sidebar -->
+<div class="thumb-sidebar" id="thumbSidebar"></div>
+
+<!-- Navigation Arrows -->
+<div class="nav-arrows">
+  <button class="nav-btn" id="prevBtn" title="Previous slide">&#x2039;</button>
+  <button class="nav-btn" id="nextBtn" title="Next slide">&#x203A;</button>
+</div>
+
+<!-- Keyboard Hint -->
+<div class="keyboard-hint">
+  <kbd>&larr;</kbd> <kbd>&rarr;</kbd> navigate
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  const slides = document.querySelectorAll('.slide');
+  const totalSlides = slides.length;
+  let currentSlide = 0;
+
+  const progressBar = document.getElementById('progressBar');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const thumbSidebar = document.getElementById('thumbSidebar');
+
+  // Build thumbnail sidebar
+  slides.forEach((slide, i) => {
+    const thumb = document.createElement('div');
+    const type = slide.dataset.type;
+    thumb.className = 'thumb-item';
+    thumb.dataset.index = i;
+    thumb.textContent = type === 'cover' ? 'C' : type === 'toc' ? 'T' : type === 'divider' ? 'D' : (i + 1);
+    thumb.title = 'Slide ' + (i + 1);
+    thumb.addEventListener('click', () => goToSlide(i));
+    thumbSidebar.appendChild(thumb);
+  });
+
+  function updateSlides() {
+    slides.forEach((slide, i) => {
+      slide.classList.remove('active', 'prev');
+      if (i === currentSlide) {
+        slide.classList.add('active');
+      } else if (i < currentSlide) {
+        slide.classList.add('prev');
+      }
+    });
+
+    // Update progress
+    const progress = ((currentSlide + 1) / totalSlides) * 100;
+    progressBar.style.width = progress + '%';
+
+    // Update nav buttons
+    prevBtn.disabled = currentSlide === 0;
+    nextBtn.disabled = currentSlide === totalSlides - 1;
+
+    // Update thumbnails
+    document.querySelectorAll('.thumb-item').forEach((thumb, i) => {
+      thumb.classList.toggle('active', i === currentSlide);
+    });
+
+    // Scroll thumbnail into view
+    const activeThumb = thumbSidebar.querySelector('.thumb-item.active');
+    if (activeThumb) {
+      activeThumb.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }
+
+  function goToSlide(index) {
+    if (index < 0 || index >= totalSlides) return;
+    currentSlide = index;
+    updateSlides();
+  }
+
+  function nextSlide() {
+    if (currentSlide < totalSlides - 1) {
+      currentSlide++;
+      updateSlides();
+    }
+  }
+
+  function prevSlide() {
+    if (currentSlide > 0) {
+      currentSlide--;
+      updateSlides();
+    }
+  }
+
+  // Event listeners
+  prevBtn.addEventListener('click', prevSlide);
+  nextBtn.addEventListener('click', nextSlide);
+
+  // Keyboard navigation
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+      e.preventDefault();
+      nextSlide();
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      prevSlide();
+    } else if (e.key === 'Home') {
+      e.preventDefault();
+      goToSlide(0);
+    } else if (e.key === 'End') {
+      e.preventDefault();
+      goToSlide(totalSlides - 1);
+    }
+  });
+
+  // Touch/swipe support
+  let touchStartX = 0;
+  let touchEndX = 0;
+
+  document.addEventListener('touchstart', (e) => {
+    touchStartX = e.changedTouches[0].screenX;
+  }, { passive: true });
+
+  document.addEventListener('touchend', (e) => {
+    touchEndX = e.changedTouches[0].screenX;
+    const diff = touchStartX - touchEndX;
+    if (Math.abs(diff) > 50) {
+      if (diff > 0) nextSlide();
+      else prevSlide();
+    }
+  }, { passive: true });
+
+  // Mouse wheel navigation
+  let wheelTimeout;
+  document.addEventListener('wheel', (e) => {
+    clearTimeout(wheelTimeout);
+    wheelTimeout = setTimeout(() => {
+      if (e.deltaY > 30) nextSlide();
+      else if (e.deltaY < -30) prevSlide();
+    }, 50);
+  }, { passive: true });
+
+  // TOC click navigation
+  document.querySelectorAll('.toc-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const slideIndex = parseInt(item.dataset.slide);
+      if (!isNaN(slideIndex)) goToSlide(slideIndex);
+    });
+  });
+
+  // Initialize
+  updateSlides();
+
+})();
+</script>
+
+</body>
+</html>
