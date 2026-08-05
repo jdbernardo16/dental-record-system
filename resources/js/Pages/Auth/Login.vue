@@ -15,7 +15,7 @@ defineProps({
 });
 
 const form = useForm({
-    email: '',
+    username: '',
     password: '',
     remember: false,
 });
@@ -44,13 +44,13 @@ const submit = () => {
 
             <div class="mt-4">
                 <Input
-                    id="email"
-                    v-model="form.email"
-                    type="email"
-                    label="Email"
+                    id="username"
+                    v-model="form.username"
+                    type="text"
+                    label="Username"
                     required
                     autocomplete="username"
-                    :error="form.errors.email"
+                    :error="form.errors.username"
                 />
             </div>
 

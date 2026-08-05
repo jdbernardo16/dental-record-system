@@ -14,11 +14,12 @@ it('lets an administrator create a user with a role', function () {
     $admin = User::factory()->create()->assignRole('Administrator');
 
     $this->actingAs($admin)->post('/users', [
-        'name' => 'Dra. Cruz', 'email' => 'cruz@clinic.test', 'password' => 'password', 'role' => 'Dentist',
+        'name' => 'Dra. Cruz', 'username' => 'cruz', 'email' => 'cruz@clinic.test', 'password' => 'password', 'role' => 'Dentist',
     ])->assertRedirect('/users');
 
     $user = User::where('email', 'cruz@clinic.test')->first();
     expect($user)->not->toBeNull();
+    expect($user->username)->toBe('cruz');
     expect($user->hasRole('Dentist'))->toBeTrue();
 });
 
@@ -27,7 +28,7 @@ it('blocks non-admins from managing users', function () {
 
     $this->actingAs($receptionist)->get('/users')->assertForbidden();
     $this->actingAs($receptionist)->post('/users', [
-        'name' => 'X', 'email' => 'x@clinic.test', 'password' => 'password', 'role' => 'Dentist',
+        'name' => 'X', 'username' => 'xuser', 'email' => 'x@clinic.test', 'password' => 'password', 'role' => 'Dentist',
     ])->assertForbidden();
 });
 
@@ -50,6 +51,7 @@ it('prevents an administrator from deactivating their own account', function () 
 
     $this->actingAs($admin)->patch("/users/{$admin->id}", [
         'name' => $admin->name,
+        'username' => $admin->username,
         'email' => $admin->email,
         'password' => '',
         'role' => 'Administrator',

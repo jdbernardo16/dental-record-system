@@ -20,6 +20,7 @@ const toastStore = useToastStore()
 
 const form = useForm({
     name: props.user.name,
+    username: props.user.username,
     email: props.user.email,
     password: '',
     role: props.user.roles[0]?.name ?? '',
@@ -64,6 +65,12 @@ const confirmDelete = () => {
                 required
                 autofocus
                 :error="form.errors.name"
+            />
+            <Input
+                v-model="form.username"
+                label="Username"
+                required
+                :error="form.errors.username"
             />
             <Input
                 v-model="form.email"
@@ -130,6 +137,10 @@ const confirmDelete = () => {
                 <div class="flex items-center justify-between py-3 first:pt-0 last:pb-0">
                     <dt class="text-sm font-medium text-gray-500">Full name</dt>
                     <dd class="text-sm font-medium text-gray-800">{{ user.name }}</dd>
+                </div>
+                <div class="flex items-center justify-between py-3">
+                    <dt class="text-sm font-medium text-gray-500">Username</dt>
+                    <dd class="text-sm font-medium text-gray-800">{{ user.username }}</dd>
                 </div>
                 <div class="flex items-center justify-between py-3">
                     <dt class="text-sm font-medium text-gray-500">Email address</dt>

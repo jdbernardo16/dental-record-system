@@ -62,6 +62,9 @@ const confirmDelete = (user) => {
                                 Name
                             </th>
                             <th scope="col" class="px-6 py-3.5 text-left text-xs font-semibold tracking-wide text-gray-500 uppercase">
+                                Username
+                            </th>
+                            <th scope="col" class="px-6 py-3.5 text-left text-xs font-semibold tracking-wide text-gray-500 uppercase">
                                 Email
                             </th>
                             <th scope="col" class="px-6 py-3.5 text-left text-xs font-semibold tracking-wide text-gray-500 uppercase">
@@ -85,6 +88,7 @@ const confirmDelete = (user) => {
                                     <span class="text-sm font-medium text-gray-800">{{ user.name }}</span>
                                 </div>
                             </td>
+                            <td class="px-6 py-4 text-sm text-gray-500">{{ user.username }}</td>
                             <td class="px-6 py-4 text-sm text-gray-500">{{ user.email }}</td>
                             <td class="px-6 py-4">
                                 <Badge size="sm" :color="roleColor(user.roles[0]?.name)">

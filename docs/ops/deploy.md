@@ -33,7 +33,7 @@ php artisan config:cache && php artisan route:cache && php artisan view:cache
 Create the first administrator with a generated password:
 
 ```bash
-php artisan tinker --execute="App\Models\User::updateOrCreate(['email' => 'admin@clinic.test'], ['name' => 'Administrator', 'password' => bcrypt(Str::password(16))])->assignRole('Administrator');"
+php artisan tinker --execute="App\Models\User::updateOrCreate(['username' => 'admin'], ['name' => 'Administrator', 'email' => 'admin@clinic.test', 'password' => bcrypt(Str::password(16))])->assignRole('Administrator');"
 ```
 
 > **Warning:** the password is printed by `Str::password(16)` — copy it once, sign in, and

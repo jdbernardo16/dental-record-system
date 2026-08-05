@@ -66,13 +66,15 @@ digitizes the full PDA patient chart:
 
 1. Open the app on the tablet's browser (Chrome, Safari, or Edge).
 2. You will see the clinic's landing page. Tap **Sign in**.
-3. Enter your **email** and **password** (provided by the Administrator).
+3. Enter your **username** and **password** (provided by the Administrator).
 4. Tap **Log in**.
 
 **First-time tips**
 
-- If you are the Administrator and this is a fresh installation, the seeded account is
-  `admin@clinic.test` / `password` — **change it immediately** via Users (Section 16).
+- If you are the Administrator and this is a fresh installation, the seeded dev accounts are
+  `admin` / `dentist` / `assistant` / `receptionist`, all with password `password`
+  (emails are `admin@test.com`, `dentist@test.com`, `assistant@test.com`, `receptionist@test.com`) —
+  **change them immediately** via Users (Section 16).
 - A sleeping tablet may show *Session expired* — just sign in again; your place is kept.
 - On the login screen, **Remember me** keeps you signed in on that tablet.
 - If you forget your password, tap **Forgot your password?** and follow the email link
@@ -509,9 +511,9 @@ limits, archival schedule).
 
 Sidebar → **Users** (Administrator only).
 
-- **Add user:** name, email, password, and role (Administrator / Dentist / Assistant /
+- **Add user:** name, username, email, password, and role (Administrator / Dentist / Assistant /
   Receptionist).
-- **Edit:** change name/email/role; **deactivate** a user to block their sign-in without
+- **Edit:** change name/username/email/role; **deactivate** a user to block their sign-in without
   deleting them (useful for departed staff). You cannot deactivate your own account.
 - **Delete:** removes the account (audited).
 

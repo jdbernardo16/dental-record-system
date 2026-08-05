@@ -16,6 +16,7 @@ const toastStore = useToastStore()
 
 const form = useForm({
     name: '',
+    username: '',
     email: '',
     password: '',
     role: '',
@@ -46,6 +47,13 @@ const submit = () => {
                 required
                 autofocus
                 :error="form.errors.name"
+            />
+            <Input
+                v-model="form.username"
+                label="Username"
+                placeholder="cruz"
+                required
+                :error="form.errors.username"
             />
             <Input
                 v-model="form.email"
