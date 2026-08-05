@@ -1,10 +1,9 @@
 <script setup>
-import GuestLayout from '@/Layouts/GuestLayout.vue';
-import InputError from '@/Components/InputError.vue';
-import InputLabel from '@/Components/InputLabel.vue';
-import PrimaryButton from '@/Components/PrimaryButton.vue';
-import TextInput from '@/Components/TextInput.vue';
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Button } from '@/Components/ui/button'
+import FormField from '@/Components/FormField.vue'
+import GuestLayout from '@/Layouts/GuestLayout.vue'
+import { Input } from '@/Components/ui/input'
+import { Head, Link, useForm } from '@inertiajs/vue3'
 
 const form = useForm({
     name: '',
@@ -12,13 +11,13 @@ const form = useForm({
     email: '',
     password: '',
     password_confirmation: '',
-});
+})
 
 const submit = () => {
     form.post(route('register'), {
         onFinish: () => form.reset('password', 'password_confirmation'),
-    });
-};
+    })
+}
 </script>
 
 <template>
@@ -27,102 +26,104 @@ const submit = () => {
 
         <form @submit.prevent="submit">
             <div>
-                <InputLabel for="name" value="Name" />
-
-                <TextInput
-                    id="name"
-                    type="text"
-                    class="mt-1 block w-full"
-                    v-model="form.name"
-                    required
-                    autofocus
-                    autocomplete="name"
-                />
-
-                <InputError class="mt-2" :message="form.errors.name" />
+                <FormField id="name" label="Name" required :error="form.errors.name">
+                    <template #default="{ id }">
+                        <Input
+                            :id="id"
+                            v-model="form.name"
+                            type="text"
+                            class="w-full"
+                            required
+                            autofocus
+                            autocomplete="name"
+                            :aria-invalid="form.errors.name ? 'true' : 'false'"
+                        />
+                    </template>
+                </FormField>
             </div>
 
             <div class="mt-4">
-                <InputLabel for="username" value="Username" />
-
-                <TextInput
-                    id="username"
-                    type="text"
-                    class="mt-1 block w-full"
-                    v-model="form.username"
-                    required
-                    autocomplete="username"
-                />
-
-                <InputError class="mt-2" :message="form.errors.username" />
+                <FormField id="username" label="Username" required :error="form.errors.username">
+                    <template #default="{ id }">
+                        <Input
+                            :id="id"
+                            v-model="form.username"
+                            type="text"
+                            class="w-full"
+                            required
+                            autocomplete="username"
+                            :aria-invalid="form.errors.username ? 'true' : 'false'"
+                        />
+                    </template>
+                </FormField>
             </div>
 
             <div class="mt-4">
-                <InputLabel for="email" value="Email" />
-
-                <TextInput
-                    id="email"
-                    type="email"
-                    class="mt-1 block w-full"
-                    v-model="form.email"
-                    required
-                    autocomplete="username"
-                />
-
-                <InputError class="mt-2" :message="form.errors.email" />
+                <FormField id="email" label="Email" required :error="form.errors.email">
+                    <template #default="{ id }">
+                        <Input
+                            :id="id"
+                            v-model="form.email"
+                            type="email"
+                            class="w-full"
+                            required
+                            autocomplete="username"
+                            :aria-invalid="form.errors.email ? 'true' : 'false'"
+                        />
+                    </template>
+                </FormField>
             </div>
 
             <div class="mt-4">
-                <InputLabel for="password" value="Password" />
-
-                <TextInput
-                    id="password"
-                    type="password"
-                    class="mt-1 block w-full"
-                    v-model="form.password"
-                    required
-                    autocomplete="new-password"
-                />
-
-                <InputError class="mt-2" :message="form.errors.password" />
+                <FormField id="password" label="Password" required :error="form.errors.password">
+                    <template #default="{ id }">
+                        <Input
+                            :id="id"
+                            v-model="form.password"
+                            type="password"
+                            class="w-full"
+                            required
+                            autocomplete="new-password"
+                            :aria-invalid="form.errors.password ? 'true' : 'false'"
+                        />
+                    </template>
+                </FormField>
             </div>
 
             <div class="mt-4">
-                <InputLabel
-                    for="password_confirmation"
-                    value="Confirm Password"
-                />
-
-                <TextInput
+                <FormField
                     id="password_confirmation"
-                    type="password"
-                    class="mt-1 block w-full"
-                    v-model="form.password_confirmation"
+                    label="Confirm Password"
                     required
-                    autocomplete="new-password"
-                />
-
-                <InputError
-                    class="mt-2"
-                    :message="form.errors.password_confirmation"
-                />
+                    :error="form.errors.password_confirmation"
+                >
+                    <template #default="{ id }">
+                        <Input
+                            :id="id"
+                            v-model="form.password_confirmation"
+                            type="password"
+                            class="w-full"
+                            required
+                            autocomplete="new-password"
+                            :aria-invalid="form.errors.password_confirmation ? 'true' : 'false'"
+                        />
+                    </template>
+                </FormField>
             </div>
 
             <div class="mt-4 flex items-center justify-end">
                 <Link
                     :href="route('login')"
-                    class="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                    class="text-sm font-medium text-brand-600 hover:text-brand-700"
                 >
                     Already registered?
                 </Link>
+            </div>
 
-                <PrimaryButton
-                    class="ms-4"
-                    :class="{ 'opacity-25': form.processing }"
-                    :disabled="form.processing"
-                >
-                    Register
-                </PrimaryButton>
+            <div class="mt-6">
+                <Button type="submit" class="w-full" :disabled="form.processing">
+                    {{ form.processing ? '…' : 'Register' }}
+                </Button>
             </div>
         </form>
     </GuestLayout>

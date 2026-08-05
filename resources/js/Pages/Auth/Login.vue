@@ -1,9 +1,10 @@
 <script setup>
-import Button from '@/Components/Button.vue';
-import Checkbox from '@/Components/Checkbox.vue';
-import GuestLayout from '@/Layouts/GuestLayout.vue';
-import Input from '@/Components/Input.vue';
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Button } from '@/Components/ui/button'
+import { Checkbox } from '@/Components/ui/checkbox'
+import FormField from '@/Components/FormField.vue'
+import GuestLayout from '@/Layouts/GuestLayout.vue'
+import { Input } from '@/Components/ui/input'
+import { Head, Link, useForm } from '@inertiajs/vue3'
 
 defineProps({
     canResetPassword: {
@@ -12,19 +13,19 @@ defineProps({
     status: {
         type: String,
     },
-});
+})
 
 const form = useForm({
     username: '',
     password: '',
     remember: false,
-});
+})
 
 const submit = () => {
     form.post(route('login'), {
         onFinish: () => form.reset('password'),
-    });
-};
+    })
+}
 </script>
 
 <template>
@@ -43,32 +44,40 @@ const submit = () => {
             <p class="mt-0.5 text-sm text-gray-500">Sign in to your account.</p>
 
             <div class="mt-4">
-                <Input
-                    id="username"
-                    v-model="form.username"
-                    type="text"
-                    label="Username"
-                    required
-                    autocomplete="username"
-                    :error="form.errors.username"
-                />
+                <FormField id="username" label="Username" required :error="form.errors.username">
+                    <template #default="{ id }">
+                        <Input
+                            :id="id"
+                            v-model="form.username"
+                            type="text"
+                            class="w-full"
+                            required
+                            autocomplete="username"
+                            :aria-invalid="form.errors.username ? 'true' : 'false'"
+                        />
+                    </template>
+                </FormField>
             </div>
 
             <div class="mt-4">
-                <Input
-                    id="password"
-                    v-model="form.password"
-                    type="password"
-                    label="Password"
-                    required
-                    autocomplete="current-password"
-                    :error="form.errors.password"
-                />
+                <FormField id="password" label="Password" required :error="form.errors.password">
+                    <template #default="{ id }">
+                        <Input
+                            :id="id"
+                            v-model="form.password"
+                            type="password"
+                            class="w-full"
+                            required
+                            autocomplete="current-password"
+                            :aria-invalid="form.errors.password ? 'true' : 'false'"
+                        />
+                    </template>
+                </FormField>
             </div>
 
             <div class="mt-4 flex items-center justify-between">
                 <label class="flex items-center gap-2">
-                    <Checkbox name="remember" v-model:checked="form.remember" />
+                    <Checkbox v-model="form.remember" name="remember" />
                     <span class="text-sm text-gray-600">Remember me</span>
                 </label>
 
@@ -82,11 +91,7 @@ const submit = () => {
             </div>
 
             <div class="mt-6">
-                <Button
-                    type="submit"
-                    className="w-full"
-                    :disabled="form.processing"
-                >
+                <Button type="submit" class="w-full" :disabled="form.processing">
                     {{ form.processing ? 'Signing in…' : 'Log in' }}
                 </Button>
             </div>

@@ -4,8 +4,10 @@ import { Trash2 } from 'lucide-vue-next'
 import { route } from '../../../../vendor/tightenco/ziggy'
 import AppLayout from '@/Layouts/AppLayout.vue'
 import Badge from '@/Components/Badge.vue'
-import Button from '@/Components/Button.vue'
-import Input from '@/Components/Input.vue'
+import { Button } from '@/Components/ui/button'
+import FormField from '@/Components/FormField.vue'
+import { Input } from '@/Components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select'
 import { useToastStore } from '@/Stores/toast'
 
 defineOptions({ layout: AppLayout })
@@ -82,125 +84,181 @@ const confirmDelete = () => {
 
             <section class="space-y-5">
                 <h2 class="text-sm font-semibold text-gray-800">Identity</h2>
-                <Input
-                    v-model="form.first_name"
-                    label="First name"
-                    required
-                    autofocus
-                    :error="form.errors.first_name"
-                />
-                <Input
-                    v-model="form.middle_name"
-                    label="Middle name"
-                    placeholder="Optional"
-                    :error="form.errors.middle_name"
-                />
-                <Input
-                    v-model="form.last_name"
-                    label="Last name"
-                    required
-                    :error="form.errors.last_name"
-                />
-                <div>
-                    <label for="sex" class="mb-1.5 block text-sm font-medium text-gray-700">
-                        Sex
-                        <span class="text-status-cancelled">*</span>
-                    </label>
-                    <select
-                        id="sex"
-                        v-model="form.sex"
-                        required
-                        :aria-invalid="form.errors.sex ? 'true' : 'false'"
-                        class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
-                        :class="{ 'border-status-cancelled': form.errors.sex }"
-                    >
-                        <option v-for="option in sexOptions" :key="option.value" :value="option.value">
-                            {{ option.label }}
-                        </option>
-                    </select>
-                    <p v-if="form.errors.sex" class="mt-1.5 text-xs text-status-cancelled">{{ form.errors.sex }}</p>
-                </div>
-                <Input
-                    v-model="form.birth_date"
-                    type="date"
-                    label="Birth date"
-                    required
-                    :error="form.errors.birth_date"
-                />
-                <div>
-                    <label for="civil_status" class="mb-1.5 block text-sm font-medium text-gray-700">
-                        Civil status
-                        <span class="text-status-cancelled">*</span>
-                    </label>
-                    <select
-                        id="civil_status"
-                        v-model="form.civil_status"
-                        required
-                        :aria-invalid="form.errors.civil_status ? 'true' : 'false'"
-                        class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
-                        :class="{ 'border-status-cancelled': form.errors.civil_status }"
-                    >
-                        <option v-for="option in civilStatusOptions" :key="option.value" :value="option.value">
-                            {{ option.label }}
-                        </option>
-                    </select>
-                    <p v-if="form.errors.civil_status" class="mt-1.5 text-xs text-status-cancelled">{{ form.errors.civil_status }}</p>
-                </div>
-                <Input
-                    v-model="form.nationality"
-                    label="Nationality"
-                    required
-                    :error="form.errors.nationality"
-                />
+                <FormField id="first_name" label="First name" required :error="form.errors.first_name">
+                    <template #default="{ id }">
+                        <Input
+                            :id="id"
+                            v-model="form.first_name"
+                            required
+                            autofocus
+                            :aria-invalid="form.errors.first_name ? 'true' : 'false'"
+                        />
+                    </template>
+                </FormField>
+                <FormField id="middle_name" label="Middle name" :error="form.errors.middle_name">
+                    <template #default="{ id }">
+                        <Input
+                            :id="id"
+                            v-model="form.middle_name"
+                            placeholder="Optional"
+                            :aria-invalid="form.errors.middle_name ? 'true' : 'false'"
+                        />
+                    </template>
+                </FormField>
+                <FormField id="last_name" label="Last name" required :error="form.errors.last_name">
+                    <template #default="{ id }">
+                        <Input
+                            :id="id"
+                            v-model="form.last_name"
+                            required
+                            :aria-invalid="form.errors.last_name ? 'true' : 'false'"
+                        />
+                    </template>
+                </FormField>
+                <FormField id="sex" label="Sex" required :error="form.errors.sex">
+                    <template #default="{ id }">
+                        <Select v-model="form.sex" name="sex" required>
+                            <SelectTrigger
+                                :id="id"
+                                class="w-full"
+                                :aria-invalid="form.errors.sex ? 'true' : 'false'"
+                            >
+                                <SelectValue placeholder="Select sex" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem v-for="option in sexOptions" :key="option.value" :value="option.value">
+                                    {{ option.label }}
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </template>
+                </FormField>
+                <FormField id="birth_date" label="Birth date" required :error="form.errors.birth_date">
+                    <template #default="{ id }">
+                        <Input
+                            :id="id"
+                            v-model="form.birth_date"
+                            type="date"
+                            required
+                            :aria-invalid="form.errors.birth_date ? 'true' : 'false'"
+                        />
+                    </template>
+                </FormField>
+                <FormField id="civil_status" label="Civil status" required :error="form.errors.civil_status">
+                    <template #default="{ id }">
+                        <Select v-model="form.civil_status" name="civil_status" required>
+                            <SelectTrigger
+                                :id="id"
+                                class="w-full"
+                                :aria-invalid="form.errors.civil_status ? 'true' : 'false'"
+                            >
+                                <SelectValue placeholder="Select civil status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem
+                                    v-for="option in civilStatusOptions"
+                                    :key="option.value"
+                                    :value="option.value"
+                                >
+                                    {{ option.label }}
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </template>
+                </FormField>
+                <FormField id="nationality" label="Nationality" required :error="form.errors.nationality">
+                    <template #default="{ id }">
+                        <Input
+                            :id="id"
+                            v-model="form.nationality"
+                            required
+                            :aria-invalid="form.errors.nationality ? 'true' : 'false'"
+                        />
+                    </template>
+                </FormField>
             </section>
 
             <hr class="border-gray-100" />
 
             <section class="space-y-5">
                 <h2 class="text-sm font-semibold text-gray-800">Contact</h2>
-                <Input
-                    v-model="form.occupation"
-                    label="Occupation"
-                    placeholder="Optional"
-                    :error="form.errors.occupation"
-                />
-                <Input
-                    v-model="form.contact_number"
-                    label="Contact number"
-                    required
-                    :error="form.errors.contact_number"
-                />
-                <Input
-                    v-model="form.address"
-                    label="Address"
-                    required
-                    :error="form.errors.address"
-                />
-                <Input
-                    v-model="form.email_address"
-                    type="email"
-                    label="Email address"
-                    placeholder="Optional"
-                    :error="form.errors.email_address"
-                />
+                <FormField id="occupation" label="Occupation" :error="form.errors.occupation">
+                    <template #default="{ id }">
+                        <Input
+                            :id="id"
+                            v-model="form.occupation"
+                            placeholder="Optional"
+                            :aria-invalid="form.errors.occupation ? 'true' : 'false'"
+                        />
+                    </template>
+                </FormField>
+                <FormField id="contact_number" label="Contact number" required :error="form.errors.contact_number">
+                    <template #default="{ id }">
+                        <Input
+                            :id="id"
+                            v-model="form.contact_number"
+                            required
+                            :aria-invalid="form.errors.contact_number ? 'true' : 'false'"
+                        />
+                    </template>
+                </FormField>
+                <FormField id="address" label="Address" required :error="form.errors.address">
+                    <template #default="{ id }">
+                        <Input
+                            :id="id"
+                            v-model="form.address"
+                            required
+                            :aria-invalid="form.errors.address ? 'true' : 'false'"
+                        />
+                    </template>
+                </FormField>
+                <FormField id="email_address" label="Email address" :error="form.errors.email_address">
+                    <template #default="{ id }">
+                        <Input
+                            :id="id"
+                            v-model="form.email_address"
+                            type="email"
+                            placeholder="Optional"
+                            :aria-invalid="form.errors.email_address ? 'true' : 'false'"
+                        />
+                    </template>
+                </FormField>
             </section>
 
             <hr class="border-gray-100" />
 
             <section class="space-y-5">
                 <h2 class="text-sm font-semibold text-gray-800">Emergency contact</h2>
-                <Input
-                    v-model="form.emergency_contact_person"
+                <FormField
+                    id="emergency_contact_person"
                     label="Contact person"
                     required
                     :error="form.errors.emergency_contact_person"
-                />
-                <Input
-                    v-model="form.emergency_contact_number"
+                >
+                    <template #default="{ id }">
+                        <Input
+                            :id="id"
+                            v-model="form.emergency_contact_person"
+                            required
+                            :aria-invalid="form.errors.emergency_contact_person ? 'true' : 'false'"
+                        />
+                    </template>
+                </FormField>
+                <FormField
+                    id="emergency_contact_number"
                     label="Contact number"
                     required
                     :error="form.errors.emergency_contact_number"
-                />
+                >
+                    <template #default="{ id }">
+                        <Input
+                            :id="id"
+                            v-model="form.emergency_contact_number"
+                            required
+                            :aria-invalid="form.errors.emergency_contact_number ? 'true' : 'false'"
+                        />
+                    </template>
+                </FormField>
             </section>
 
             <hr class="border-gray-100" />
@@ -208,67 +266,103 @@ const confirmDelete = () => {
             <section class="space-y-5">
                 <h2 class="text-sm font-semibold text-gray-800">PDA additional details</h2>
                 <p class="text-xs text-gray-500">Optional fields from the PDA patient information record.</p>
-                <Input
-                    v-model="form.religion"
-                    label="Religion"
-                    placeholder="Optional"
-                    :error="form.errors.religion"
-                />
-                <Input
-                    v-model="form.nickname"
-                    label="Nickname"
-                    placeholder="Optional"
-                    :error="form.errors.nickname"
-                />
-                <Input
-                    v-model="form.home_phone"
-                    label="Home phone"
-                    placeholder="02 8123 4567"
-                    :error="form.errors.home_phone"
-                />
-                <Input
-                    v-model="form.office_phone"
-                    label="Office phone"
-                    placeholder="02 8765 4321"
-                    :error="form.errors.office_phone"
-                />
-                <Input
-                    v-model="form.fax_number"
-                    label="Fax number"
-                    placeholder="Optional"
-                    :error="form.errors.fax_number"
-                />
-                <Input
-                    v-model="form.dental_insurance"
-                    label="Dental insurance"
-                    placeholder="e.g. PhilHealth"
-                    :error="form.errors.dental_insurance"
-                />
-                <Input
-                    v-model="form.effective_date"
-                    type="date"
-                    label="Effective date"
-                    :error="form.errors.effective_date"
-                />
-                <Input
-                    v-model="form.guardian_name"
-                    label="Guardian name"
-                    placeholder="For minors"
-                    :error="form.errors.guardian_name"
-                />
-                <Input
-                    v-model="form.guardian_occupation"
-                    label="Guardian occupation"
-                    placeholder="For minors"
-                    :error="form.errors.guardian_occupation"
-                />
+                <FormField id="religion" label="Religion" :error="form.errors.religion">
+                    <template #default="{ id }">
+                        <Input
+                            :id="id"
+                            v-model="form.religion"
+                            placeholder="Optional"
+                            :aria-invalid="form.errors.religion ? 'true' : 'false'"
+                        />
+                    </template>
+                </FormField>
+                <FormField id="nickname" label="Nickname" :error="form.errors.nickname">
+                    <template #default="{ id }">
+                        <Input
+                            :id="id"
+                            v-model="form.nickname"
+                            placeholder="Optional"
+                            :aria-invalid="form.errors.nickname ? 'true' : 'false'"
+                        />
+                    </template>
+                </FormField>
+                <FormField id="home_phone" label="Home phone" :error="form.errors.home_phone">
+                    <template #default="{ id }">
+                        <Input
+                            :id="id"
+                            v-model="form.home_phone"
+                            placeholder="02 8123 4567"
+                            :aria-invalid="form.errors.home_phone ? 'true' : 'false'"
+                        />
+                    </template>
+                </FormField>
+                <FormField id="office_phone" label="Office phone" :error="form.errors.office_phone">
+                    <template #default="{ id }">
+                        <Input
+                            :id="id"
+                            v-model="form.office_phone"
+                            placeholder="02 8765 4321"
+                            :aria-invalid="form.errors.office_phone ? 'true' : 'false'"
+                        />
+                    </template>
+                </FormField>
+                <FormField id="fax_number" label="Fax number" :error="form.errors.fax_number">
+                    <template #default="{ id }">
+                        <Input
+                            :id="id"
+                            v-model="form.fax_number"
+                            placeholder="Optional"
+                            :aria-invalid="form.errors.fax_number ? 'true' : 'false'"
+                        />
+                    </template>
+                </FormField>
+                <FormField id="dental_insurance" label="Dental insurance" :error="form.errors.dental_insurance">
+                    <template #default="{ id }">
+                        <Input
+                            :id="id"
+                            v-model="form.dental_insurance"
+                            placeholder="e.g. PhilHealth"
+                            :aria-invalid="form.errors.dental_insurance ? 'true' : 'false'"
+                        />
+                    </template>
+                </FormField>
+                <FormField id="effective_date" label="Effective date" :error="form.errors.effective_date">
+                    <template #default="{ id }">
+                        <Input
+                            :id="id"
+                            v-model="form.effective_date"
+                            type="date"
+                            :aria-invalid="form.errors.effective_date ? 'true' : 'false'"
+                        />
+                    </template>
+                </FormField>
+                <FormField id="guardian_name" label="Guardian name" :error="form.errors.guardian_name">
+                    <template #default="{ id }">
+                        <Input
+                            :id="id"
+                            v-model="form.guardian_name"
+                            placeholder="For minors"
+                            :aria-invalid="form.errors.guardian_name ? 'true' : 'false'"
+                        />
+                    </template>
+                </FormField>
+                <FormField id="guardian_occupation" label="Guardian occupation" :error="form.errors.guardian_occupation">
+                    <template #default="{ id }">
+                        <Input
+                            :id="id"
+                            v-model="form.guardian_occupation"
+                            placeholder="For minors"
+                            :aria-invalid="form.errors.guardian_occupation ? 'true' : 'false'"
+                        />
+                    </template>
+                </FormField>
             </section>
 
             <div class="flex items-center justify-end gap-3 pt-2">
                 <Link :href="route('patients.show', patient.id)">
-                    <Button variant="outline" size="sm" :disabled="form.processing">Cancel</Button>
+                    <Button variant="outline" :disabled="form.processing">Cancel</Button>
                 </Link>
-                <Button type="submit" size="sm" :disabled="form.processing">
+                <Button type="submit" :disabled="form.processing">
                     {{ form.processing ? 'Saving…' : 'Save changes' }}
                 </Button>
             </div>
@@ -294,7 +388,7 @@ const confirmDelete = () => {
             <div class="pt-2">
                 <Link
                     :href="route('patients.show', patient.id)"
-                    class="inline-flex h-11 items-center justify-center rounded-lg border border-gray-300 bg-white px-5 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                    class="inline-flex min-h-11 items-center justify-center rounded-lg border border-gray-300 bg-white px-5 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50"
                 >
                     Back to record
                 </Link>
@@ -306,7 +400,7 @@ const confirmDelete = () => {
                 <p class="text-sm font-semibold text-gray-800">Danger zone</p>
                 <p class="mt-0.5 text-sm text-gray-500">Soft-delete this patient record. It can be restored by an administrator.</p>
             </div>
-            <Button variant="outline" size="sm" class="border-status-cancelled/30 text-status-cancelled hover:bg-status-cancelled/10" @click="confirmDelete">
+            <Button variant="destructive" @click="confirmDelete">
                 <Trash2 class="h-4 w-4" />
                 Delete patient
             </Button>

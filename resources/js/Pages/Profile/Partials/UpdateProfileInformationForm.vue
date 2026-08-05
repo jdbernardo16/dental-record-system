@@ -1,9 +1,8 @@
 <script setup>
-import InputError from '@/Components/InputError.vue';
-import InputLabel from '@/Components/InputLabel.vue';
-import PrimaryButton from '@/Components/PrimaryButton.vue';
-import TextInput from '@/Components/TextInput.vue';
-import { Link, useForm, usePage } from '@inertiajs/vue3';
+import { Button } from '@/Components/ui/button'
+import FormField from '@/Components/FormField.vue'
+import { Input } from '@/Components/ui/input'
+import { Link, useForm, usePage } from '@inertiajs/vue3'
 
 defineProps({
     mustVerifyEmail: {
@@ -12,14 +11,14 @@ defineProps({
     status: {
         type: String,
     },
-});
+})
 
-const user = usePage().props.auth.user;
+const user = usePage().props.auth.user
 
 const form = useForm({
     name: user.name,
     email: user.email,
-});
+})
 </script>
 
 <template>
@@ -38,36 +37,34 @@ const form = useForm({
             @submit.prevent="form.patch(route('profile.update'))"
             class="mt-6 space-y-6"
         >
-            <div>
-                <InputLabel for="name" value="Name" />
+            <FormField id="name" label="Name" required :error="form.errors.name">
+                <template #default="{ id }">
+                    <Input
+                        :id="id"
+                        v-model="form.name"
+                        type="text"
+                        class="w-full"
+                        required
+                        autofocus
+                        autocomplete="name"
+                        :aria-invalid="form.errors.name ? 'true' : 'false'"
+                    />
+                </template>
+            </FormField>
 
-                <TextInput
-                    id="name"
-                    type="text"
-                    class="mt-1 block w-full"
-                    v-model="form.name"
-                    required
-                    autofocus
-                    autocomplete="name"
-                />
-
-                <InputError class="mt-2" :message="form.errors.name" />
-            </div>
-
-            <div>
-                <InputLabel for="email" value="Email" />
-
-                <TextInput
-                    id="email"
-                    type="email"
-                    class="mt-1 block w-full"
-                    v-model="form.email"
-                    required
-                    autocomplete="username"
-                />
-
-                <InputError class="mt-2" :message="form.errors.email" />
-            </div>
+            <FormField id="email" label="Email" required :error="form.errors.email">
+                <template #default="{ id }">
+                    <Input
+                        :id="id"
+                        v-model="form.email"
+                        type="email"
+                        class="w-full"
+                        required
+                        autocomplete="username"
+                        :aria-invalid="form.errors.email ? 'true' : 'false'"
+                    />
+                </template>
+            </FormField>
 
             <div v-if="mustVerifyEmail && user.email_verified_at === null">
                 <p class="mt-2 text-sm text-gray-800">
@@ -76,7 +73,7 @@ const form = useForm({
                         :href="route('verification.send')"
                         method="post"
                         as="button"
-                        class="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                        class="text-sm font-medium text-brand-600 underline hover:text-brand-700"
                     >
                         Click here to re-send the verification email.
                     </Link>
@@ -91,7 +88,7 @@ const form = useForm({
             </div>
 
             <div class="flex items-center gap-4">
-                <PrimaryButton :disabled="form.processing">Save</PrimaryButton>
+                <Button :disabled="form.processing">Save</Button>
 
                 <Transition
                     enter-active-class="transition ease-in-out"

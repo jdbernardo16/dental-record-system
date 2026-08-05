@@ -1,19 +1,18 @@
 <script setup>
-import InputError from '@/Components/InputError.vue';
-import InputLabel from '@/Components/InputLabel.vue';
-import PrimaryButton from '@/Components/PrimaryButton.vue';
-import TextInput from '@/Components/TextInput.vue';
-import { useForm } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { Button } from '@/Components/ui/button'
+import FormField from '@/Components/FormField.vue'
+import { Input } from '@/Components/ui/input'
+import { useForm } from '@inertiajs/vue3'
+import { ref } from 'vue'
 
-const passwordInput = ref(null);
-const currentPasswordInput = ref(null);
+const passwordInput = ref(null)
+const currentPasswordInput = ref(null)
 
 const form = useForm({
     current_password: '',
     password: '',
     password_confirmation: '',
-});
+})
 
 const updatePassword = () => {
     form.put(route('password.update'), {
@@ -21,16 +20,16 @@ const updatePassword = () => {
         onSuccess: () => form.reset(),
         onError: () => {
             if (form.errors.password) {
-                form.reset('password', 'password_confirmation');
-                passwordInput.value.focus();
+                form.reset('password', 'password_confirmation')
+                passwordInput.value.focus()
             }
             if (form.errors.current_password) {
-                form.reset('current_password');
-                currentPasswordInput.value.focus();
+                form.reset('current_password')
+                currentPasswordInput.value.focus()
             }
         },
-    });
-};
+    })
+}
 </script>
 
 <template>
@@ -47,61 +46,57 @@ const updatePassword = () => {
         </header>
 
         <form @submit.prevent="updatePassword" class="mt-6 space-y-6">
-            <div>
-                <InputLabel for="current_password" value="Current Password" />
+            <FormField
+                id="current_password"
+                label="Current Password"
+                :error="form.errors.current_password"
+            >
+                <template #default="{ id }">
+                    <Input
+                        :id="id"
+                        ref="currentPasswordInput"
+                        v-model="form.current_password"
+                        type="password"
+                        class="w-full"
+                        autocomplete="current-password"
+                        :aria-invalid="form.errors.current_password ? 'true' : 'false'"
+                    />
+                </template>
+            </FormField>
 
-                <TextInput
-                    id="current_password"
-                    ref="currentPasswordInput"
-                    v-model="form.current_password"
-                    type="password"
-                    class="mt-1 block w-full"
-                    autocomplete="current-password"
-                />
+            <FormField id="password" label="New Password" :error="form.errors.password">
+                <template #default="{ id }">
+                    <Input
+                        :id="id"
+                        ref="passwordInput"
+                        v-model="form.password"
+                        type="password"
+                        class="w-full"
+                        autocomplete="new-password"
+                        :aria-invalid="form.errors.password ? 'true' : 'false'"
+                    />
+                </template>
+            </FormField>
 
-                <InputError
-                    :message="form.errors.current_password"
-                    class="mt-2"
-                />
-            </div>
-
-            <div>
-                <InputLabel for="password" value="New Password" />
-
-                <TextInput
-                    id="password"
-                    ref="passwordInput"
-                    v-model="form.password"
-                    type="password"
-                    class="mt-1 block w-full"
-                    autocomplete="new-password"
-                />
-
-                <InputError :message="form.errors.password" class="mt-2" />
-            </div>
-
-            <div>
-                <InputLabel
-                    for="password_confirmation"
-                    value="Confirm Password"
-                />
-
-                <TextInput
-                    id="password_confirmation"
-                    v-model="form.password_confirmation"
-                    type="password"
-                    class="mt-1 block w-full"
-                    autocomplete="new-password"
-                />
-
-                <InputError
-                    :message="form.errors.password_confirmation"
-                    class="mt-2"
-                />
-            </div>
+            <FormField
+                id="password_confirmation"
+                label="Confirm Password"
+                :error="form.errors.password_confirmation"
+            >
+                <template #default="{ id }">
+                    <Input
+                        :id="id"
+                        v-model="form.password_confirmation"
+                        type="password"
+                        class="w-full"
+                        autocomplete="new-password"
+                        :aria-invalid="form.errors.password_confirmation ? 'true' : 'false'"
+                    />
+                </template>
+            </FormField>
 
             <div class="flex items-center gap-4">
-                <PrimaryButton :disabled="form.processing">Save</PrimaryButton>
+                <Button :disabled="form.processing">Save</Button>
 
                 <Transition
                     enter-active-class="transition ease-in-out"
