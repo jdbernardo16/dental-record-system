@@ -26,7 +26,7 @@ class ConsentForm extends Model
     /**
      * Get the attributes that should be cast.
      *
-     * @return array<string, string>
+     * @return array<string, class-string|string>
      */
     protected function casts(): array
     {
@@ -38,16 +38,25 @@ class ConsentForm extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<Patient, $this>
+     */
     public function patient(): BelongsTo
     {
         return $this->belongsTo(Patient::class);
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function dentist(): BelongsTo
     {
         return $this->belongsTo(User::class, 'dentist_id');
     }
 
+    /**
+     * @return HasMany<ConsentSection, $this>
+     */
     public function sections(): HasMany
     {
         return $this->hasMany(ConsentSection::class);

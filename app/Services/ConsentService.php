@@ -70,7 +70,7 @@ final class ConsentService
      */
     public function signPatient(ConsentForm $form, string $signatureSvg, ?string $guardianName, ?string $guardianSvg): ConsentForm
     {
-        $patient = $form->patient;
+        $patient = $form->patient()->firstOrFail();
 
         if ($patient->age < 18) {
             abort_unless($guardianName && $guardianSvg, 422, 'Guardian signature required for minors.');
@@ -119,6 +119,6 @@ final class ConsentService
         $form->update(['status' => ConsentStatus::Voided->value]);
         activity()->performedOn($form)->causedBy($actor)->log('consent.voided');
 
-        return $this->createDraft($form->patient, $actor);
+        return $this->createDraft($form->patient()->firstOrFail(), $actor);
     }
 }

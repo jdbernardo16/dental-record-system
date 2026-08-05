@@ -72,7 +72,7 @@ class WizardController extends Controller
 
         $service = app(DentalChartService::class);
 
-        $consentSections = array_values(array_map(
+        $consentSections = array_map(
             fn (string $key, array $section) => [
                 'key' => $key,
                 'label' => $section['label'],
@@ -80,7 +80,7 @@ class WizardController extends Controller
             ],
             array_keys(config('consent.sections')),
             config('consent.sections'),
-        ));
+        );
 
         return Inertia::render('Wizard/Index', [
             'patient' => $patient,

@@ -12,7 +12,7 @@ class MedicalHistory extends Model
     /**
      * Get the attributes that should be cast.
      *
-     * @return array<string, string>
+     * @return array<string, class-string|string>
      */
     protected function casts(): array
     {

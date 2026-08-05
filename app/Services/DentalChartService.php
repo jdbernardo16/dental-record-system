@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\ToothSurface;
 use App\Models\DentalChartEntry;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
@@ -66,7 +67,7 @@ final class DentalChartService
 
         foreach ($rows as $row) {
             $tooth = $row->tooth_number;
-            $slot = $row->surface?->value ?? 'whole';
+            $slot = $row->surface instanceof ToothSurface ? $row->surface->value : 'whole';
 
             $state[$tooth]['whole'] ??= ['condition' => null, 'restoration' => null];
             $state[$tooth]['surfaces'] ??= [];
@@ -78,9 +79,7 @@ final class DentalChartService
                 $target = &$state[$tooth]['surfaces'][$slot];
             }
 
-            if ($row->condition) {
-                $target['condition'] = $row->condition->value;
-            }
+            $target['condition'] = $row->condition->value;
             if ($row->restoration_type) {
                 $target['restoration'] = $row->restoration_type->value;
             }

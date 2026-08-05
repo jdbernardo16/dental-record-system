@@ -35,7 +35,7 @@ class Patient extends Model
     /**
      * Get the attributes that should be cast.
      *
-     * @return array<string, string>
+     * @return array<string, class-string|string>
      */
     protected function casts(): array
     {
@@ -49,7 +49,10 @@ class Patient extends Model
 
     public function getAgeAttribute(): int
     {
-        return max(0, $this->birth_date?->age ?? 0);
+        // birth_date may be absent on partial-select queries (e.g. dashboard lists).
+        return array_key_exists('birth_date', $this->getAttributes())
+            ? max(0, $this->birth_date->age)
+            : 0;
     }
 
     public function fullName(): string

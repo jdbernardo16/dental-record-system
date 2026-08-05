@@ -1,0 +1,13 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    paths:
+        - app
+    level: 5
+    tmpDir: storage/framework/cache/phpstan
+    # Parse the casts() method so enum/date casts are resolved (models are
+    # reflected without their constructor, so the runtime cast map is empty).
+    parseModelCastsMethod: true
+    excludePaths:
+        - app/Enums/HasMeta.php

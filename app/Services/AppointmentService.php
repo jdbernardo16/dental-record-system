@@ -5,9 +5,15 @@ namespace App\Services;
 use App\Enums\AppointmentStatus;
 use App\Models\Appointment;
 use App\Models\User;
+use Illuminate\Support\Arr;
 
 final class AppointmentService
 {
+    /**
+     * Allowed transitions per appointment status (blueprint 05 state machine).
+     *
+     * @var array<string, list<string>>
+     */
     private const TRANSITIONS = [
         'pending' => ['confirmed', 'cancelled', 'rescheduled'],
         'confirmed' => ['completed', 'no_show', 'cancelled', 'rescheduled'],
@@ -38,7 +44,7 @@ final class AppointmentService
 
     public function reschedule(Appointment $appointment, array $data, User $actor): Appointment
     {
-        $allowed = self::TRANSITIONS[$appointment->status->value] ?? [];
+        $allowed = Arr::get(self::TRANSITIONS, $appointment->status->value, []);
 
         throw_unless(in_array('rescheduled', $allowed, true), InvalidTransitionException::class,
             "Cannot reschedule an appointment with status {$appointment->status->value}.");
@@ -89,7 +95,7 @@ final class AppointmentService
 
     private function transition(Appointment $appointment, string $event, User $actor, array $extra = [], array $properties = []): Appointment
     {
-        $allowed = self::TRANSITIONS[$appointment->status->value] ?? [];
+        $allowed = Arr::get(self::TRANSITIONS, $appointment->status->value, []);
 
         throw_unless(in_array($event, $allowed, true), InvalidTransitionException::class,
             "Cannot {$event} an appointment with status {$appointment->status->value}.");

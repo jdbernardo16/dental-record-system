@@ -34,7 +34,9 @@ final class ReportRepository
             ->get()
             ->groupBy('month')
             ->map(function (Collection $rows, string $month) {
-                $byStatus = $rows->mapWithKeys(fn ($row) => [$row->status->value => (int) $row->count])->all();
+                $byStatus = $rows->mapWithKeys(function (Appointment $row) {
+                    return [(string) $row->status->value => (int) ($row->getAttributes()['count'] ?? 0)];
+                })->all();
                 $completed = (int) ($byStatus['completed'] ?? 0);
                 $noShow = (int) ($byStatus['no_show'] ?? 0);
                 $denominator = $completed + $noShow;
