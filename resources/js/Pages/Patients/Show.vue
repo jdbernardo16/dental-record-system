@@ -10,6 +10,7 @@ import Button from '@/Components/Button.vue'
 import ConsultationForm from '@/Components/Wizard/ConsultationForm.vue'
 import MedicalHistoryForm from '@/Components/Wizard/MedicalHistoryForm.vue'
 import SignaturePadModal from '@/Components/SignaturePadModal.vue'
+import ToothChart from '@/Components/ToothChart.vue'
 import TreatmentForm from '@/Components/Wizard/TreatmentForm.vue'
 import { useToastStore } from '@/Stores/toast'
 
@@ -27,6 +28,9 @@ const props = defineProps({
     attachments: { type: Array, default: () => [] },
     attachmentOptions: { type: Object, default: () => ({}) },
     appointments: { type: Array, default: () => [] },
+    chartState: { type: Object, default: () => ({}) },
+    chartOptions: { type: Object, default: () => ({}) },
+    chartEntryCount: { type: Number, default: 0 },
     can: { type: Object, default: () => ({}) },
 })
 
@@ -197,7 +201,7 @@ const pdaRows = (consultation) => [
 
 const tabs = [
     { name: 'Appointments', icon: CalendarDays, wired: true },
-    { name: 'Chart', icon: Stethoscope, phase: 'Phase 2', href: (id) => route('patients.chart', id) },
+    { name: 'Chart', icon: Stethoscope, wired: true },
     { name: 'Treatments', icon: Wrench, wired: true },
     { name: 'Files', icon: FolderOpen, wired: true },
     { name: 'Consents', icon: FileText, wired: true },
@@ -763,6 +767,34 @@ const confirmDeleteAttachment = (attachment) => {
                         </div>
                     </li>
                 </ul>
+            </div>
+
+            <div v-else-if="activeTab === 'chart'">
+                <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-6 py-4">
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-800">Dental chart</h3>
+                        <p class="mt-0.5 text-xs text-gray-500">
+                            {{ chartEntryCount ? `${chartEntryCount} ${chartEntryCount === 1 ? 'entry' : 'entries'} on record` : 'No chart entries recorded yet' }}
+                        </p>
+                    </div>
+                    <Link v-if="can.chart?.view" :href="route('patients.chart', patient.id)">
+                        <Button variant="outline" size="sm">
+                            {{ can.chart?.update ? 'Open chart editor' : 'Open chart' }}
+                        </Button>
+                    </Link>
+                </div>
+
+                <div v-if="chartEntryCount" class="bg-gray-50/50 p-4 sm:p-6">
+                    <ToothChart
+                        :state="chartState"
+                        dentition="adult"
+                        readonly
+                        :options="chartOptions"
+                    />
+                </div>
+                <div v-else class="px-6 py-10 text-center">
+                    <p class="text-sm text-gray-500">No chart entries yet — open the chart editor to record the first finding.</p>
+                </div>
             </div>
 
             <div v-else-if="activeTab === 'treatments'">

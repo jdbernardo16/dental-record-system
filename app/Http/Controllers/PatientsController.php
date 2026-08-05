@@ -6,12 +6,16 @@ use App\Actions\RegisterPatientAction;
 use App\Enums\AttachmentCategory;
 use App\Enums\CivilStatus;
 use App\Enums\DentitionType;
+use App\Enums\RestorationType;
 use App\Enums\Sex;
+use App\Enums\ToothCondition;
+use App\Enums\ToothSurface;
 use App\Http\Requests\StorePatientRequest;
 use App\Http\Requests\UpdatePatientRequest;
 use App\Models\Consultation;
 use App\Models\Patient;
 use App\Repositories\PatientRepository;
+use App\Services\DentalChartService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
@@ -85,6 +89,8 @@ class PatientsController extends Controller
         $canViewConsents = $request->user()->can('consents.view');
         $canViewAttachments = $request->user()->can('attachments.view');
         $canViewAppointments = $request->user()->can('appointments.view');
+        $canViewChart = $request->user()->can('dental-chart.view');
+        $canUpdateChart = $request->user()->can('dental-chart.update');
 
         $props = [
             'patient' => $patient,
@@ -96,6 +102,12 @@ class PatientsController extends Controller
                 'tmd' => Consultation::tmdOptions(),
             ],
             'toothOptions' => DentitionType::meta()['adult']['teeth'],
+            'chartOptions' => [
+                'conditions' => ToothCondition::meta(),
+                'restorations' => RestorationType::meta(),
+                'surfaces' => ToothSurface::meta(),
+                'dentitions' => DentitionType::meta(),
+            ],
             'attachmentOptions' => [
                 'categories' => AttachmentCategory::meta(),
                 'xrayTypes' => AttachmentCategory::XRAY_TYPES,
@@ -127,6 +139,10 @@ class PatientsController extends Controller
                 ],
                 'appointments' => [
                     'view' => $canViewAppointments,
+                ],
+                'chart' => [
+                    'view' => $canViewChart,
+                    'update' => $canUpdateChart,
                 ],
             ],
         ];
@@ -164,6 +180,11 @@ class PatientsController extends Controller
                 ->with('uploadedBy:id,name')
                 ->latest()
                 ->get();
+        }
+
+        if ($canViewChart) {
+            $props['chartState'] = app(DentalChartService::class)->currentState($patient->id, 'adult');
+            $props['chartEntryCount'] = $patient->chartEntries()->count();
         }
 
         if ($canViewAppointments) {
