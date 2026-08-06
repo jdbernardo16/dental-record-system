@@ -3,6 +3,8 @@
 @import "flatpickr/dist/flatpickr.min.css";
 
 @theme {
+  --font-sans: 'Figtree Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
   --color-brand-50:  oklch(0.97 0.02 200);
   --color-brand-100: oklch(0.93 0.04 200);
   --color-brand-200: oklch(0.87 0.06 200);

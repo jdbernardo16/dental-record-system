@@ -157,31 +157,32 @@ class PatientsController extends Controller
             $props['consultations'] = $patient->consultations()
                 ->with('dentist:id,name')
                 ->latest('consultation_date')
-                ->limit(20)
-                ->get();
+                ->paginate(10, ['*'], 'consultations_page')
+                ->appends($request->query());
         }
 
         if ($canViewTreatments) {
             $props['treatments'] = $patient->treatments()
                 ->with('dentist:id,name', 'consultation:id,chief_complaint')
                 ->latest('treatment_date')
-                ->limit(20)
-                ->get();
+                ->paginate(10, ['*'], 'treatments_page')
+                ->appends($request->query());
         }
 
         if ($canViewConsents) {
             $props['consentForms'] = $patient->consentForms()
                 ->with('patient')
                 ->latest()
-                ->limit(5)
-                ->get();
+                ->paginate(10, ['*'], 'consents_page')
+                ->appends($request->query());
         }
 
         if ($canViewAttachments) {
             $props['attachments'] = $patient->attachments()
                 ->with('uploadedBy:id,name')
                 ->latest()
-                ->get();
+                ->paginate(10, ['*'], 'files_page')
+                ->appends($request->query());
         }
 
         if ($canViewChart) {
@@ -194,8 +195,8 @@ class PatientsController extends Controller
                 ->with('dentist:id,name')
                 ->orderByDesc('appointment_date')
                 ->orderByDesc('start_time')
-                ->limit(20)
-                ->get();
+                ->paginate(10, ['*'], 'appointments_page')
+                ->appends($request->query());
         }
 
         return Inertia::render('Patients/Show', $props);

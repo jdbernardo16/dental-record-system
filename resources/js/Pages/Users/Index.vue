@@ -1,6 +1,6 @@
 <script setup>
 import { Head, Link, router } from '@inertiajs/vue3'
-import { Pencil, Plus, Trash2 } from 'lucide-vue-next'
+import { ChevronLeft, ChevronRight, Pencil, Plus, Trash2 } from 'lucide-vue-next'
 import { route } from '../../../../vendor/tightenco/ziggy'
 import AppLayout from '@/Layouts/AppLayout.vue'
 import Badge from '@/Components/Badge.vue'
@@ -9,7 +9,10 @@ import Button from '@/Components/Button.vue'
 defineOptions({ layout: AppLayout })
 
 const props = defineProps({
-    users: { type: Array, required: true },
+    users: {
+        type: Object,
+        default: () => ({ data: [], current_page: 1, last_page: 1, prev_page_url: null, next_page_url: null }),
+    },
     can: { type: Object, default: () => ({}) },
 })
 
@@ -33,6 +36,10 @@ const confirmDelete = (user) => {
     if (window.confirm(`Delete ${user.name}? This cannot be undone.`)) {
         router.delete(route('users.destroy', user.id))
     }
+}
+
+const goTo = (url) => {
+    router.get(url, {}, { preserveState: true, preserveScroll: true })
 }
 </script>
 
@@ -79,7 +86,7 @@ const confirmDelete = (user) => {
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
-                        <tr v-for="user in users" :key="user.id" class="hover:bg-gray-50">
+                        <tr v-for="user in users.data" :key="user.id" class="hover:bg-gray-50">
                             <td class="px-6 py-4">
                                 <div class="flex items-center gap-3">
                                     <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-500 text-xs font-semibold text-white">
@@ -123,6 +130,33 @@ const confirmDelete = (user) => {
                         </tr>
                     </tbody>
                 </table>
+            </div>
+
+            <div
+                v-if="users.data.length && (users.prev_page_url || users.next_page_url)"
+                class="flex items-center justify-between border-t border-gray-100 px-6 py-4"
+            >
+                <Button
+                    variant="outline"
+                    size="sm"
+                    :disabled="!users.prev_page_url"
+                    aria-label="Previous page"
+                    @click="goTo(users.prev_page_url)"
+                >
+                    <ChevronLeft class="h-4 w-4" />
+                </Button>
+                <span class="text-sm text-gray-500">
+                    Page {{ users.current_page }} of {{ users.last_page }}
+                </span>
+                <Button
+                    variant="outline"
+                    size="sm"
+                    :disabled="!users.next_page_url"
+                    aria-label="Next page"
+                    @click="goTo(users.next_page_url)"
+                >
+                    <ChevronRight class="h-4 w-4" />
+                </Button>
             </div>
         </div>
     </div>

@@ -24,7 +24,7 @@ class UsersController extends Controller
         $this->authorize('viewAny', User::class);
 
         return Inertia::render('Users/Index', [
-            'users' => User::with('roles')->orderBy('name')->get(),
+            'users' => User::with('roles')->orderBy('name')->paginate(20),
             'can' => [
                 'create' => $request->user()->can('users.create'),
                 'update' => $request->user()->can('users.update'),

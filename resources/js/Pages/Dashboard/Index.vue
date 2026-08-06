@@ -13,6 +13,8 @@ import { route } from '../../../../vendor/tightenco/ziggy'
 import VueApexCharts from 'vue3-apexcharts'
 import AppLayout from '@/Layouts/AppLayout.vue'
 import Badge from '@/Components/Badge.vue'
+import { Button } from '@/Components/ui/button'
+import { Card, CardAction, CardContent, CardFooter, CardHeader, CardTitle } from '@/Components/ui/card'
 
 const apexchart = VueApexCharts
 
@@ -108,147 +110,169 @@ const chartSeries = computed(() => [
 
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <!-- Today's appointments -->
-            <section class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-                <div class="flex items-center justify-between">
-                    <h2 class="text-sm font-medium text-gray-500">Today's appointments</h2>
-                    <span class="flex h-10 w-10 items-center justify-center rounded-full bg-brand-50 text-brand-500">
-                        <CalendarDays class="h-5 w-5" />
-                    </span>
-                </div>
-                <p class="mt-3 text-3xl font-semibold text-gray-800">{{ todayAppointments.length }}</p>
-                <ul v-if="todayAppointments.length" class="mt-4 space-y-1">
-                    <li
-                        v-for="appt in todayAppointments.slice(0, 4)"
-                        :key="appt.id"
-                        class="flex min-h-11 items-center gap-3"
-                    >
-                        <span class="w-14 shrink-0 text-xs font-medium text-gray-500">{{ appt.start_time }}</span>
-                        <span class="min-w-0 flex-1 truncate text-sm font-medium text-gray-800">
-                            {{ patientName(appt.patient) }}
+            <Card>
+                <CardHeader>
+                    <CardTitle class="text-sm font-medium text-gray-500">Today's appointments</CardTitle>
+                    <CardAction>
+                        <span class="flex h-10 w-10 items-center justify-center rounded-full bg-brand-50 text-brand-500">
+                            <CalendarDays class="h-5 w-5" />
                         </span>
-                        <Badge size="sm" :color="statusMeta[appt.status]?.color ?? 'light'">
-                            {{ statusMeta[appt.status]?.label ?? appt.status }}
-                        </Badge>
-                    </li>
-                </ul>
-                <p v-else class="mt-4 text-sm text-gray-500">No appointments today.</p>
-                <Link
-                    :href="route('appointments.index')"
-                    class="mt-4 flex h-11 items-center justify-center gap-2 rounded-lg bg-brand-50 text-sm font-medium text-brand-500 transition hover:bg-brand-100"
-                >
-                    View all
-                    <ArrowRight class="h-4 w-4" />
-                </Link>
-            </section>
+                    </CardAction>
+                </CardHeader>
+                <CardContent>
+                    <p class="text-3xl font-semibold text-gray-800">{{ todayAppointments.length }}</p>
+                    <ul v-if="todayAppointments.length" class="mt-4 space-y-1">
+                        <li
+                            v-for="appt in todayAppointments.slice(0, 4)"
+                            :key="appt.id"
+                            class="flex min-h-11 items-center gap-3"
+                        >
+                            <span class="w-14 shrink-0 text-xs font-medium text-gray-500">{{ appt.start_time }}</span>
+                            <span class="min-w-0 flex-1 truncate text-sm font-medium text-gray-800">
+                                {{ patientName(appt.patient) }}
+                            </span>
+                            <Badge size="sm" :color="statusMeta[appt.status]?.color ?? 'light'">
+                                {{ statusMeta[appt.status]?.label ?? appt.status }}
+                            </Badge>
+                        </li>
+                    </ul>
+                    <p v-else class="mt-4 text-sm text-gray-500">No appointments today.</p>
+                </CardContent>
+                <CardFooter class="mt-auto border-t border-gray-200">
+                    <Button as-child class="w-full bg-brand-50 text-brand-500 hover:bg-brand-100">
+                        <Link :href="route('appointments.index')">
+                            View all
+                            <ArrowRight class="size-4" />
+                        </Link>
+                    </Button>
+                </CardFooter>
+            </Card>
 
             <!-- Recent patients -->
-            <section class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-                <div class="flex items-center justify-between">
-                    <h2 class="text-sm font-medium text-gray-500">Recent patients</h2>
-                    <span class="flex h-10 w-10 items-center justify-center rounded-full bg-brand-50 text-brand-500">
-                        <Users class="h-5 w-5" />
-                    </span>
-                </div>
-                <p class="mt-3 text-3xl font-semibold text-gray-800">{{ recentPatients.length }}</p>
-                <ul v-if="recentPatients.length" class="mt-4 space-y-1">
-                    <li v-for="patient in recentPatients.slice(0, 4)" :key="patient.id" class="flex min-h-11 items-center gap-3">
-                        <span class="min-w-0 flex-1 truncate text-sm font-medium text-gray-800">
-                            {{ patientName(patient) }}
+            <Card>
+                <CardHeader>
+                    <CardTitle class="text-sm font-medium text-gray-500">Recent patients</CardTitle>
+                    <CardAction>
+                        <span class="flex h-10 w-10 items-center justify-center rounded-full bg-brand-50 text-brand-500">
+                            <Users class="h-5 w-5" />
                         </span>
-                        <span class="shrink-0 text-xs text-gray-500">{{ patient.patient_number }}</span>
-                    </li>
-                </ul>
-                <p v-else class="mt-4 text-sm text-gray-500">No patients yet.</p>
-                <Link
-                    :href="route('patients.index')"
-                    class="mt-4 flex h-11 items-center justify-center gap-2 rounded-lg bg-brand-50 text-sm font-medium text-brand-500 transition hover:bg-brand-100"
-                >
-                    View all
-                    <ArrowRight class="h-4 w-4" />
-                </Link>
-            </section>
+                    </CardAction>
+                </CardHeader>
+                <CardContent>
+                    <p class="text-3xl font-semibold text-gray-800">{{ recentPatients.length }}</p>
+                    <ul v-if="recentPatients.length" class="mt-4 space-y-1">
+                        <li v-for="patient in recentPatients.slice(0, 4)" :key="patient.id" class="flex min-h-11 items-center gap-3">
+                            <span class="min-w-0 flex-1 truncate text-sm font-medium text-gray-800">
+                                {{ patientName(patient) }}
+                            </span>
+                            <span class="shrink-0 text-xs text-gray-500">{{ patient.patient_number }}</span>
+                        </li>
+                    </ul>
+                    <p v-else class="mt-4 text-sm text-gray-500">No patients yet.</p>
+                </CardContent>
+                <CardFooter class="mt-auto border-t border-gray-200">
+                    <Button as-child class="w-full bg-brand-50 text-brand-500 hover:bg-brand-100">
+                        <Link :href="route('patients.index')">
+                            View all
+                            <ArrowRight class="size-4" />
+                        </Link>
+                    </Button>
+                </CardFooter>
+            </Card>
 
             <!-- Pending procedures (treatments page ships in Phase 2) -->
-            <section v-if="can.viewTreatments" class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-                <div class="flex items-center justify-between">
-                    <h2 class="text-sm font-medium text-gray-500">Pending procedures</h2>
-                    <span class="flex h-10 w-10 items-center justify-center rounded-full bg-brand-50 text-brand-500">
-                        <ClipboardList class="h-5 w-5" />
-                    </span>
-                </div>
-                <p class="mt-3 text-3xl font-semibold text-gray-800">{{ pendingProcedures.count }}</p>
-                <ul v-if="pendingProcedures.items.length" class="mt-4 space-y-1">
-                    <li
-                        v-for="procedure in pendingProcedures.items.slice(0, 4)"
-                        :key="procedure.id"
-                        class="flex min-h-11 items-center gap-3"
-                    >
-                        <span class="min-w-0 flex-1 truncate text-sm font-medium text-gray-800">
-                            {{ procedure.procedure_name || procedure.id }}
+            <Card v-if="can.viewTreatments">
+                <CardHeader>
+                    <CardTitle class="text-sm font-medium text-gray-500">Pending procedures</CardTitle>
+                    <CardAction>
+                        <span class="flex h-10 w-10 items-center justify-center rounded-full bg-brand-50 text-brand-500">
+                            <ClipboardList class="h-5 w-5" />
                         </span>
-                    </li>
-                </ul>
-                <p v-else class="mt-4 text-sm text-gray-500">No pending procedures.</p>
-                <span
-                    aria-disabled="true"
-                    class="mt-4 flex h-11 cursor-not-allowed items-center justify-center gap-2 rounded-lg bg-gray-100 text-sm font-medium text-gray-400"
-                >
-                    View all
-                    <ArrowRight class="h-4 w-4" />
-                </span>
-            </section>
+                    </CardAction>
+                </CardHeader>
+                <CardContent>
+                    <p class="text-3xl font-semibold text-gray-800">{{ pendingProcedures.count }}</p>
+                    <ul v-if="pendingProcedures.items.length" class="mt-4 space-y-1">
+                        <li
+                            v-for="procedure in pendingProcedures.items.slice(0, 4)"
+                            :key="procedure.id"
+                            class="flex min-h-11 items-center gap-3"
+                        >
+                            <span class="min-w-0 flex-1 truncate text-sm font-medium text-gray-800">
+                                {{ procedure.procedure_name || procedure.id }}
+                            </span>
+                        </li>
+                    </ul>
+                    <p v-else class="mt-4 text-sm text-gray-500">No pending procedures.</p>
+                </CardContent>
+                <CardFooter class="mt-auto border-t border-gray-200">
+                    <Button disabled class="w-full bg-gray-100 text-gray-400 hover:bg-gray-100 disabled:opacity-100">
+                        View all
+                        <ArrowRight class="size-4" />
+                    </Button>
+                </CardFooter>
+            </Card>
 
             <!-- Follow-up appointments -->
-            <section v-if="can.viewAppointments" class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-                <div class="flex items-center justify-between">
-                    <h2 class="text-sm font-medium text-gray-500">Follow-ups</h2>
-                    <span class="flex h-10 w-10 items-center justify-center rounded-full bg-brand-50 text-brand-500">
-                        <CalendarCheck2 class="h-5 w-5" />
-                    </span>
-                </div>
-                <p class="mt-3 text-3xl font-semibold text-gray-800">{{ followUps.length }}</p>
-                <ul v-if="followUps.length" class="mt-4 space-y-1">
-                    <li v-for="appt in followUps.slice(0, 5)" :key="appt.id" class="flex min-h-11 items-center gap-3">
-                        <span class="w-24 shrink-0 text-xs font-medium text-gray-500">
-                            {{ followUpDateLabel(appt.appointment_date) }}
+            <Card v-if="can.viewAppointments">
+                <CardHeader>
+                    <CardTitle class="text-sm font-medium text-gray-500">Follow-ups</CardTitle>
+                    <CardAction>
+                        <span class="flex h-10 w-10 items-center justify-center rounded-full bg-brand-50 text-brand-500">
+                            <CalendarCheck2 class="h-5 w-5" />
                         </span>
-                        <span class="min-w-0 flex-1 truncate text-sm font-medium text-gray-800">
-                            {{ patientName(appt.patient) }}
-                        </span>
-                    </li>
-                </ul>
-                <p v-else class="mt-4 text-sm text-gray-500">No follow-ups this week.</p>
-                <Link
-                    :href="route('appointments.index')"
-                    class="mt-4 flex h-11 items-center justify-center gap-2 rounded-lg bg-brand-50 text-sm font-medium text-brand-500 transition hover:bg-brand-100"
-                >
-                    View all
-                    <ArrowRight class="h-4 w-4" />
-                </Link>
-            </section>
+                    </CardAction>
+                </CardHeader>
+                <CardContent>
+                    <p class="text-3xl font-semibold text-gray-800">{{ followUps.length }}</p>
+                    <ul v-if="followUps.length" class="mt-4 space-y-1">
+                        <li v-for="appt in followUps.slice(0, 4)" :key="appt.id" class="flex min-h-11 items-center gap-3">
+                            <span class="w-24 shrink-0 text-xs font-medium text-gray-500">
+                                {{ followUpDateLabel(appt.appointment_date) }}
+                            </span>
+                            <span class="min-w-0 flex-1 truncate text-sm font-medium text-gray-800">
+                                {{ patientName(appt.patient) }}
+                            </span>
+                        </li>
+                    </ul>
+                    <p v-else class="mt-4 text-sm text-gray-500">No follow-ups this week.</p>
+                </CardContent>
+                <CardFooter class="mt-auto border-t border-gray-200">
+                    <Button as-child class="w-full bg-brand-50 text-brand-500 hover:bg-brand-100">
+                        <Link :href="route('appointments.index')">
+                            View all
+                            <ArrowRight class="size-4" />
+                        </Link>
+                    </Button>
+                </CardFooter>
+            </Card>
         </div>
 
         <!-- Monthly statistics -->
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <section class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:col-span-2">
-                <div class="flex items-center justify-between">
-                    <h2 class="text-sm font-medium text-gray-500">Monthly statistics</h2>
-                    <span class="flex h-10 w-10 items-center justify-center rounded-full bg-brand-50 text-brand-500">
-                        <BarChart3 class="h-5 w-5" />
-                    </span>
-                </div>
-                <div class="mt-2 flex gap-8">
-                    <div>
-                        <p class="text-xs text-gray-500">New patients this month</p>
-                        <p class="mt-0.5 text-xl font-semibold text-gray-800">{{ monthlyStats.patients }}</p>
+            <Card class="sm:col-span-2">
+                <CardHeader>
+                    <CardTitle class="text-sm font-medium text-gray-500">Monthly statistics</CardTitle>
+                    <CardAction>
+                        <span class="flex h-10 w-10 items-center justify-center rounded-full bg-brand-50 text-brand-500">
+                            <BarChart3 class="h-5 w-5" />
+                        </span>
+                    </CardAction>
+                </CardHeader>
+                <CardContent>
+                    <div class="flex gap-8">
+                        <div>
+                            <p class="text-xs text-gray-500">New patients this month</p>
+                            <p class="mt-0.5 text-xl font-semibold text-gray-800">{{ monthlyStats.patients }}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500">New appointments this month</p>
+                            <p class="mt-0.5 text-xl font-semibold text-gray-800">{{ monthlyStats.appointments }}</p>
+                        </div>
                     </div>
-                    <div>
-                        <p class="text-xs text-gray-500">New appointments this month</p>
-                        <p class="mt-0.5 text-xl font-semibold text-gray-800">{{ monthlyStats.appointments }}</p>
-                    </div>
-                </div>
-                <apexchart type="bar" height="260" :options="chartOptions" :series="chartSeries" />
-            </section>
+                    <apexchart type="bar" height="260" :options="chartOptions" :series="chartSeries" />
+                </CardContent>
+            </Card>
         </div>
     </div>
 </template>

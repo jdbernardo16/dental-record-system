@@ -1,4 +1,5 @@
 import '../css/app.css';
+import '@fontsource-variable/figtree';
 import './bootstrap';
 
 import { createInertiaApp } from '@inertiajs/vue3';

@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Patient;
+use App\Models\Treatment;
 use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -57,4 +58,33 @@ it('lets admin view, edit and soft-delete a patient', function () {
     expect($patient->fresh()->first_name)->toBe('Updated');
     $this->actingAs($admin)->delete("/patients/{$patient->id}")->assertRedirect();
     expect($patient->fresh()->trashed())->toBeTrue();
+});
+
+it('paginates the record lists on the patient show page', function () {
+    $admin = User::factory()->create()->assignRole('Administrator');
+    $patient = Patient::factory()->create();
+    Treatment::factory()->count(12)->for($patient)->create();
+
+    $this->actingAs($admin)->get("/patients/{$patient->id}")
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('Patients/Show')
+            ->has('treatments.data', 10)
+            ->where('treatments.current_page', 1)
+            ->where('treatments.last_page', 2)
+            ->where('treatments.total', 12));
+});
+
+it('returns the requested treatments page on the patient show page', function () {
+    $admin = User::factory()->create()->assignRole('Administrator');
+    $patient = Patient::factory()->create();
+    Treatment::factory()->count(12)->for($patient)->create();
+
+    $this->actingAs($admin)->get("/patients/{$patient->id}?tab=treatments&treatments_page=2")
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('Patients/Show')
+            ->has('treatments.data', 2)
+            ->where('treatments.current_page', 2)
+            ->where('treatments.total', 12));
 });

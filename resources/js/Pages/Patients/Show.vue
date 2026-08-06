@@ -1,7 +1,7 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { Head, Link, router, useForm } from '@inertiajs/vue3'
-import { CalendarDays, ChevronDown, FileText, FlaskConical, Folder, FolderOpen, Image as ImageIcon, Paperclip, Pencil, Plus, Scan, Signature, Stethoscope, Trash2, Upload, Wrench } from 'lucide-vue-next'
+import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight, FileText, FlaskConical, Folder, FolderOpen, Image as ImageIcon, Paperclip, Pencil, Plus, Scan, Signature, Stethoscope, Trash2, Upload, Wrench } from 'lucide-vue-next'
 import { route } from '../../../../vendor/tightenco/ziggy'
 import AppLayout from '@/Layouts/AppLayout.vue'
 import AttachmentPreviewModal from '@/Components/AttachmentPreviewModal.vue'
@@ -19,15 +19,15 @@ defineOptions({ layout: AppLayout })
 const props = defineProps({
     patient: { type: Object, required: true },
     medicalHistory: { type: Object, default: null },
-    consultations: { type: Array, default: () => [] },
+    consultations: { type: Object, default: () => ({ data: [], current_page: 1, last_page: 1, prev_page_url: null, next_page_url: null, total: 0 }) },
     consultationCount: { type: Number, default: 0 },
     consultationOptions: { type: Object, default: () => ({}) },
-    treatments: { type: Array, default: () => [] },
+    treatments: { type: Object, default: () => ({ data: [], current_page: 1, last_page: 1, prev_page_url: null, next_page_url: null, total: 0 }) },
     toothOptions: { type: Array, default: () => [] },
-    consentForms: { type: Array, default: () => [] },
-    attachments: { type: Array, default: () => [] },
+    consentForms: { type: Object, default: () => ({ data: [], current_page: 1, last_page: 1, prev_page_url: null, next_page_url: null, total: 0 }) },
+    attachments: { type: Object, default: () => ({ data: [], current_page: 1, last_page: 1, prev_page_url: null, next_page_url: null, total: 0 }) },
     attachmentOptions: { type: Object, default: () => ({}) },
-    appointments: { type: Array, default: () => [] },
+    appointments: { type: Object, default: () => ({ data: [], current_page: 1, last_page: 1, prev_page_url: null, next_page_url: null, total: 0 }) },
     chartState: { type: Object, default: () => ({}) },
     chartOptions: { type: Object, default: () => ({}) },
     chartEntryCount: { type: Number, default: 0 },
@@ -211,6 +211,63 @@ const activeTab = ref(null)
 const addingTreatment = ref(false)
 const expandedTreatmentId = ref(null)
 
+const VALID_TABS = ['appointments', 'chart', 'treatments', 'files', 'consents']
+
+const tabFromUrl = (url) => {
+    const tab = new URL(url, window.location.origin).searchParams.get('tab')
+    return VALID_TABS.includes(tab) ? tab : null
+}
+
+onMounted(() => {
+    activeTab.value = tabFromUrl(window.location.href)
+})
+
+const syncTabFromUrl = (event) => {
+    activeTab.value = tabFromUrl(event.detail.page.url)
+}
+
+const removeNavigateListener = router.on('navigate', syncTabFromUrl)
+
+onUnmounted(removeNavigateListener)
+
+const LIST_TABS = {
+    appointments: 'appointments',
+    treatments: 'treatments',
+    files: 'attachments', // prop name
+    consents: 'consentForms',
+}
+
+const openTab = (tab) => {
+    if (tab === activeTab.value) {
+        activeTab.value = null // toggle-close
+        const url = new URL(window.location.href)
+        url.searchParams.delete('tab')
+        history.replaceState(history.state, '', url.pathname + url.search)
+        return
+    }
+    activeTab.value = tab
+    if (tab === 'chart' || !LIST_TABS[tab]) return // chart is canvas-only, no server fetch
+    router.get(route('patients.show', { patient: props.patient.id, tab }), {}, {
+        only: [LIST_TABS[tab]],
+        preserveState: true,
+        preserveScroll: true,
+    })
+}
+
+const PAGE_PARAMS = {
+    consultations: 'consultations_page',
+    appointments: 'appointments_page',
+    treatments: 'treatments_page',
+    attachments: 'files_page',
+    consentForms: 'consents_page',
+}
+
+const goToListPage = (propName, page) => {
+    const url = new URL(window.location.href)
+    url.searchParams.set(PAGE_PARAMS[propName], String(page))
+    router.get(url.pathname + url.search, {}, { only: [propName], preserveState: true, preserveScroll: true })
+}
+
 /* ---------------------------------------------------------------- Appointments tab */
 
 const appointmentStatusLabels = {
@@ -353,8 +410,8 @@ const activeCategory = ref('all')
 
 const filteredAttachments = computed(() =>
     activeCategory.value === 'all'
-        ? props.attachments
-        : props.attachments.filter((attachment) => attachment.category === activeCategory.value),
+        ? props.attachments.data
+        : props.attachments.data.filter((attachment) => attachment.category === activeCategory.value),
 )
 
 const isImageTile = (attachment) => ['image', 'xray'].includes(attachment.category)
@@ -615,12 +672,12 @@ const confirmDeleteAttachment = (attachment) => {
                 @saved="adding = false"
             />
 
-            <div v-if="!consultations.length && !adding" class="px-6 py-10 text-center">
+            <div v-if="!consultations.data.length && !adding" class="px-6 py-10 text-center">
                 <p class="text-sm text-gray-500">No consultations yet — add the first one.</p>
             </div>
 
             <ul v-else class="divide-y divide-gray-100">
-                <li v-for="consultation in consultations" :key="consultation.id">
+                <li v-for="consultation in consultations.data" :key="consultation.id">
                     <button
                         type="button"
                         class="flex w-full items-center justify-between gap-3 px-6 py-4 text-left"
@@ -688,6 +745,35 @@ const confirmDeleteAttachment = (attachment) => {
                     </div>
                 </li>
             </ul>
+
+            <div
+                v-if="consultations.last_page > 1"
+                class="flex items-center justify-between border-t border-gray-100 px-6 py-4"
+            >
+                <span class="text-sm text-gray-500">
+                    Page {{ consultations.current_page }} of {{ consultations.last_page }}
+                </span>
+                <div class="flex items-center gap-2">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        :disabled="!consultations.prev_page_url"
+                        aria-label="Previous page"
+                        @click="goToListPage('consultations', consultations.current_page - 1)"
+                    >
+                        <ChevronLeft class="h-4 w-4" />
+                    </Button>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        :disabled="!consultations.next_page_url"
+                        aria-label="Next page"
+                        @click="goToListPage('consultations', consultations.current_page + 1)"
+                    >
+                        <ChevronRight class="h-4 w-4" />
+                    </Button>
+                </div>
+            </div>
         </div>
 
         <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
@@ -712,9 +798,7 @@ const confirmDeleteAttachment = (attachment) => {
                                 ? 'bg-gray-50 text-brand-600'
                                 : 'text-gray-700 hover:text-brand-600'
                         "
-                        @click="
-                            activeTab = activeTab === tab.name.toLowerCase() ? null : tab.name.toLowerCase()
-                        "
+                        @click="openTab(tab.name.toLowerCase())"
                     >
                         <component :is="tab.icon" class="h-4 w-4" />
                         {{ tab.name }}
@@ -738,7 +822,7 @@ const confirmDeleteAttachment = (attachment) => {
                     <div>
                         <h3 class="text-sm font-semibold text-gray-800">Appointments</h3>
                         <p class="mt-0.5 text-xs text-gray-500">
-                            {{ appointments.length ? `${appointments.length} on record` : 'No appointments on record' }}
+                            {{ appointments.total ? `${appointments.total} on record` : 'No appointments on record' }}
                         </p>
                     </div>
                     <Link v-if="can.appointments?.view" :href="route('appointments.index')">
@@ -746,12 +830,12 @@ const confirmDeleteAttachment = (attachment) => {
                     </Link>
                 </div>
 
-                <div v-if="!appointments.length" class="px-6 py-10 text-center">
+                <div v-if="!appointments.data.length" class="px-6 py-10 text-center">
                     <p class="text-sm text-gray-500">No appointments yet — schedule one from the calendar.</p>
                 </div>
 
                 <ul v-else class="divide-y divide-gray-100">
-                    <li v-for="appointment in appointments" :key="appointment.id">
+                    <li v-for="appointment in appointments.data" :key="appointment.id">
                         <div class="flex flex-wrap items-center justify-between gap-3 px-6 py-4">
                             <div class="flex min-w-0 flex-wrap items-center gap-2">
                                 <Badge size="sm" color="light">{{ appointment.appointment_date }}</Badge>
@@ -773,6 +857,35 @@ const confirmDeleteAttachment = (attachment) => {
                         </div>
                     </li>
                 </ul>
+
+                <div
+                    v-if="appointments.last_page > 1"
+                    class="flex items-center justify-between border-t border-gray-100 px-6 py-4"
+                >
+                    <span class="text-sm text-gray-500">
+                        Page {{ appointments.current_page }} of {{ appointments.last_page }}
+                    </span>
+                    <div class="flex items-center gap-2">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            :disabled="!appointments.prev_page_url"
+                            aria-label="Previous page"
+                            @click="goToListPage('appointments', appointments.current_page - 1)"
+                        >
+                            <ChevronLeft class="h-4 w-4" />
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            :disabled="!appointments.next_page_url"
+                            aria-label="Next page"
+                            @click="goToListPage('appointments', appointments.current_page + 1)"
+                        >
+                            <ChevronRight class="h-4 w-4" />
+                        </Button>
+                    </div>
+                </div>
             </div>
 
             <div v-else-if="activeTab === 'chart'">
@@ -808,7 +921,7 @@ const confirmDeleteAttachment = (attachment) => {
                     <div>
                         <h3 class="text-sm font-semibold text-gray-800">Treatment records</h3>
                         <p class="mt-0.5 text-xs text-gray-500">
-                            {{ treatments.length ? `${treatments.length} on record` : 'No treatments recorded yet' }}
+                            {{ treatments.total ? `${treatments.total} on record` : 'No treatments recorded yet' }}
                         </p>
                     </div>
                     <Button v-if="can.treatments?.create" variant="outline" size="sm" @click="addingTreatment = !addingTreatment">
@@ -820,18 +933,18 @@ const confirmDeleteAttachment = (attachment) => {
                 <TreatmentForm
                     v-if="addingTreatment"
                     :patient-id="patient.id"
-                    :consultations="consultations"
+                    :consultations="consultations.data"
                     :tooth-options="toothOptions"
                     class="border-b border-gray-100 p-6"
                     @saved="addingTreatment = false"
                 />
 
-                <div v-if="!treatments.length && !addingTreatment" class="px-6 py-10 text-center">
+                <div v-if="!treatments.data.length && !addingTreatment" class="px-6 py-10 text-center">
                     <p class="text-sm text-gray-500">No treatments yet — add the first one.</p>
                 </div>
 
                 <ul v-else class="divide-y divide-gray-100">
-                    <li v-for="treatment in treatments" :key="treatment.id">
+                    <li v-for="treatment in treatments.data" :key="treatment.id">
                         <button
                             type="button"
                             class="flex w-full items-center justify-between gap-3 px-6 py-4 text-left"
@@ -900,6 +1013,35 @@ const confirmDeleteAttachment = (attachment) => {
                         </div>
                     </li>
                 </ul>
+
+                <div
+                    v-if="treatments.last_page > 1"
+                    class="flex items-center justify-between border-t border-gray-100 px-6 py-4"
+                >
+                    <span class="text-sm text-gray-500">
+                        Page {{ treatments.current_page }} of {{ treatments.last_page }}
+                    </span>
+                    <div class="flex items-center gap-2">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            :disabled="!treatments.prev_page_url"
+                            aria-label="Previous page"
+                            @click="goToListPage('treatments', treatments.current_page - 1)"
+                        >
+                            <ChevronLeft class="h-4 w-4" />
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            :disabled="!treatments.next_page_url"
+                            aria-label="Next page"
+                            @click="goToListPage('treatments', treatments.current_page + 1)"
+                        >
+                            <ChevronRight class="h-4 w-4" />
+                        </Button>
+                    </div>
+                </div>
             </div>
 
             <div v-else-if="activeTab === 'consents'">
@@ -907,7 +1049,7 @@ const confirmDeleteAttachment = (attachment) => {
                     <div>
                         <h3 class="text-sm font-semibold text-gray-800">Consent forms</h3>
                         <p class="mt-0.5 text-xs text-gray-500">
-                            {{ consentForms.length ? `${consentForms.length} on record` : 'No consent forms on record' }}
+                            {{ consentForms.total ? `${consentForms.total} on record` : 'No consent forms on record' }}
                         </p>
                     </div>
                     <Link
@@ -922,14 +1064,14 @@ const confirmDeleteAttachment = (attachment) => {
                     </Link>
                 </div>
 
-                <div v-if="!consentForms.length" class="px-6 py-10 text-center">
+                <div v-if="!consentForms.data.length" class="px-6 py-10 text-center">
                     <p class="text-sm text-gray-500">
                         No consents yet — start the waiver from here, or through the intake wizard.
                     </p>
                 </div>
 
                 <ul v-else class="divide-y divide-gray-100">
-                    <li v-for="consentForm in consentForms" :key="consentForm.id">
+                    <li v-for="consentForm in consentForms.data" :key="consentForm.id">
                         <div class="flex flex-wrap items-center justify-between gap-3 px-6 py-4">
                             <div class="flex min-w-0 flex-wrap items-center gap-2">
                                 <Badge size="sm" color="light">{{ formatConsentDate(consentForm.created_at) }}</Badge>
@@ -952,6 +1094,35 @@ const confirmDeleteAttachment = (attachment) => {
                         </div>
                     </li>
                 </ul>
+
+                <div
+                    v-if="consentForms.last_page > 1"
+                    class="flex items-center justify-between border-t border-gray-100 px-6 py-4"
+                >
+                    <span class="text-sm text-gray-500">
+                        Page {{ consentForms.current_page }} of {{ consentForms.last_page }}
+                    </span>
+                    <div class="flex items-center gap-2">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            :disabled="!consentForms.prev_page_url"
+                            aria-label="Previous page"
+                            @click="goToListPage('consentForms', consentForms.current_page - 1)"
+                        >
+                            <ChevronLeft class="h-4 w-4" />
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            :disabled="!consentForms.next_page_url"
+                            aria-label="Next page"
+                            @click="goToListPage('consentForms', consentForms.current_page + 1)"
+                        >
+                            <ChevronRight class="h-4 w-4" />
+                        </Button>
+                    </div>
+                </div>
             </div>
 
             <div v-else-if="activeTab === 'files'">
@@ -959,7 +1130,7 @@ const confirmDeleteAttachment = (attachment) => {
                     <div>
                         <h3 class="text-sm font-semibold text-gray-800">Files &amp; attachments</h3>
                         <p class="mt-0.5 text-xs text-gray-500">
-                            {{ attachments.length ? `${attachments.length} on record` : 'No attachments on record yet' }}
+                            {{ attachments.total ? `${attachments.total} on record` : 'No attachments on record yet' }}
                         </p>
                     </div>
                     <Button
@@ -1122,6 +1293,35 @@ const confirmDeleteAttachment = (attachment) => {
                         </button>
                     </li>
                 </ul>
+
+                <div
+                    v-if="attachments.last_page > 1"
+                    class="flex items-center justify-between border-t border-gray-100 px-6 py-4"
+                >
+                    <span class="text-sm text-gray-500">
+                        Page {{ attachments.current_page }} of {{ attachments.last_page }}
+                    </span>
+                    <div class="flex items-center gap-2">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            :disabled="!attachments.prev_page_url"
+                            aria-label="Previous page"
+                            @click="goToListPage('attachments', attachments.current_page - 1)"
+                        >
+                            <ChevronLeft class="h-4 w-4" />
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            :disabled="!attachments.next_page_url"
+                            aria-label="Next page"
+                            @click="goToListPage('attachments', attachments.current_page + 1)"
+                        >
+                            <ChevronRight class="h-4 w-4" />
+                        </Button>
+                    </div>
+                </div>
             </div>
 
             <div v-else class="flex flex-col items-center gap-2 px-6 py-14 text-center">
