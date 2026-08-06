@@ -1,7 +1,11 @@
 # DCPRS — GitHub → Hostinger Automated Deployment (Design)
 
 Date: 2026-08-06
-Status: Approved by user (auto-build via Actions, SSH auto-deploy, tests dropped)
+Status: **Superseded (2026-08-06)** — the GitHub Actions SSH pipeline was replaced by a
+manual flow: build locally, commit build assets, push `main`, then
+`git pull origin main && bash deploy.sh` on the server. See
+`docs/ops/deploy-hostinger.md` for the operative flow. This spec is retained as the
+design record for the server-setup and deploy.sh decisions, which are unchanged.
 
 ## 1. Goal
 

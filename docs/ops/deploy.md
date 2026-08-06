@@ -3,10 +3,11 @@
 > Operator guide for deploying and maintaining the Dental Clinic Patient Record System
 > (DCPRS) in production. Read `backup-restore.md` before touching production data.
 
-> **Live setup:** the production site runs on Hostinger shared hosting, deployed
-> automatically from `main` via GitHub Actions. For the live environment use
-> **`deploy-hostinger.md`** instead. This runbook documents the original VPS-style
-> setup (Nginx, supervisor, S3) and remains the reference for that architecture.
+> **Live setup:** the production site runs on Hostinger shared hosting; build assets are
+> committed to the repo and deployed by a manual `git pull` + `deploy.sh` over SSH. For
+> the live environment use **`deploy-hostinger.md`** instead. This runbook documents the
+> original VPS-style setup (Nginx, supervisor, S3) and remains the reference for that
+> architecture.
 
 ## 1. Server requirements
 
