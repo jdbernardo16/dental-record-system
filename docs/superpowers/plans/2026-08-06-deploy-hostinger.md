@@ -304,8 +304,13 @@ Expected: prints `workflow YAML OK`, commit succeeds.
 1. hPanel → Advanced → SSH Access → enable. Note host, user, port.
 2. hPanel → Advanced → SSH Access → SSH Keys → add the public key from step 1 above.
 3. hPanel → Websites → your site → set PHP version **8.2 or newer**.
-4. Create a MySQL database + user in hPanel (MySQL Databases); note name, user, password.
-5. SSH in and clone the repo using the GitHub deploy key:
+4. Verify the **SSH CLI** PHP version (deploy.sh calls bare `php`; Hostinger's CLI can
+   differ from the site version — `composer install` needs 8.2+):
+   `ssh -p <PORT> <USER>@<HOST> "php -v"` — if it reports < 8.2, set the CLI version in
+   hPanel (Advanced → SSH Access) or use the full path to a newer `php` binary in
+   `deploy.sh`.
+5. Create a MySQL database + user in hPanel (MySQL Databases); note name, user, password.
+6. SSH in and clone the repo using the GitHub deploy key:
 
    Note: if `~/.ssh/config` already has a `Host github.com` block, edit that block
    instead (ssh uses the first match) — do not append a duplicate.
@@ -338,12 +343,12 @@ Expected: prints `workflow YAML OK`, commit succeeds.
    php artisan key:generate
    ```
 
-6. Edit `.env` (nano): `APP_ENV=production`, `APP_DEBUG=false`,
-   `APP_URL=https://example.com`, `SESSION_SECURE_COOKIE=true`, `DB_*` from step 4,
+7. Edit `.env` (nano): `APP_ENV=production`, `APP_DEBUG=false`,
+   `APP_URL=https://example.com`, `SESSION_SECURE_COOKIE=true`, `DB_*` from step 5,
    `MAIL_MAILER=smtp` + Hostinger SMTP settings (hPanel → Emails → email account →
    SMTP details), keep `QUEUE_CONNECTION=database`, `CACHE_STORE=database`,
    `BACKUP_DESTINATION=backups`, `ARCHIVE_DISK=archive`.
-7. Point the site at the Laravel public folder: hPanel → Websites → site → set the
+8. Point the site at the Laravel public folder: hPanel → Websites → site → set the
    document root to `<app>/public` (e.g. `public_html/dental/public`). If your plan
    cannot set a document root, fall back to `.htaccess` in `public_html`:
 
@@ -352,8 +357,8 @@ Expected: prints `workflow YAML OK`, commit succeeds.
    RewriteRule ^(.*)$ dental/public/$1 [L]
    ```
 
-8. Enable free SSL (hPanel → SSL). Force HTTPS via `.htaccess` in `public/`.
-9. Cron jobs — hPanel → Advanced → Cron Jobs (replace `<php>` with the full PHP path
+9. Enable free SSL (hPanel → SSL). Force HTTPS via `.htaccess` in `public/`.
+10. Cron jobs — hPanel → Advanced → Cron Jobs (replace `<php>` with the full PHP path
    from `which php`, and `<app>` with the app path):
 
    ```cron
@@ -364,7 +369,7 @@ Expected: prints `workflow YAML OK`, commit succeeds.
    (Nightly backup at 02:00 and archival at 03:00 come from the scheduler; the queue
    worker drains mail jobs.)
 
-10. Run the first deploy by hand to confirm the server is healthy:
+11. Run the first deploy by hand to confirm the server is healthy:
 
     ```bash
     cd <app> && git pull origin main && bash deploy.sh
@@ -382,6 +387,9 @@ git checkout main && git pull
 git merge develop
 git push origin main       # everything after this is automatic
 ```
+
+If you enabled branch protection (§1.4), don't push `main` directly — open a pull
+request from `develop` → `main` in the GitHub UI and merge it there instead.
 
 Watch GitHub → Actions → "Deploy to Hostinger". When the run is green, verify the site
 (login, one record, one upload). A failed health check marks the run failed even if the
