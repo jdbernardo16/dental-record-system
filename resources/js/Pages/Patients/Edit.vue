@@ -8,7 +8,6 @@ import Badge from '@/Components/Badge.vue'
 import { Button } from '@/Components/ui/button'
 import FormField from '@/Components/FormField.vue'
 import { Input } from '@/Components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select'
 import { useToastStore } from '@/Stores/toast'
 
 defineOptions({ layout: AppLayout })
@@ -118,21 +117,23 @@ const confirmDelete = () => {
                     </template>
                 </FormField>
                 <FormField id="sex" label="Sex" required :error="form.errors.sex">
-                    <template #default="{ id }">
-                        <Select v-model="form.sex" name="sex" required>
-                            <SelectTrigger
-                                :id="id"
-                                class="w-full"
-                                :aria-invalid="form.errors.sex ? 'true' : 'false'"
+                    <template #default>
+                        <div class="inline-flex flex-wrap gap-1 rounded-full bg-gray-100 p-1" role="radiogroup" aria-label="Sex">
+                            <button
+                                v-for="option in sexOptions"
+                                :key="option.value"
+                                type="button"
+                                role="radio"
+                                :aria-checked="form.sex === option.value ? 'true' : 'false'"
+                                :class="[
+                                    'min-h-11 rounded-full px-4 text-sm font-medium transition',
+                                    form.sex === option.value ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500',
+                                ]"
+                                @click="form.sex = option.value"
                             >
-                                <SelectValue placeholder="Select sex" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem v-for="option in sexOptions" :key="option.value" :value="option.value">
-                                    {{ option.label }}
-                                </SelectItem>
-                            </SelectContent>
-                        </Select>
+                                { option.label }
+                            </button>
+                        </div>
                     </template>
                 </FormField>
                 <FormField id="birth_date" label="Birth date" required :error="form.errors.birth_date">
@@ -147,25 +148,23 @@ const confirmDelete = () => {
                     </template>
                 </FormField>
                 <FormField id="civil_status" label="Civil status" required :error="form.errors.civil_status">
-                    <template #default="{ id }">
-                        <Select v-model="form.civil_status" name="civil_status" required>
-                            <SelectTrigger
-                                :id="id"
-                                class="w-full"
-                                :aria-invalid="form.errors.civil_status ? 'true' : 'false'"
+                    <template #default>
+                        <div class="inline-flex flex-wrap gap-1 rounded-full bg-gray-100 p-1" role="radiogroup" aria-label="Civil status">
+                            <button
+                                v-for="option in civilStatusOptions"
+                                :key="option.value"
+                                type="button"
+                                role="radio"
+                                :aria-checked="form.civil_status === option.value ? 'true' : 'false'"
+                                :class="[
+                                    'min-h-11 rounded-full px-4 text-sm font-medium transition',
+                                    form.civil_status === option.value ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500',
+                                ]"
+                                @click="form.civil_status = option.value"
                             >
-                                <SelectValue placeholder="Select civil status" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem
-                                    v-for="option in civilStatusOptions"
-                                    :key="option.value"
-                                    :value="option.value"
-                                >
-                                    {{ option.label }}
-                                </SelectItem>
-                            </SelectContent>
-                        </Select>
+                                { option.label }
+                            </button>
+                        </div>
                     </template>
                 </FormField>
                 <FormField id="nationality" label="Nationality" required :error="form.errors.nationality">

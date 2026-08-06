@@ -427,24 +427,28 @@ const finishWizard = () => {
                             </p>
                         </div>
                         <div>
-                            <label for="sex" class="mb-1.5 block text-sm font-medium text-gray-700">
+                            <p class="mb-1.5 text-sm font-medium text-gray-700">
                                 Sex
                                 <span class="text-status-cancelled">*</span>
-                            </label>
-                            <select
-                                id="sex"
-                                v-model="patientForm.sex"
-                                required
-                                class="h-11 w-full rounded-lg border bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
-                                :class="{ 'border-status-cancelled': patientForm.errors.sex }"
-                            >
-                                <option value="" disabled>Select sex</option>
-                                <option v-for="option in sexOptions" :key="option.value" :value="option.value">
-                                    {{ option.label }}
-                                </option>
-                            </select>
+                            </p>
+                            <div class="inline-flex flex-wrap gap-1 rounded-full bg-gray-100 p-1" role="radiogroup" aria-label="Sex">
+                        <button
+                            v-for="option in sexOptions"
+                            :key="option.value"
+                            type="button"
+                            role="radio"
+                            :aria-checked="patientForm.sex === option.value ? 'true' : 'false'"
+                            :class="[
+                                'min-h-11 rounded-full px-4 text-sm font-medium transition',
+                                patientForm.sex === option.value ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500',
+                            ]"
+                            @click="patientForm.sex = option.value"
+                        >
+                            { option.label }
+                        </button>
+                    </div>
                             <p v-if="patientForm.errors.sex" class="mt-1.5 text-xs text-status-cancelled">
-                                {{ patientForm.errors.sex }}
+                                { patientForm.errors.sex }
                             </p>
                         </div>
                         <div>
@@ -465,24 +469,28 @@ const finishWizard = () => {
                             </p>
                         </div>
                         <div>
-                            <label for="civil_status" class="mb-1.5 block text-sm font-medium text-gray-700">
+                            <p class="mb-1.5 text-sm font-medium text-gray-700">
                                 Civil status
                                 <span class="text-status-cancelled">*</span>
-                            </label>
-                            <select
-                                id="civil_status"
-                                v-model="patientForm.civil_status"
-                                required
-                                class="h-11 w-full rounded-lg border bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
-                                :class="{ 'border-status-cancelled': patientForm.errors.civil_status }"
-                            >
-                                <option value="" disabled>Select civil status</option>
-                                <option v-for="option in civilStatusOptions" :key="option.value" :value="option.value">
-                                    {{ option.label }}
-                                </option>
-                            </select>
+                            </p>
+                            <div class="inline-flex flex-wrap gap-1 rounded-full bg-gray-100 p-1" role="radiogroup" aria-label="Civil status">
+                        <button
+                            v-for="option in civilStatusOptions"
+                            :key="option.value"
+                            type="button"
+                            role="radio"
+                            :aria-checked="patientForm.civil_status === option.value ? 'true' : 'false'"
+                            :class="[
+                                'min-h-11 rounded-full px-4 text-sm font-medium transition',
+                                patientForm.civil_status === option.value ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500',
+                            ]"
+                            @click="patientForm.civil_status = option.value"
+                        >
+                            { option.label }
+                        </button>
+                    </div>
                             <p v-if="patientForm.errors.civil_status" class="mt-1.5 text-xs text-status-cancelled">
-                                {{ patientForm.errors.civil_status }}
+                                { patientForm.errors.civil_status }
                             </p>
                         </div>
                         <div>
