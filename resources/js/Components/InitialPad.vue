@@ -10,6 +10,8 @@ defineProps({
 
 const emit = defineEmits(['update:modelValue'])
 
+const svgDataUrl = (svg) => (svg ? `data:image/svg+xml;utf8,${encodeURIComponent(svg)}` : null)
+
 const pad = ref(null)
 const container = ref(null)
 const hasInk = ref(false)
@@ -94,7 +96,14 @@ const clear = () => {
             @pointerup="onStrokeEnd"
             @pointercancel="onStrokeEnd"
         >
+            <img
+                v-if="modelValue"
+                :src="svgDataUrl(modelValue)"
+                alt="Drawn initial"
+                class="h-16 w-full object-contain"
+            />
             <VueSignaturePad
+                v-else
                 ref="pad"
                 :width="'100%'"
                 :height="'60px'"

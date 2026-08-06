@@ -13,6 +13,7 @@ const props = defineProps({
     acknowledgment: { type: String, default: '' },
     authorization: { type: String, default: '' },
     patientAge: { type: Number, default: 0 },
+    existingInitialSvg: { type: String, default: '' },
 })
 
 const emit = defineEmits(['saved'])
@@ -22,7 +23,8 @@ const toastStore = useToastStore()
 // A single initial drawn once, applied to every consent section (best practice:
 // the PDA paper form asks for an initial per line, but digitally one mark covers
 // all statements — each section still stores its own copy for the legal record).
-const initialSvg = ref('')
+// When an unsigned draft already exists, re-display the initial the patient drew.
+const initialSvg = ref(props.existingInitialSvg ?? '')
 
 const form = useForm({
     patient_id: props.patient.id,

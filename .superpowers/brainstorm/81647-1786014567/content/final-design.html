@@ -1,0 +1,74 @@
+<style>
+  .mc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  @media (max-width: 1100px) { .mc-grid { grid-template-columns: repeat(2, 1fr); } }
+  .mc-card { background: #fff; border: 1px solid oklch(0.928 0.006 264.531); border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 12px; min-height: 264px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+  .mc-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .mc-title { font-size: 0.8rem; font-weight: 500; color: #6b7280; }
+  .mc-icon { width: 40px; height: 40px; border-radius: 999px; background: oklch(0.97 0.02 200); display: flex; align-items: center; justify-content: center; font-size: 1rem; }
+  .mc-count { font-size: 1.875rem; font-weight: 600; color: #1f2937; }
+  .mc-list { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+  .mc-row { display: flex; align-items: center; gap: 12px; font-size: 0.82rem; min-height: 44px; }
+  .mc-time { color: #6b7280; font-size: 0.75rem; font-weight: 500; width: 56px; flex-shrink: 0; }
+  .mc-date { color: #6b7280; font-size: 0.75rem; font-weight: 500; width: 96px; flex-shrink: 0; }
+  .mc-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; color: #1f2937; }
+  .mc-num { color: #6b7280; font-size: 0.75rem; }
+  .mc-badge { font-size: 0.68rem; padding: 2px 8px; border-radius: 999px; font-weight: 500; }
+  .mc-b-pending { background: oklch(0.93 0.04 200); color: oklch(0.60 0.10 200); }
+  .mc-b-confirmed { background: oklch(0.97 0.02 200); color: oklch(0.53 0.09 200); }
+  .mc-empty { color: #6b7280; font-size: 0.82rem; }
+  .mc-foot { margin-top: auto; border-top: 1px solid oklch(0.928 0.006 264.531); padding-top: 12px; }
+  .mc-btn { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.85rem; font-weight: 500; color: oklch(0.60 0.10 200); background: oklch(0.97 0.02 200); border-radius: 8px; min-height: 44px; width: 100%; transition: background 0.15s; }
+  .mc-btn:hover { background: oklch(0.93 0.04 200); }
+  .mc-btn-disabled { background: #f3f4f6; color: #9ca3af; cursor: not-allowed; }
+  .mc-note { font-size: 0.72rem; color: #9ca3af; margin-top: 8px; text-align: center; }
+</style>
+
+<h2>Final design — Option A, with the app's real tokens</h2>
+<p class="subtitle">Same 4 cards, same hybrid content (count + list), now built on the shadcn Card primitives. Key details: all lists capped at 4 rows, footer pinned with a divider, full-width soft-brand button aligned across the row, and the Pending procedures card gets the same footer with a disabled button.</p>
+
+<div class="mockup">
+  <div class="mockup-header">Dashboard / cards — final look</div>
+  <div class="mockup-body">
+    <div class="mc-grid">
+      <div class="mc-card">
+        <div class="mc-head"><span class="mc-title">Today's appointments</span><span class="mc-icon">📅</span></div>
+        <div class="mc-count">2</div>
+        <div class="mc-list">
+          <div class="mc-row"><span class="mc-time">09:00</span><span class="mc-name">Juan Dela Cruz</span><span class="mc-badge mc-b-confirmed">Confirmed</span></div>
+          <div class="mc-row"><span class="mc-time">14:30</span><span class="mc-name">Maria Santos</span><span class="mc-badge mc-b-pending">Pending</span></div>
+        </div>
+        <div class="mc-foot"><div class="mc-btn">View all →</div></div>
+      </div>
+      <div class="mc-card">
+        <div class="mc-head"><span class="mc-title">Recent patients</span><span class="mc-icon">👥</span></div>
+        <div class="mc-count">10</div>
+        <div class="mc-list">
+          <div class="mc-row"><span class="mc-name">Pedro Reyes</span><span class="mc-num">P-10021</span></div>
+          <div class="mc-row"><span class="mc-name">Ana Villanueva</span><span class="mc-num">P-10022</span></div>
+          <div class="mc-row"><span class="mc-name">Carlo Mendoza</span><span class="mc-num">P-10023</span></div>
+          <div class="mc-row"><span class="mc-name">Liza Bautista</span><span class="mc-num">P-10024</span></div>
+        </div>
+        <div class="mc-foot"><div class="mc-btn">View all →</div></div>
+      </div>
+      <div class="mc-card">
+        <div class="mc-head"><span class="mc-title">Pending procedures</span><span class="mc-icon">📋</span></div>
+        <div class="mc-count">0</div>
+        <div class="mc-list"><span class="mc-empty">No pending procedures.</span></div>
+        <div class="mc-foot"><div class="mc-btn mc-btn-disabled">View all →</div></div>
+      </div>
+      <div class="mc-card">
+        <div class="mc-head"><span class="mc-title">Follow-ups</span><span class="mc-icon">🔄</span></div>
+        <div class="mc-count">6</div>
+        <div class="mc-list">
+          <div class="mc-row"><span class="mc-date">Mon, Aug 10</span><span class="mc-name">Rosa Dimagiba</span></div>
+          <div class="mc-row"><span class="mc-date">Tue, Aug 11</span><span class="mc-name">Ben Salazar</span></div>
+          <div class="mc-row"><span class="mc-date">Wed, Aug 12</span><span class="mc-name">Nina Ramos</span></div>
+          <div class="mc-row"><span class="mc-date">Thu, Aug 13</span><span class="mc-name">Oscar Lim</span></div>
+        </div>
+        <div class="mc-foot"><div class="mc-btn">View all →</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p class="subtitle" style="margin-top: 1rem;">The follow-ups card now caps at 4 rows (same as the others) so every footer lines up. The chart card below stays as-is but moves to the same Card primitives.</p>

@@ -1,0 +1,193 @@
+<style>
+  .mc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  @media (max-width: 1100px) { .mc-grid { grid-template-columns: repeat(2, 1fr); } }
+  .mc-card { background: var(--bg-primary); border: 1px solid var(--border); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 10px; min-height: 230px; }
+  .mc-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .mc-title { font-size: 0.72rem; font-weight: 500; color: var(--text-secondary); }
+  .mc-icon { width: 26px; height: 26px; border-radius: 999px; background: rgba(0,113,227,0.12); display: flex; align-items: center; justify-content: center; font-size: 0.7rem; }
+  .mc-count { font-size: 1.4rem; font-weight: 650; }
+  .mc-list { display: flex; flex-direction: column; gap: 5px; flex: 1; }
+  .mc-row { display: flex; align-items: center; gap: 8px; font-size: 0.72rem; min-height: 24px; }
+  .mc-time { color: var(--text-tertiary); font-size: 0.64rem; width: 48px; flex-shrink: 0; }
+  .mc-date { color: var(--text-tertiary); font-size: 0.64rem; width: 74px; flex-shrink: 0; }
+  .mc-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
+  .mc-num { color: var(--text-tertiary); font-size: 0.64rem; }
+  .mc-badge { font-size: 0.6rem; padding: 2px 6px; border-radius: 999px; font-weight: 500; }
+  .mc-b-pending { background: rgba(255,159,10,0.15); color: var(--warning); }
+  .mc-b-confirmed { background: rgba(0,113,227,0.12); color: var(--accent); }
+  .mc-b-completed { background: rgba(52,199,89,0.15); color: var(--success); }
+  .mc-b-muted { background: var(--bg-tertiary); color: var(--text-secondary); }
+  .mc-empty { color: var(--text-tertiary); font-size: 0.72rem; }
+  .mc-foot { margin-top: auto; border-top: 1px solid var(--border); padding-top: 10px; }
+  .mc-btn { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 0.72rem; font-weight: 500; color: var(--accent); background: rgba(0,113,227,0.10); border-radius: 8px; padding: 7px 0; width: 100%; }
+  .mc-link { color: var(--accent); font-size: 0.72rem; font-weight: 500; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; }
+  .mc-verdict { font-size: 0.78rem; margin-top: 0.5rem; }
+</style>
+
+<h2>Three ways to fix the "View all" alignment</h2>
+<p class="subtitle">All three keep your hybrid card (big count + short list). Each mockup uses the same data with deliberately different list lengths — 2 items, 5 items, empty, 5 items — so you can see the action stay aligned. Click one to pick it, then reply in the terminal.</p>
+
+<div class="options">
+
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Pinned footer button — closest to today, but aligned</h3>
+      <p>Cards become flex columns; the list area flexes, so every footer is glued to the card bottom. Button becomes a soft brand button under a divider.</p>
+      <div class="mockup" style="margin-top: 0.9rem; margin-bottom: 0.5rem;">
+        <div class="mockup-header">Option A — full-width footer button, pinned</div>
+        <div class="mockup-body">
+          <div class="mc-grid">
+            <div class="mc-card">
+              <div class="mc-head"><span class="mc-title">Today's appointments</span><span class="mc-icon">📅</span></div>
+              <div class="mc-count">2</div>
+              <div class="mc-list">
+                <div class="mc-row"><span class="mc-time">09:00</span><span class="mc-name">Juan Dela Cruz</span><span class="mc-badge mc-b-confirmed">Confirmed</span></div>
+                <div class="mc-row"><span class="mc-time">14:30</span><span class="mc-name">Maria Santos</span><span class="mc-badge mc-b-pending">Pending</span></div>
+              </div>
+              <div class="mc-foot"><div class="mc-btn">View all →</div></div>
+            </div>
+            <div class="mc-card">
+              <div class="mc-head"><span class="mc-title">Recent patients</span><span class="mc-icon">👥</span></div>
+              <div class="mc-count">10</div>
+              <div class="mc-list">
+                <div class="mc-row"><span class="mc-name">Pedro Reyes</span><span class="mc-num">P-10021</span></div>
+                <div class="mc-row"><span class="mc-name">Ana Villanueva</span><span class="mc-num">P-10022</span></div>
+                <div class="mc-row"><span class="mc-name">Carlo Mendoza</span><span class="mc-num">P-10023</span></div>
+                <div class="mc-row"><span class="mc-name">Liza Bautista</span><span class="mc-num">P-10024</span></div>
+                <div class="mc-row"><span class="mc-name">Miguel Aquino</span><span class="mc-num">P-10025</span></div>
+              </div>
+              <div class="mc-foot"><div class="mc-btn">View all →</div></div>
+            </div>
+            <div class="mc-card">
+              <div class="mc-head"><span class="mc-title">Pending procedures</span><span class="mc-icon">📋</span></div>
+              <div class="mc-count">0</div>
+              <div class="mc-list"><span class="mc-empty">No pending procedures.</span></div>
+              <div class="mc-foot"><div class="mc-btn">View all →</div></div>
+            </div>
+            <div class="mc-card">
+              <div class="mc-head"><span class="mc-title">Follow-ups</span><span class="mc-icon">🔄</span></div>
+              <div class="mc-count">6</div>
+              <div class="mc-list">
+                <div class="mc-row"><span class="mc-date">Mon, Aug 10</span><span class="mc-name">Rosa Dimagiba</span></div>
+                <div class="mc-row"><span class="mc-date">Tue, Aug 11</span><span class="mc-name">Ben Salazar</span></div>
+                <div class="mc-row"><span class="mc-date">Wed, Aug 12</span><span class="mc-name">Nina Ramos</span></div>
+                <div class="mc-row"><span class="mc-date">Thu, Aug 13</span><span class="mc-name">Oscar Lim</span></div>
+                <div class="mc-row"><span class="mc-date">Fri, Aug 14</span><span class="mc-name">Grace Tan</span></div>
+              </div>
+              <div class="mc-foot"><div class="mc-btn">View all →</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="mc-verdict">✓ Buttons always line up across the row · keeps the current look · divider + soft button gives the footer a clear home</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Header action link — the modern dashboard pattern</h3>
+      <p>"View all" moves to the top-right corner of the card header (the shadcn CardAction slot you already have). Cards are clean — no footer at all. Most common pattern on shadcn/Linear/Stripe-style dashboards.</p>
+      <div class="mockup" style="margin-top: 0.9rem; margin-bottom: 0.5rem;">
+        <div class="mockup-header">Option B — action link in card header</div>
+        <div class="mockup-body">
+          <div class="mc-grid">
+            <div class="mc-card">
+              <div class="mc-head"><span class="mc-title">Today's appointments</span><span class="mc-link">View all →</span></div>
+              <div class="mc-count">2</div>
+              <div class="mc-list">
+                <div class="mc-row"><span class="mc-time">09:00</span><span class="mc-name">Juan Dela Cruz</span><span class="mc-badge mc-b-confirmed">Confirmed</span></div>
+                <div class="mc-row"><span class="mc-time">14:30</span><span class="mc-name">Maria Santos</span><span class="mc-badge mc-b-pending">Pending</span></div>
+              </div>
+            </div>
+            <div class="mc-card">
+              <div class="mc-head"><span class="mc-title">Recent patients</span><span class="mc-link">View all →</span></div>
+              <div class="mc-count">10</div>
+              <div class="mc-list">
+                <div class="mc-row"><span class="mc-name">Pedro Reyes</span><span class="mc-num">P-10021</span></div>
+                <div class="mc-row"><span class="mc-name">Ana Villanueva</span><span class="mc-num">P-10022</span></div>
+                <div class="mc-row"><span class="mc-name">Carlo Mendoza</span><span class="mc-num">P-10023</span></div>
+                <div class="mc-row"><span class="mc-name">Liza Bautista</span><span class="mc-num">P-10024</span></div>
+                <div class="mc-row"><span class="mc-name">Miguel Aquino</span><span class="mc-num">P-10025</span></div>
+              </div>
+            </div>
+            <div class="mc-card">
+              <div class="mc-head"><span class="mc-title">Pending procedures</span><span class="mc-link">View all →</span></div>
+              <div class="mc-count">0</div>
+              <div class="mc-list"><span class="mc-empty">No pending procedures.</span></div>
+            </div>
+            <div class="mc-card">
+              <div class="mc-head"><span class="mc-title">Follow-ups</span><span class="mc-link">View all →</span></div>
+              <div class="mc-count">6</div>
+              <div class="mc-list">
+                <div class="mc-row"><span class="mc-date">Mon, Aug 10</span><span class="mc-name">Rosa Dimagiba</span></div>
+                <div class="mc-row"><span class="mc-date">Tue, Aug 11</span><span class="mc-name">Ben Salazar</span></div>
+                <div class="mc-row"><span class="mc-date">Wed, Aug 12</span><span class="mc-name">Nina Ramos</span></div>
+                <div class="mc-row"><span class="mc-date">Thu, Aug 13</span><span class="mc-name">Oscar Lim</span></div>
+                <div class="mc-row"><span class="mc-date">Fri, Aug 14</span><span class="mc-name">Grace Tan</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="mc-verdict">✓ Nothing to align — header rows are always one line · cleanest look · follows the shadcn CardAction pattern already in your codebase</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Footer text link — lightest footer</h3>
+      <p>Like A, but the footer holds a simple left-aligned text link instead of a filled button. Pinned to the bottom with a divider; quieter than A.</p>
+      <div class="mockup" style="margin-top: 0.9rem; margin-bottom: 0.5rem;">
+        <div class="mockup-header">Option C — subtle footer text link, pinned</div>
+        <div class="mockup-body">
+          <div class="mc-grid">
+            <div class="mc-card">
+              <div class="mc-head"><span class="mc-title">Today's appointments</span><span class="mc-icon">📅</span></div>
+              <div class="mc-count">2</div>
+              <div class="mc-list">
+                <div class="mc-row"><span class="mc-time">09:00</span><span class="mc-name">Juan Dela Cruz</span><span class="mc-badge mc-b-confirmed">Confirmed</span></div>
+                <div class="mc-row"><span class="mc-time">14:30</span><span class="mc-name">Maria Santos</span><span class="mc-badge mc-b-pending">Pending</span></div>
+              </div>
+              <div class="mc-foot"><span class="mc-link">View all →</span></div>
+            </div>
+            <div class="mc-card">
+              <div class="mc-head"><span class="mc-title">Recent patients</span><span class="mc-icon">👥</span></div>
+              <div class="mc-count">10</div>
+              <div class="mc-list">
+                <div class="mc-row"><span class="mc-name">Pedro Reyes</span><span class="mc-num">P-10021</span></div>
+                <div class="mc-row"><span class="mc-name">Ana Villanueva</span><span class="mc-num">P-10022</span></div>
+                <div class="mc-row"><span class="mc-name">Carlo Mendoza</span><span class="mc-num">P-10023</span></div>
+                <div class="mc-row"><span class="mc-name">Liza Bautista</span><span class="mc-num">P-10024</span></div>
+                <div class="mc-row"><span class="mc-name">Miguel Aquino</span><span class="mc-num">P-10025</span></div>
+              </div>
+              <div class="mc-foot"><span class="mc-link">View all →</span></div>
+            </div>
+            <div class="mc-card">
+              <div class="mc-head"><span class="mc-title">Pending procedures</span><span class="mc-icon">📋</span></div>
+              <div class="mc-count">0</div>
+              <div class="mc-list"><span class="mc-empty">No pending procedures.</span></div>
+              <div class="mc-foot"><span class="mc-link">View all →</span></div>
+            </div>
+            <div class="mc-card">
+              <div class="mc-head"><span class="mc-title">Follow-ups</span><span class="mc-icon">🔄</span></div>
+              <div class="mc-count">6</div>
+              <div class="mc-list">
+                <div class="mc-row"><span class="mc-date">Mon, Aug 10</span><span class="mc-name">Rosa Dimagiba</span></div>
+                <div class="mc-row"><span class="mc-date">Tue, Aug 11</span><span class="mc-name">Ben Salazar</span></div>
+                <div class="mc-row"><span class="mc-date">Wed, Aug 12</span><span class="mc-name">Nina Ramos</span></div>
+                <div class="mc-row"><span class="mc-date">Thu, Aug 13</span><span class="mc-name">Oscar Lim</span></div>
+                <div class="mc-row"><span class="mc-date">Fri, Aug 14</span><span class="mc-name">Grace Tan</span></div>
+              </div>
+              <div class="mc-foot"><span class="mc-link">View all →</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="mc-verdict">✓ Aligned like A, quieter than A · the divider keeps the footer anchored so it reads as a fixed action row</p>
+    </div>
+  </div>
+
+</div>

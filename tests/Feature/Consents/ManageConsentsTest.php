@@ -91,3 +91,26 @@ it('blocks receptionists from consent actions', function () {
     $this->actingAs($user)->post('/consents', ['patient_id' => $patient->id, 'initials' => []])
         ->assertForbidden();
 });
+
+it('voids a previous unsigned draft when a new waiver is saved', function () {
+    $assistant = User::factory()->create()->assignRole('Assistant');
+    $patient = Patient::factory()->create(['birth_date' => now()->subYears(25)]);
+    $svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 50"><path d="M5 25 L 95 25" stroke="black" fill="none"/></svg>';
+
+    $this->actingAs($assistant)->post('/consents', [
+        'patient_id' => $patient->id,
+        'initials' => ['treatment_to_be_done' => $svg],
+    ])->assertRedirect();
+
+    $first = ConsentForm::where('patient_id', $patient->id)->first();
+    expect($first->status->value)->toBe('unsigned');
+
+    // Re-saving the waiver starts a fresh consent session
+    $this->actingAs($assistant)->post('/consents', [
+        'patient_id' => $patient->id,
+        'initials' => ['treatment_to_be_done' => $svg],
+    ])->assertRedirect();
+
+    expect($first->fresh()->status->value)->toBe('voided');
+    expect(ConsentForm::where('patient_id', $patient->id)->where('status', 'unsigned')->count())->toBe(1);
+});

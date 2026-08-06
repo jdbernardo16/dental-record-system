@@ -13,9 +13,16 @@ final class ConsentService
 
     /**
      * Create a draft consent form with the 10 PDA sections (no initials yet).
+     * Any previous unsigned draft is voided first so a patient only ever has
+     * one active unsigned form (re-signing starts a fresh consent session).
      */
     public function createDraft(Patient $patient, User $dentist): ConsentForm
     {
+        ConsentForm::query()
+            ->where('patient_id', $patient->id)
+            ->where('status', ConsentStatus::Unsigned->value)
+            ->update(['status' => ConsentStatus::Voided->value]);
+
         $sections = config('consent.sections');
 
         $form = ConsentForm::create([

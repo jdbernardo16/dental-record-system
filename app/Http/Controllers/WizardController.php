@@ -13,6 +13,7 @@ use App\Models\Consultation;
 use App\Models\Patient;
 use App\Services\DentalChartService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -95,6 +96,7 @@ class WizardController extends Controller
                 ->where('status', 'unsigned')
                 ->latest()
                 ->value('id'),
+            'existingInitialSvg' => $this->existingInitialSvg($patient),
             'patientAge' => $patient->age,
             'sexOptions' => $this->enumOptions(Sex::meta()),
             'civilStatusOptions' => $this->enumOptions(CivilStatus::meta()),
@@ -145,5 +147,31 @@ class WizardController extends Controller
             ->map(fn (array $item, string $value) => ['value' => $value, 'label' => $item['label']])
             ->values()
             ->all();
+    }
+
+    /**
+     * The SVG content of the latest unsigned draft's first initial, so the
+     * waiver step can re-display what the patient already drew.
+     */
+    private function existingInitialSvg(Patient $patient): ?string
+    {
+        $draft = $patient->consentForms()
+            ->where('status', 'unsigned')
+            ->latest()
+            ->first();
+
+        if (! $draft) {
+            return null;
+        }
+
+        $path = $draft->sections()
+            ->whereNotNull('initial_svg_path')
+            ->value('initial_svg_path');
+
+        if (! $path || ! Storage::disk('local')->exists($path)) {
+            return null;
+        }
+
+        return Storage::disk('local')->get($path);
     }
 }

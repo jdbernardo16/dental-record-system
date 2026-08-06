@@ -54,6 +54,7 @@ const form = useForm({
 
 const patientPad = ref(null)
 const patientHasInk = ref(false)
+const patientAccepted = ref(false)
 
 const patientOptions = {
     penColor: '#1f2937',
@@ -62,6 +63,8 @@ const patientOptions = {
         patientHasInk.value = !patientPad.value?.isEmpty()
     },
 }
+
+const svgDataUrl = (svg) => (svg ? `data:image/svg+xml;utf8,${encodeURIComponent(svg)}` : null)
 
 /**
  * The backend expects a raw SVG string starting with `<svg`.
@@ -91,12 +94,16 @@ const acceptPatient = () => {
     if (!result || result.isEmpty || !result.data) return
 
     const svg = extractSvg(result.data)
-    if (svg) form.signature_svg = svg
+    if (svg) {
+        form.signature_svg = svg
+        patientAccepted.value = true
+    }
 }
 
 const clearPatient = () => {
     patientPad.value?.clearSignature()
     patientHasInk.value = false
+    patientAccepted.value = false
     form.signature_svg = ''
 }
 
@@ -104,6 +111,7 @@ const clearPatient = () => {
 
 const guardianPad = ref(null)
 const guardianHasInk = ref(false)
+const guardianAccepted = ref(false)
 
 const guardianOptions = {
     penColor: '#1f2937',
@@ -122,21 +130,25 @@ const acceptGuardian = () => {
     if (!result || result.isEmpty || !result.data) return
 
     const svg = extractSvg(result.data)
-    if (svg) form.guardian_svg = svg
+    if (svg) {
+        form.guardian_svg = svg
+        guardianAccepted.value = true
+    }
 }
 
 const clearGuardian = () => {
     guardianPad.value?.clearSignature()
     guardianHasInk.value = false
+    guardianAccepted.value = false
     form.guardian_svg = ''
 }
 
 /* ---------------------------------------------------------------- Sign */
 
 const canSign = computed(() => {
-    if (!form.signature_svg) return false
+    if (!patientAccepted.value || !form.signature_svg) return false
     if (!isMinor.value) return true
-    return Boolean(form.guardian_name.trim()) && Boolean(form.guardian_svg)
+    return Boolean(form.guardian_name.trim()) && guardianAccepted.value && Boolean(form.guardian_svg)
 })
 
 const sign = () => {
@@ -187,11 +199,17 @@ const sign = () => {
                     :options="patientOptions"
                     class="mx-auto w-full"
                 />
+                <img
+                    v-if="patientAccepted && form.signature_svg"
+                    :src="svgDataUrl(form.signature_svg)"
+                    alt="Captured patient signature"
+                    class="mx-auto mt-3 h-24 border border-gray-200 bg-white object-contain"
+                />
             </div>
             <div class="mt-3 flex items-center justify-end gap-2">
                 <Button variant="outline" size="sm" class="min-h-11" @click="clearPatient">Clear</Button>
                 <Button size="sm" class="min-h-11" :disabled="!patientHasInk" @click="acceptPatient">
-                    {{ form.signature_svg ? 'Signature captured' : 'Accept signature' }}
+                    {{ patientAccepted ? 'Signature captured — redraw to change' : 'Accept signature' }}
                 </Button>
             </div>
         </div>
@@ -232,11 +250,17 @@ const sign = () => {
                             :options="guardianOptions"
                             class="mx-auto w-full"
                         />
+                        <img
+                            v-if="guardianAccepted && form.guardian_svg"
+                            :src="svgDataUrl(form.guardian_svg)"
+                            alt="Captured guardian signature"
+                            class="mx-auto mt-3 h-24 border border-gray-200 bg-white object-contain"
+                        />
                     </div>
                     <div class="mt-3 flex items-center justify-end gap-2">
                         <Button variant="outline" size="sm" class="min-h-11" @click="clearGuardian">Clear</Button>
                         <Button size="sm" class="min-h-11" :disabled="!guardianHasInk" @click="acceptGuardian">
-                            {{ form.guardian_svg ? 'Signature captured' : 'Accept signature' }}
+                            {{ guardianAccepted ? 'Signature captured — redraw to change' : 'Accept signature' }}
                         </Button>
                     </div>
                 </div>

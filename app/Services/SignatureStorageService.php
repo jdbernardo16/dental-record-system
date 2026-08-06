@@ -38,6 +38,11 @@ final class SignatureStorageService
             $failures[] = 'Signature must be an SVG document.';
         }
 
+        // Reject empty captures from a 0×0 canvas (viewBox="0 0 0 0").
+        if (preg_match('/viewBox=["\']0+ 0+ 0+ 0+["\']/', $svg)) {
+            $failures[] = 'Signature is empty — please draw on the pad before accepting.';
+        }
+
         $previous = libxml_use_internal_errors(true);
         $doc = new DOMDocument;
         $parsed = $doc->loadXML($svg);

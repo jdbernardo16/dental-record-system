@@ -44,3 +44,10 @@ it('strips script elements and event handlers from stored SVGs', function () {
     expect($stored)->not->toContain('onload');
     expect($stored)->not->toContain('foreignObject');
 });
+
+it('rejects empty signatures from a zero-sized canvas', function () {
+    $svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0"></svg>';
+
+    expect(fn () => app(SignatureStorageService::class)->store($svg, 'signatures/empty.svg'))
+        ->toThrow(ValidationException::class);
+});
