@@ -266,8 +266,8 @@ Expected: prints `workflow YAML OK`, commit succeeds.
 1. Merge `develop` → `main` and push.
 2. GitHub Actions (`deploy.yml`) builds assets, commits fresh `public/build` back to
    `main` (`[skip ci]` — no re-trigger loop), then SSHes into Hostinger.
-3. On the server: `git pull origin main` + `bash deploy.sh` (composer install, migrate,
-   caches, storage link, permissions).
+3. On the server: `git pull origin main` + `bash deploy.sh` (composer install, caches,
+   migrate, storage link, permissions).
 4. The workflow health-checks the public URL. Watch it at GitHub → Actions → "Deploy to
    Hostinger".
 
@@ -294,7 +294,10 @@ Expected: prints `workflow YAML OK`, commit succeeds.
    `~/.ssh/dcprs_hostinger.pub` so the server can `git pull` from GitHub.
 
 4. Recommended: enable branch protection on `main` requiring a PR from `develop`
-   (Settings → Branches). This keeps "never commit to main" enforced.
+   (Settings → Branches). This keeps "never commit to main" enforced. **Important:** when
+   you enable the PR requirement, also add **GitHub Actions** under "Allow specified
+   actors to bypass the required pull request" — otherwise the workflow's build-commit
+   push to `main` is rejected with `GH006: Protected branch update failed`.
 
 ## 2. Hostinger one-time setup
 
@@ -303,6 +306,9 @@ Expected: prints `workflow YAML OK`, commit succeeds.
 3. hPanel → Websites → your site → set PHP version **8.2 or newer**.
 4. Create a MySQL database + user in hPanel (MySQL Databases); note name, user, password.
 5. SSH in and clone the repo using the GitHub deploy key:
+
+   Note: if `~/.ssh/config` already has a `Host github.com` block, edit that block
+   instead (ssh uses the first match) — do not append a duplicate.
 
    ```bash
    mkdir -p ~/.ssh
@@ -314,7 +320,14 @@ Expected: prints `workflow YAML OK`, commit succeeds.
    EOF
    ```
 
-   Put the **repo deploy key's private half** at `~/.ssh/dcprs_github` (chmod 600), then:
+   ```bash
+   # from your local machine — copy the private half of the keypair from §1.1 to the server
+   scp -P <PORT> ~/.ssh/dcprs_hostinger <USER>@<HOST>:~/.ssh/dcprs_github
+   # then on the server
+   chmod 600 ~/.ssh/dcprs_github
+   ```
+
+   then:
 
    ```bash
    cd ~/domains/example.com/public_html
@@ -364,7 +377,7 @@ Expected: prints `workflow YAML OK`, commit succeeds.
 
 ```bash
 git checkout develop && git pull
-./vendor/bin/pest          # release hygiene — run the 119 tests locally
+./vendor/bin/pest          # release hygiene — run the full suite locally
 git checkout main && git pull
 git merge develop
 git push origin main       # everything after this is automatic
@@ -388,7 +401,7 @@ deploys correctly without GitHub Actions.
 
 ## 5. Rollback
 
-- **Code:** `git revert` the bad merge on `main` and push — the workflow deploys the
+- **Code:** `git revert -m 1` the bad merge on `main` and push — the workflow deploys the
   previous code automatically.
 - **Schema:** `git revert` does not undo migrations. SSH in and run
   `php artisan migrate:rollback --step=N` (take a backup first:
@@ -403,8 +416,9 @@ deploys correctly without GitHub Actions.
 |---|---|
 | `Permission denied (publickey)` in the workflow | Re-add the public key in hPanel SSH Keys; make sure `SSH_KEY` secret has the full private key |
 | `Connection refused` / timeout | Wrong `SSH_PORT` or host; SSH not enabled; if Hostinger SSH IP restrictions are on, allow GitHub runner ranges or disable restrictions in hPanel → Advanced → SSH Access |
-| `composer: command not found` | Hostinger may expose it as `php composer.phar`; adjust the `composer` call in `deploy.sh` or install composer into `~/.local/bin` |
+| `composer: command not found` | Hostinger may expose it as `php composer.phar`; adjust the `composer` call in `deploy.sh` or install composer into `~/bin` |
 | Workflow fails at `git pull origin main` on server | Server deploy key missing/mismatched (`~/.ssh/dcprs_github`); server clone not on `main` (run `git checkout main`) |
+| `GH006: Protected branch update failed` | Add GitHub Actions to the branch-protection bypass actors (see §1.4) |
 | Site is 500 after a green run | SSH in: `php artisan config:cache` (a stale cache survives deploys when `.env` changed) and tail `storage/logs/laravel.log` |
 | Build commit loop | Build commits carry `[skip ci]`; if someone removes it, the "Commit build assets" step is a no-op when unchanged, so the loop terminates |
 | Cron jobs not firing | Use the full PHP path (`which php`); confirm the cron line has no `~` (use absolute paths) |
