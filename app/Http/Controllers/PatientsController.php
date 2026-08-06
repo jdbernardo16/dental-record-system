@@ -16,6 +16,7 @@ use App\Models\Consultation;
 use App\Models\Patient;
 use App\Repositories\PatientRepository;
 use App\Services\DentalChartService;
+use App\Services\SettingsService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
@@ -198,6 +199,63 @@ class PatientsController extends Controller
         }
 
         return Inertia::render('Patients/Show', $props);
+    }
+
+    /**
+     * Show the printable full-record export for the given patient.
+     */
+    public function export(Request $request, Patient $patient): Response
+    {
+        $this->authorize('view', $patient);
+
+        $canViewClinical = [
+            'medical-history' => $request->user()->can('medical-histories.view'),
+            'consultations' => $request->user()->can('consultations.view'),
+            'chart' => $request->user()->can('dental-chart.view'),
+            'treatments' => $request->user()->can('treatments.view'),
+            'consents' => $request->user()->can('consents.view'),
+            'attachments' => $request->user()->can('attachments.view'),
+        ];
+
+        $chartService = app(DentalChartService::class);
+
+        return Inertia::render('Patients/Export', [
+            'patient' => $patient,
+            'canViewClinical' => $canViewClinical,
+            'medicalHistory' => $canViewClinical['medical-history'] ? $patient->medicalHistory : null,
+            'consultations' => $canViewClinical['consultations']
+                ? $patient->consultations()->with('dentist:id,name')->latest('consultation_date')->get()
+                : collect(),
+            'chartState' => $canViewClinical['chart']
+                ? [
+                    'adult' => $chartService->currentState($patient->id, 'adult'),
+                    'primary' => $chartService->currentState($patient->id, 'primary'),
+                ]
+                : null,
+            'chartHistory' => $canViewClinical['chart']
+                ? $chartService->history($patient->id)->take(100)->values()
+                : collect(),
+            'treatments' => $canViewClinical['treatments']
+                ? $patient->treatments()->with('dentist:id,name', 'consultation:id,chief_complaint')->latest('treatment_date')->get()
+                : collect(),
+            'consentForms' => $canViewClinical['consents']
+                ? $patient->consentForms()->with('patient', 'dentist:id,name', 'sections')->latest()->get()
+                : collect(),
+            'attachments' => $canViewClinical['attachments']
+                ? $patient->attachments()->with('uploadedBy:id,name')->latest()->get()
+                : collect(),
+            'options' => [
+                'conditions' => ToothCondition::meta(),
+                'restorations' => RestorationType::meta(),
+                'surfaces' => ToothSurface::meta(),
+                'dentitions' => DentitionType::meta(),
+            ],
+            'clinic' => [
+                'name' => app(SettingsService::class)->get('clinic.name', 'Dental Clinic'),
+                'address' => app(SettingsService::class)->get('clinic.address', ''),
+            ],
+            'exportedAt' => now()->format('F j, Y g:i A'),
+        ]);
     }
 
     /**

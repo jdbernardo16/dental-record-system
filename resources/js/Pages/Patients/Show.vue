@@ -427,6 +427,12 @@ const confirmDeleteAttachment = (attachment) => {
                 <p class="mt-1 text-sm text-gray-500">{{ patient.patient_number }}</p>
             </div>
             <div class="flex items-center gap-2">
+                <Link :href="route('patients.export', patient.id)">
+                    <Button variant="outline" size="sm">
+                        <FileText class="h-4 w-4" />
+                        Export
+                    </Button>
+                </Link>
                 <Link v-if="can.update" :href="route('patients.edit', patient.id)">
                     <Button variant="outline" size="sm">
                         <Pencil class="h-4 w-4" />
