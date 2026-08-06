@@ -45,10 +45,12 @@
 
 1. hPanel → Advanced → SSH Access → enable. Note host, user, port.
 2. hPanel → Advanced → SSH Access → SSH Keys → add the public key from step 1 above.
-3. hPanel → Websites → your site → set PHP version **8.2 or newer**.
+3. hPanel → Websites → your site → set PHP version **8.4** (the committed `composer.lock`
+   pins Symfony v8.1 packages that require PHP ≥ 8.4.1 — 8.2/8.3 will fail
+   `composer install`).
 4. Verify the **SSH CLI** PHP version (deploy.sh calls bare `php`; Hostinger's CLI can
-   differ from the site version — `composer install` needs 8.2+):
-   `ssh -p <PORT> <USER>@<HOST> "php -v"` — if it reports < 8.2, set the CLI version in
+   differ from the site version — `composer install` needs 8.4+):
+   `ssh -p <PORT> <USER>@<HOST> "php -v"` — if it reports < 8.4, set the CLI version in
    hPanel (Advanced → SSH Access) or use the full path to a newer `php` binary in
    `deploy.sh`.
 5. Create a MySQL database + user in hPanel (MySQL Databases); note name, user, password.

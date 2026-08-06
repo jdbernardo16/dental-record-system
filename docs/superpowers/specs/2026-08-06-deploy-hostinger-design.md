@@ -70,7 +70,8 @@ Notes:
 
 1. hPanel → Advanced → SSH Access: enable; note host/user/port.
 2. Add the action's public key under SSH Keys.
-3. hPanel → Websites → site: set PHP version 8.2+ (project requires ^8.2).
+3. hPanel → Websites → site: set PHP version 8.4 (composer.lock pins packages that
+   require PHP ≥ 8.4.1; `composer.json` requires ^8.4).
 4. SSH: `git clone` the repo to `<public_html>/dental` (e.g.
    `~/domains/<domain>/public_html/dental`) using the deploy key.
 5. Point the site's document root at `<app>/public` (hPanel setting; fallback:
