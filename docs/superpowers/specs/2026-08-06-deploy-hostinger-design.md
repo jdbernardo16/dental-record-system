@@ -1,7 +1,7 @@
 # DCPRS — GitHub → Hostinger Automated Deployment (Design)
 
 Date: 2026-08-06
-Status: Approved by user (build local / auto-build via Actions, SSH auto-deploy, tests dropped)
+Status: Approved by user (auto-build via Actions, SSH auto-deploy, tests dropped)
 
 ## 1. Goal
 
@@ -55,10 +55,12 @@ Notes:
 
 ## 5. GitHub one-time setup (documented in runbook)
 
-1. Generate an ed25519 key pair locally (`dcprs-hostinger`): private key → repo secret
-   `SSH_KEY`; public key → Hostinger (Advanced → SSH Access → SSH Keys).
-2. Repo secrets: `SSH_HOST`, `SSH_USER`, `SSH_PORT` (65002 shared hosting / as shown in
-   hPanel), `SSH_KEY`, `DEPLOY_PATH` (server path to the app root).
+1. Generate an ed25519 key pair locally (`dcprs-hostinger`): the private key becomes the
+   repo secret `SSH_KEY`; the public key goes to Hostinger (Advanced → SSH Access →
+   SSH Keys).
+2. Repo secrets (Settings → Secrets and variables → Actions): `SSH_HOST`, `SSH_USER`,
+   `SSH_PORT` (65002 shared hosting / as shown in hPanel), `SSH_KEY`, `DEPLOY_PATH`
+   (server path to the app root).
 3. Deploy key (repo → Settings → Deploy keys, read-only): lets the server `git pull`
    from GitHub (server `~/.ssh/config` maps `github.com` to this key).
 4. Optional: branch protection on `main` (require PRs; tests run locally pre-merge).
