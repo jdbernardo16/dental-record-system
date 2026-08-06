@@ -8,6 +8,9 @@ set -euo pipefail
 APP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$APP_DIR"
 
+# Hostinger keeps composer in ~/bin; non-interactive SSH does not source .bashrc
+export PATH="$HOME/bin:$PATH"
+
 COMMIT="$(git rev-parse --short HEAD 2>/dev/null || echo 'no-git')"
 echo "==> Deploying DCPRS @ ${COMMIT}"
 
@@ -15,17 +18,20 @@ echo "==> Deploying DCPRS @ ${COMMIT}"
 echo "==> composer install --no-dev"
 composer install --no-dev --optimize-autoloader --no-interaction
 
-# 2. Schema (no-op when there are no pending migrations)
+# 2. Caches — config first so migrate boots against the new config
+echo "==> config:cache"
+php artisan config:cache
+
+# 3. Schema (no-op when there are no pending migrations)
 echo "==> php artisan migrate --force"
 php artisan migrate --force
 
-# 3. Caches — config first, then routes and views
-echo "==> config:cache / route:cache / view:cache"
-php artisan config:cache
+# 4. Route + view caches
+echo "==> route:cache / view:cache"
 php artisan route:cache
 php artisan view:cache
 
-# 4. Storage symlink — uploads + signature SVGs are served from storage/app/public
+# 5. Storage symlink — uploads + signature SVGs are served from storage/app/public
 if [ ! -L public/storage ]; then
     echo "==> php artisan storage:link"
     php artisan storage:link
@@ -33,7 +39,7 @@ else
     echo "==> storage:link already in place"
 fi
 
-# 5. Writable dirs (shared hosting: group-writable, no suhosin surprises)
+# 6. Writable dirs (shared hosting: group-writable, no suhosin surprises)
 echo "==> permissions on storage/ and bootstrap/cache/"
 find storage bootstrap/cache -type d -exec chmod 775 {} +
 find storage bootstrap/cache -type f -exec chmod 664 {} +
