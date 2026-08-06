@@ -131,7 +131,7 @@ const confirmDelete = () => {
                                 ]"
                                 @click="form.sex = option.value"
                             >
-                                { option.label }
+                                {{ option.label }}
                             </button>
                         </div>
                     </template>
@@ -162,7 +162,7 @@ const confirmDelete = () => {
                                 ]"
                                 @click="form.civil_status = option.value"
                             >
-                                { option.label }
+                                {{ option.label }}
                             </button>
                         </div>
                     </template>

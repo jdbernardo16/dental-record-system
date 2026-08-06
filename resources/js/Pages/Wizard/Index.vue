@@ -444,11 +444,11 @@ const finishWizard = () => {
                             ]"
                             @click="patientForm.sex = option.value"
                         >
-                            { option.label }
+                            {{ option.label }}
                         </button>
                     </div>
                             <p v-if="patientForm.errors.sex" class="mt-1.5 text-xs text-status-cancelled">
-                                { patientForm.errors.sex }
+                                {{ patientForm.errors.sex }}
                             </p>
                         </div>
                         <div>
@@ -486,11 +486,11 @@ const finishWizard = () => {
                             ]"
                             @click="patientForm.civil_status = option.value"
                         >
-                            { option.label }
+                            {{ option.label }}
                         </button>
                     </div>
                             <p v-if="patientForm.errors.civil_status" class="mt-1.5 text-xs text-status-cancelled">
-                                { patientForm.errors.civil_status }
+                                {{ patientForm.errors.civil_status }}
                             </p>
                         </div>
                         <div>

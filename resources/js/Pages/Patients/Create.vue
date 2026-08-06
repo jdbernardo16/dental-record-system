@@ -111,7 +111,7 @@ const submit = () => {
                                 ]"
                                 @click="form.sex = option.value"
                             >
-                                { option.label }
+                                {{ option.label }}
                             </button>
                         </div>
                     </template>
@@ -142,7 +142,7 @@ const submit = () => {
                                 ]"
                                 @click="form.civil_status = option.value"
                             >
-                                { option.label }
+                                {{ option.label }}
                             </button>
                         </div>
                     </template>
