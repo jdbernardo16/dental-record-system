@@ -29,7 +29,7 @@ const clinicName = computed(() => page.props.clinic?.name || 'Dental Clinic');
                 </p>
             </div>
 
-            <div class="mt-8 w-full max-w-md rounded-2xl bg-white p-6 shadow-xl sm:p-8">
+            <div class="mt-8 w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl sm:p-8">
                 <slot />
             </div>
 

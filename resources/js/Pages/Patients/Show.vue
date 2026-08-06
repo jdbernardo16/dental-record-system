@@ -13,6 +13,7 @@ import SignaturePadModal from '@/Components/SignaturePadModal.vue'
 import ToothChart from '@/Components/ToothChart.vue'
 import TreatmentForm from '@/Components/Wizard/TreatmentForm.vue'
 import { useToastStore } from '@/Stores/toast'
+import { scrollToFirstError } from '@/lib/scroll'
 
 defineOptions({ layout: AppLayout })
 
@@ -165,6 +166,7 @@ const confirmDelete = () => {
     if (window.confirm(`Delete ${fullName()}? The record can be restored by an administrator.`)) {
         router.delete(route('patients.destroy', props.patient.id), {
             onSuccess: () => toastStore.show('Patient deleted.'),
+            onError: () => scrollToFirstError(),
         })
     }
 }
@@ -321,6 +323,7 @@ const confirmSign = (svg) => {
         },
         onError: () => {
             toastStore.show('Signing failed — please try again.', 'error')
+            scrollToFirstError()
         },
     })
 }
@@ -360,6 +363,7 @@ const openConsentSign = (consentForm) => {
 const confirmConsentSign = (svg) => {
     consentSignForm.signature_svg = svg
     consentSignForm.post(route('consents.dentist-sign', signingConsent.value.id), {
+        onError: () => scrollToFirstError(),
         preserveScroll: true,
         onSuccess: () => {
             consentSignModalOpen.value = false
@@ -438,6 +442,7 @@ const onFileChange = (event) => {
 
 const submitUpload = () => {
     uploadForm.post(route('attachments.store', props.patient.id), {
+        onError: () => scrollToFirstError(),
         preserveScroll: true,
         onProgress: (event) => {
             uploadProgress.value = event.percentage ?? 0

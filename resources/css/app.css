@@ -100,3 +100,10 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* Tablet readability: scale all rem-based text up ~6% from the 16px default */
+@layer base {
+  html {
+    font-size: 17px;
+  }
+}

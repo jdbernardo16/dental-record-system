@@ -1,4 +1,5 @@
 <script setup>
+import { scrollToFirstError } from '@/lib/scroll'
 import { Head, Link, router, useForm } from '@inertiajs/vue3'
 import { Trash2 } from 'lucide-vue-next'
 import { route } from '../../../../vendor/tightenco/ziggy'
@@ -55,6 +56,7 @@ const submit = () => {
     form.patch(route('patients.update', props.patient.id), {
         preserveScroll: true,
         onSuccess: () => toastStore.show('Patient updated.'),
+        onError: () => scrollToFirstError(),
     })
 }
 

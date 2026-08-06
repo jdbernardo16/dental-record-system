@@ -7,6 +7,7 @@ import Button from '@/Components/Button.vue'
 import { VueSignaturePad } from 'vue-signature-pad'
 import { useToastStore } from '@/Stores/toast'
 import { normalizeSvg } from '@/lib/signatureSvg'
+import { scrollToFirstError } from '@/lib/scroll'
 
 const props = defineProps({
     patient: { type: Object, required: true },
@@ -165,6 +166,7 @@ const sign = () => {
         },
         onError: () => {
             toastStore.show('Signing failed — please try again.', 'error')
+            scrollToFirstError()
         },
     })
 }

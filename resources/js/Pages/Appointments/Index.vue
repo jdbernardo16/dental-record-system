@@ -7,6 +7,7 @@ import AppLayout from '@/Layouts/AppLayout.vue'
 import Badge from '@/Components/Badge.vue'
 import Button from '@/Components/Button.vue'
 import Input from '@/Components/Input.vue'
+import { scrollToFirstError } from '@/lib/scroll'
 import Modal from '@/Components/Modal.vue'
 import { useToastStore } from '@/Stores/toast'
 
@@ -112,6 +113,7 @@ const openCreate = () => {
 
 const submitCreate = () => {
     createForm.post(route('appointments.store'), {
+        onError: () => scrollToFirstError(),
         preserveScroll: true,
         onSuccess: () => {
             showCreate.value = false
@@ -126,6 +128,7 @@ const submitCreate = () => {
 const confirmForm = useForm({})
 const confirmAppointment = () => {
     confirmForm.post(route('appointments.confirm', selected.value.id), {
+        onError: () => scrollToFirstError(),
         onSuccess: () => {
             toastStore.show('Appointment confirmed.')
             closeDetail()

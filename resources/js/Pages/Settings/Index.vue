@@ -1,4 +1,5 @@
 <script setup>
+import { scrollToFirstError } from '@/lib/scroll'
 import { computed } from 'vue'
 import { Head, useForm } from '@inertiajs/vue3'
 import { route } from '../../../../vendor/tightenco/ziggy'
@@ -55,6 +56,7 @@ const submit = () => {
     form.patch(route('settings.update'), {
         preserveScroll: true,
         onSuccess: () => toastStore.show('Settings saved.'),
+        onError: () => scrollToFirstError(),
     })
 }
 </script>

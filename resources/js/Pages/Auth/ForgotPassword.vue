@@ -4,6 +4,7 @@ import FormField from '@/Components/FormField.vue'
 import GuestLayout from '@/Layouts/GuestLayout.vue'
 import { Input } from '@/Components/ui/input'
 import { Head, useForm } from '@inertiajs/vue3'
+import { scrollToFirstError } from '@/lib/scroll'
 
 defineProps({
     status: {
@@ -16,7 +17,9 @@ const form = useForm({
 })
 
 const submit = () => {
-    form.post(route('password.email'))
+    form.post(route('password.email'), {
+        onError: () => scrollToFirstError(),
+    })
 }
 </script>
 

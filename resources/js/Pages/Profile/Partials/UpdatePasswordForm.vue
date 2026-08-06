@@ -3,6 +3,7 @@ import { Button } from '@/Components/ui/button'
 import FormField from '@/Components/FormField.vue'
 import { Input } from '@/Components/ui/input'
 import { useForm } from '@inertiajs/vue3'
+import { scrollToFirstError } from '@/lib/scroll'
 import { ref } from 'vue'
 
 const passwordInput = ref(null)
@@ -19,6 +20,7 @@ const updatePassword = () => {
         preserveScroll: true,
         onSuccess: () => form.reset(),
         onError: () => {
+            scrollToFirstError()
             if (form.errors.password) {
                 form.reset('password', 'password_confirmation')
                 passwordInput.value.focus()

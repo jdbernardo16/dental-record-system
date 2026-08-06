@@ -1,10 +1,11 @@
 <script setup>
-import { watch } from 'vue'
+import { computed, watch } from 'vue'
 import { useForm } from '@inertiajs/vue3'
 import { ChevronDown } from 'lucide-vue-next'
 import { route } from '../../../../vendor/tightenco/ziggy'
 import Button from '@/Components/Button.vue'
 import { useToastStore } from '@/Stores/toast'
+import { errorList, scrollToFirstError } from '@/lib/scroll'
 
 const props = defineProps({
     patientId: { type: Number, required: true },
@@ -183,6 +184,8 @@ const hydrate = (history) => {
 
 watch(() => props.medicalHistory, hydrate, { immediate: true })
 
+const formErrorList = computed(() => errorList(form.errors))
+
 const submit = () => {
     form.post(route('medical-histories.store', props.patientId), {
         preserveScroll: true,
@@ -190,6 +193,7 @@ const submit = () => {
             toastStore.show('Medical history saved.')
             emit('saved')
         },
+        onError: () => scrollToFirstError(),
     })
 }
 
@@ -206,13 +210,13 @@ const textareaClasses = (field) => [
 
 <template>
     <form class="space-y-6" @submit.prevent="submit">
-        <p
+        <ul
             v-if="form.hasErrors"
             role="alert"
-            class="rounded-lg bg-status-cancelled/10 px-4 py-3 text-sm font-medium text-status-cancelled"
+            class="space-y-1 rounded-lg bg-status-cancelled/10 px-4 py-3 text-sm font-medium text-status-cancelled"
         >
-            Please review the highlighted fields.
-        </p>
+            <li v-for="message in formErrorList" :key="message">{{ message }}</li>
+        </ul>
 
         <div v-for="q in questions" :key="q.key" class="space-y-2.5">
             <div class="flex flex-wrap items-center justify-between gap-3">

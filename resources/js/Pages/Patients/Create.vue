@@ -1,4 +1,5 @@
 <script setup>
+import { scrollToFirstError } from '@/lib/scroll'
 import { Head, Link, useForm } from '@inertiajs/vue3'
 import { route } from '../../../../vendor/tightenco/ziggy'
 import AppLayout from '@/Layouts/AppLayout.vue'
@@ -46,6 +47,7 @@ const submit = () => {
     form.post(route('patients.store'), {
         preserveScroll: true,
         onSuccess: () => toastStore.show('Patient registered.'),
+        onError: () => scrollToFirstError(),
     })
 }
 </script>

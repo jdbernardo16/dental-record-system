@@ -4,6 +4,8 @@ import { route } from '../../../../vendor/tightenco/ziggy'
 import Button from '@/Components/Button.vue'
 import Input from '@/Components/Input.vue'
 import { useToastStore } from '@/Stores/toast'
+import { computed } from 'vue'
+import { errorList, scrollToFirstError } from '@/lib/scroll'
 
 const props = defineProps({
     patientId: { type: Number, required: true },
@@ -42,6 +44,8 @@ const form = useForm({
     consultation_id: '',
 })
 
+const formErrorList = computed(() => errorList(form.errors))
+
 const submit = () => {
     form.post(route('treatments.store', props.patientId), {
         // keep the wizard on the treatment step — a remount would resume a completed intake at step 0
@@ -52,6 +56,7 @@ const submit = () => {
             toastStore.show('Treatment saved.')
             emit('saved')
         },
+        onError: () => scrollToFirstError(),
     })
 }
 
@@ -68,13 +73,13 @@ const textareaClasses = (field) => [
 
 <template>
     <form class="space-y-6" @submit.prevent="submit">
-        <p
+        <ul
             v-if="form.hasErrors"
             role="alert"
-            class="rounded-lg bg-status-cancelled/10 px-4 py-3 text-sm font-medium text-status-cancelled"
+            class="space-y-1 rounded-lg bg-status-cancelled/10 px-4 py-3 text-sm font-medium text-status-cancelled"
         >
-            Please review the highlighted fields.
-        </p>
+            <li v-for="message in formErrorList" :key="message">{{ message }}</li>
+        </ul>
 
         <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
             <Input

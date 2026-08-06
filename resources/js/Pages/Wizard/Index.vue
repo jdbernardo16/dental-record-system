@@ -15,6 +15,7 @@ import TreatmentForm from '@/Components/Wizard/TreatmentForm.vue'
 import WaiverStep from '@/Components/Wizard/WaiverStep.vue'
 import { useToastStore } from '@/Stores/toast'
 import { useWizardStore } from '@/Stores/wizard'
+import { errorList, scrollToFirstError, scrollToTop } from '@/lib/scroll'
 
 defineOptions({ layout: AppLayout })
 
@@ -56,14 +57,23 @@ const stepKey = (index) => props.steps[index]?.key ?? ''
 const isCompleted = (index) => wizardStore.completed[stepKey(index)] ?? index < wizardStore.step
 const isCurrent = (index) => wizardStore.step === index
 
+const currentStepLabel = computed(() => stepLabel(wizardStore.step))
+
+const progressPercent = computed(() => {
+    const done = props.steps.reduce((count, _, index) => count + (isCompleted(index) ? 1 : 0), 0)
+    return Math.round((done / Math.max(props.steps.length, 1)) * 100)
+})
+
 const navigateTo = (index) => {
     if (!isCompleted(index) && !isCurrent(index)) return
     wizardStore.go(index)
+    scrollToTop()
 }
 
 const backStep = () => {
     const current = wizardStore.step
     wizardStore.go(current === 4 ? 1 : Math.max(0, current - 1))
+    scrollToTop()
 }
 
 /* ---------------------------------------------------------------- Step 0 */
@@ -94,6 +104,8 @@ const patientForm = useForm({
     wizard: 1,
 })
 
+const patientErrorList = computed(() => errorList(patientForm.errors))
+
 const submitPatient = () => {
     patientForm.post(route('patients.store'), {
         preserveScroll: true,
@@ -101,37 +113,45 @@ const submitPatient = () => {
             wizardStore.patientId = page.props.patient.id
             wizardStore.markComplete('patient')
             wizardStore.go(1)
+            scrollToTop()
         },
+        onError: () => scrollToFirstError(),
     })
 }
 
 const onMedicalHistorySaved = () => {
     wizardStore.markComplete('medical_history')
     wizardStore.go(2)
+    scrollToTop()
 }
 
 const onWaiverSaved = () => {
     wizardStore.markComplete('waiver')
     wizardStore.go(3)
+    scrollToTop()
 }
 
 const onSignatureSaved = () => {
     wizardStore.markComplete('signature')
     wizardStore.go(4)
+    scrollToTop()
 }
 
 const onConsultationSaved = () => {
     wizardStore.markComplete('consultation')
     wizardStore.go(5)
+    scrollToTop()
 }
 
 const onChartDone = () => {
     wizardStore.markComplete('dental_chart')
     wizardStore.go(6)
+    scrollToTop()
 }
 
 const onTreatmentSaved = () => {
     wizardStore.markComplete('treatment')
+    scrollToTop()
 }
 
 const patientFullName = () =>
@@ -262,46 +282,65 @@ const finishWizard = () => {
         </div>
 
         <!-- Stepper -->
-        <ol class="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm sm:p-6" aria-label="Intake steps">
-            <li
-                v-for="(step, index) in steps"
-                :key="step.key"
-                class="flex items-start"
-                :class="index > 0 ? 'mt-4' : ''"
-            >
-                <div class="flex w-full items-center gap-3">
-                    <span class="sr-only">{{ index + 1 }}</span>
-                    <button
-                        type="button"
-                        :disabled="!isCompleted(index) && !isCurrent(index)"
-                        :aria-current="isCurrent(index) ? 'step' : undefined"
-                        :class="[
-                            'flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-sm font-semibold transition',
-                            isCompleted(index)
-                                ? 'bg-brand-500 text-white'
-                                : isCurrent(index)
-                                  ? 'bg-white text-brand-600 ring-2 ring-brand-500'
-                                  : 'bg-gray-100 text-gray-500',
-                        ]"
-                        @click="navigateTo(index)"
+        <div class="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
+            <nav class="overflow-x-auto no-scrollbar" aria-label="Intake steps">
+                <ol class="flex min-w-max items-start gap-1 sm:gap-2">
+                    <li
+                        v-for="(step, index) in steps"
+                        :key="step.key"
+                        class="flex items-center"
                     >
-                        <Check v-if="isCompleted(index) && !isCurrent(index)" class="h-5 w-5" />
-                        <span v-else>{{ index + 1 }}</span>
-                    </button>
-                    <div class="min-w-0">
-                        <p
-                            :class="[
-                                'text-sm font-medium',
-                                isCurrent(index) ? 'text-brand-700' : 'text-gray-700',
-                            ]"
+                        <span
+                            v-if="index > 0"
+                            aria-hidden="true"
+                            class="mx-1 mt-5 h-0.5 w-5 sm:w-10"
+                            :class="isCompleted(index - 1) ? 'bg-brand-500' : 'bg-gray-200'"
+                        ></span>
+                        <button
+                            type="button"
+                            :disabled="!isCompleted(index) && !isCurrent(index)"
+                            :aria-current="isCurrent(index) ? 'step' : undefined"
+                            class="group flex flex-col items-center gap-1.5"
+                            @click="navigateTo(index)"
                         >
-                            {{ step.label }}
-                        </p>
-                        <p v-if="isCompleted(index)" class="text-xs text-gray-400">Complete</p>
-                    </div>
+                            <span
+                                :class="[
+                                    'flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold transition sm:h-11 sm:w-11',
+                                    isCompleted(index)
+                                        ? 'bg-brand-500 text-white'
+                                        : isCurrent(index)
+                                          ? 'bg-white text-brand-600 ring-2 ring-brand-500'
+                                          : 'bg-gray-100 text-gray-500',
+                                ]"
+                            >
+                                <Check v-if="isCompleted(index)" class="h-5 w-5" />
+                                <span v-else>{{ index + 1 }}</span>
+                            </span>
+                            <span
+                                :class="[
+                                    'whitespace-nowrap text-xs font-medium sm:text-sm',
+                                    isCurrent(index) ? 'text-brand-700' : 'text-gray-600',
+                                ]"
+                            >
+                                {{ step.label }}
+                            </span>
+                        </button>
+                    </li>
+                </ol>
+            </nav>
+
+            <div class="mt-4">
+                <div class="h-1.5 w-full overflow-hidden rounded-full bg-gray-100">
+                    <div
+                        class="h-full rounded-full bg-brand-500 transition-all duration-300"
+                        :style="{ width: `${progressPercent}%` }"
+                    ></div>
                 </div>
-            </li>
-        </ol>
+                <p class="mt-2 text-xs text-gray-500">
+                    Step {{ wizardStore.step + 1 }} of {{ steps.length }} · {{ currentStepLabel }}
+                </p>
+            </div>
+        </div>
 
         <!-- Step content -->
         <div class="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
@@ -326,13 +365,13 @@ const finishWizard = () => {
                 </div>
 
                 <form v-else class="space-y-6" @submit.prevent="submitPatient">
-                    <p
+                    <ul
                         v-if="patientForm.hasErrors"
                         role="alert"
-                        class="rounded-lg bg-status-cancelled/10 px-4 py-3 text-sm font-medium text-status-cancelled"
+                        class="space-y-1 rounded-lg bg-status-cancelled/10 px-4 py-3 text-sm font-medium text-status-cancelled"
                     >
-                        Please review the highlighted fields.
-                    </p>
+                        <li v-for="message in patientErrorList" :key="message">{{ message }}</li>
+                    </ul>
 
                     <section class="space-y-5">
                         <h2 class="text-sm font-semibold text-gray-800">Identity</h2>
@@ -709,7 +748,10 @@ const finishWizard = () => {
                         </div>
                     </section>
 
-                    <div class="flex items-center justify-end gap-3 pt-2">
+                    <div class="flex items-center justify-between gap-3 pt-2">
+                        <p class="text-xs text-gray-500">
+                            Required fields are marked with <span class="text-status-cancelled">*</span>
+                        </p>
                         <Button type="submit" :disabled="patientForm.processing">
                             {{ patientForm.processing ? 'Saving…' : 'Register & continue' }}
                         </Button>

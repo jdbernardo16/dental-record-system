@@ -1,4 +1,5 @@
 <script setup>
+import { scrollToFirstError } from '@/lib/scroll'
 import { Head, Link, useForm } from '@inertiajs/vue3'
 import { route } from '../../../../vendor/tightenco/ziggy'
 import AppLayout from '@/Layouts/AppLayout.vue'
@@ -28,6 +29,7 @@ const submit = () => {
     form.post(route('users.store'), {
         preserveScroll: true,
         onSuccess: () => toastStore.show('User created.'),
+        onError: () => scrollToFirstError(),
     })
 }
 </script>

@@ -6,6 +6,7 @@ import { CheckCircle2 } from 'lucide-vue-next'
 import Button from '@/Components/Button.vue'
 import InitialPad from '@/Components/InitialPad.vue'
 import { useToastStore } from '@/Stores/toast'
+import { scrollToFirstError } from '@/lib/scroll'
 
 const props = defineProps({
     patient: { type: Object, required: true },
@@ -48,6 +49,7 @@ const save = () => {
         },
         onError: () => {
             toastStore.show('Saving the waiver failed — please review the initial.', 'error')
+            scrollToFirstError()
         },
     })
 }

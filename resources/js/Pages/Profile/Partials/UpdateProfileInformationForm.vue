@@ -3,6 +3,7 @@ import { Button } from '@/Components/ui/button'
 import FormField from '@/Components/FormField.vue'
 import { Input } from '@/Components/ui/input'
 import { Link, useForm, usePage } from '@inertiajs/vue3'
+import { scrollToFirstError } from '@/lib/scroll'
 
 defineProps({
     mustVerifyEmail: {
@@ -19,6 +20,12 @@ const form = useForm({
     name: user.name,
     email: user.email,
 })
+
+const submit = () => {
+    form.patch(route('profile.update'), {
+        onError: () => scrollToFirstError(),
+    })
+}
 </script>
 
 <template>
@@ -34,7 +41,7 @@ const form = useForm({
         </header>
 
         <form
-            @submit.prevent="form.patch(route('profile.update'))"
+            @submit.prevent="submit"
             class="mt-6 space-y-6"
         >
             <FormField id="name" label="Name" required :error="form.errors.name">

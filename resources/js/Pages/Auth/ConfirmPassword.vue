@@ -1,4 +1,5 @@
 <script setup>
+import { scrollToFirstError } from '@/lib/scroll'
 import { Button } from '@/Components/ui/button'
 import FormField from '@/Components/FormField.vue'
 import GuestLayout from '@/Layouts/GuestLayout.vue'
@@ -12,6 +13,7 @@ const form = useForm({
 const submit = () => {
     form.post(route('password.confirm'), {
         onFinish: () => form.reset(),
+        onError: () => scrollToFirstError(),
     })
 }
 </script>
