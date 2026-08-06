@@ -27,6 +27,7 @@ const props = defineProps({
     consentAcknowledgment: { type: String, default: '' },
     consentAuthorization: { type: String, default: '' },
     consentFormId: { type: Number, default: null },
+    existingInitialSvg: { type: String, default: '' },
     patientAge: { type: Number, default: 0 },
     sexOptions: { type: Array, default: () => [] },
     civilStatusOptions: { type: Array, default: () => [] },
@@ -740,6 +741,7 @@ const finishWizard = () => {
                     :acknowledgment="consentAcknowledgment"
                     :authorization="consentAuthorization"
                     :patient-age="patientAge"
+                    :existing-initial-svg="existingInitialSvg"
                     @saved="onWaiverSaved"
                 />
                 <p v-else class="py-10 text-center text-sm text-gray-500">
