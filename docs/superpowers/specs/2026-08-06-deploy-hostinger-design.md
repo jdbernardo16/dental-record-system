@@ -48,7 +48,8 @@ develop ──merge──▶ main ──▶ GitHub Actions (push to main) ──
 | `docs/ops/deploy.md` | Keep as VPS reference; add a note that the live setup is Hostinger (see deploy-hostinger.md) |
 
 Notes:
-- `routes/*.php` contain no closures — `route:cache` is safe (verified).
+- `route:cache` is safe: `routes/web.php` contains a closure, but Laravel 12
+  serializes it via `Laravel\SerializableClosure` (empirically verified).
 - `public/hot` stays ignored; `vendor/`, `node_modules/`, `.env`, `storage/app/*` stay ignored.
 - `.env` and `storage/app/public` uploads are untracked on the server — `git pull` and the
   workflow never touch them.
