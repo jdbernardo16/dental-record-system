@@ -11,6 +11,13 @@
         <link rel="icon" href="/favicon.ico" sizes="32x32">
         <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 
+        <!-- PWA -->
+        <link rel="manifest" href="/manifest.webmanifest">
+        <meta name="theme-color" content="#0d9298">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="default">
+        <meta name="apple-mobile-web-app-title" content="Dental">
+
         <!-- Scripts -->
         @routes
         @vite(['resources/js/app.js', "resources/js/Pages/{$page['component']}.vue"])
