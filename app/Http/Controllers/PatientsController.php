@@ -130,6 +130,7 @@ class PatientsController extends Controller
                 ],
                 'consents' => [
                     'view' => $canViewConsents,
+                    'create' => $request->user()->can('consents.create'),
                     'sign-dentist' => $request->user()->can('consents.sign-dentist'),
                 ],
                 'attachments' => [

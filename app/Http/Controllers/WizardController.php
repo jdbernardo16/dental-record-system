@@ -63,7 +63,8 @@ class WizardController extends Controller
 
         $resumeStep = match (true) {
             $medicalHistory === null && ! $consentDraft && ! $consentSigned => 1,
-            ! $consentSigned => 3,
+            ! $consentDraft && ! $consentSigned => 2, // waiver (no consent started yet)
+            ! $consentSigned => 3,                    // signature (draft exists, not signed)
             ! $hasConsultation => 4,
             ! $hasChart => 5,
             ! $hasTreatment => 6,

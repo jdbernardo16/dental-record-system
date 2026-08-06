@@ -1,7 +1,8 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useForm } from '@inertiajs/vue3'
 import { route } from '../../../../vendor/tightenco/ziggy'
+import { CheckCircle2 } from 'lucide-vue-next'
 import Button from '@/Components/Button.vue'
 import InitialPad from '@/Components/InitialPad.vue'
 import { useToastStore } from '@/Stores/toast'
@@ -18,22 +19,25 @@ const emit = defineEmits(['saved'])
 
 const toastStore = useToastStore()
 
+// A single initial drawn once, applied to every consent section (best practice:
+// the PDA paper form asks for an initial per line, but digitally one mark covers
+// all statements — each section still stores its own copy for the legal record).
+const initialSvg = ref('')
+
 const form = useForm({
     patient_id: props.patient.id,
     initials: {},
 })
 
-const allInitialed = computed(() =>
-    props.sections.every((section) => Boolean(form.initials[section.key])),
-)
-
-const initialedCount = computed(
-    () => props.sections.filter((section) => Boolean(form.initials[section.key])).length,
-)
+const hasInitial = computed(() => Boolean(initialSvg.value))
 
 const isMinor = computed(() => props.patientAge < 18)
 
 const save = () => {
+    if (!hasInitial.value) return
+
+    form.initials = Object.fromEntries(props.sections.map((section) => [section.key, initialSvg.value]))
+
     form.post(route('consents.store'), {
         preserveScroll: true,
         onSuccess: () => {
@@ -41,7 +45,7 @@ const save = () => {
             emit('saved')
         },
         onError: () => {
-            toastStore.show('Saving the waiver failed — please review the pads.', 'error')
+            toastStore.show('Saving the waiver failed — please review the initial.', 'error')
         },
     })
 }
@@ -52,7 +56,8 @@ const save = () => {
         <div>
             <h2 class="text-lg font-semibold text-gray-800">Informed consent & waiver</h2>
             <p class="mt-1 text-sm text-gray-500">
-                {{ patient.first_name ?? 'Patient' }}, please read each statement and draw your initials in the box next to it.
+                {{ patient.first_name ?? 'Patient' }}, please read each statement below, then draw your initial
+                <strong>once</strong> — it is applied to all {{ sections.length }} statements.
             </p>
             <p v-if="isMinor" class="mt-2 rounded-lg bg-status-confirmed/10 px-4 py-3 text-sm text-status-confirmed">
                 This patient is a minor — a parent or guardian signature will be required on the next step.
@@ -73,12 +78,27 @@ const save = () => {
                         </h3>
                         <p class="mt-1.5 text-base leading-relaxed text-gray-700">{{ section.text }}</p>
                     </div>
-                    <div class="w-44 shrink-0 sm:w-52">
-                        <InitialPad v-model="form.initials[section.key]" />
-                    </div>
+                    <CheckCircle2
+                        v-if="hasInitial"
+                        class="h-5 w-5 shrink-0 text-status-completed"
+                        aria-label="Covered by the initial"
+                    />
                 </div>
             </li>
         </ol>
+
+        <div
+            class="rounded-2xl border border-dashed border-brand-300 bg-brand-50 p-5 shadow-sm"
+            :class="hasInitial ? 'border-solid border-brand-500' : ''"
+        >
+            <h3 class="text-sm font-semibold text-brand-800">Patient initial</h3>
+            <p class="mt-0.5 text-sm text-brand-700">
+                Draw the patient's initial here. It applies to all {{ sections.length }} statements above.
+            </p>
+            <div class="mt-3">
+                <InitialPad v-model="initialSvg" />
+            </div>
+        </div>
 
         <blockquote class="rounded-xl border-l-4 border-brand-500 bg-brand-50 px-5 py-4 text-base text-gray-800">
             <p class="font-medium text-brand-700">Acknowledgment</p>
@@ -92,12 +112,10 @@ const save = () => {
 
         <div class="flex flex-wrap items-center justify-between gap-3 border-t border-gray-100 pt-4">
             <p class="text-sm text-gray-500">
-                <template v-if="allInitialed">All {{ sections.length }} sections initialed.</template>
-                <template v-else>
-                    {{ initialedCount }} of {{ sections.length }} sections initialed — all are required to continue.
-                </template>
+                <template v-if="hasInitial">Initial drawn — applies to all {{ sections.length }} statements.</template>
+                <template v-else>Draw the patient's initial above to continue.</template>
             </p>
-            <Button type="button" :disabled="!allInitialed || form.processing" @click="save">
+            <Button type="button" :disabled="!hasInitial || form.processing" @click="save">
                 {{ form.processing ? 'Saving…' : 'Save & continue' }}
             </Button>
         </div>

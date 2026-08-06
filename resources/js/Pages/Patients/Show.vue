@@ -904,10 +904,22 @@ const confirmDeleteAttachment = (attachment) => {
                             {{ consentForms.length ? `${consentForms.length} on record` : 'No consent forms on record' }}
                         </p>
                     </div>
+                    <Link
+                        v-if="can.consents?.create"
+                        :href="route('wizard.index', patient.id)"
+                        class="inline-flex"
+                    >
+                        <Button variant="outline" size="sm">
+                            <FileText class="h-4 w-4" />
+                            New waiver
+                        </Button>
+                    </Link>
                 </div>
 
                 <div v-if="!consentForms.length" class="px-6 py-10 text-center">
-                    <p class="text-sm text-gray-500">No consents yet — the intake wizard records the first one.</p>
+                    <p class="text-sm text-gray-500">
+                        No consents yet — start the waiver from here, or through the intake wizard.
+                    </p>
                 </div>
 
                 <ul v-else class="divide-y divide-gray-100">

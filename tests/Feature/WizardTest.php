@@ -51,7 +51,7 @@ it('resumes an existing patient at the first incomplete step', function () {
     Consultation::factory()->create(['patient_id' => $patient->id, 'dentist_id' => $dentist->id]);
 
     $this->actingAs($dentist)->get("/wizard/{$patient->id}")
-        ->assertInertia(fn ($page) => $page->where('resumeStep', 3)); // 3 = consent module (waiver + signature)
+        ->assertInertia(fn ($page) => $page->where('resumeStep', 2)); // 2 = waiver (no consent started yet)
 
     // A patient-signed consent + consultation resumes at the dental chart step
     ConsentForm::factory()->create([
