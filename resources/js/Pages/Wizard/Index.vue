@@ -57,8 +57,6 @@ const stepKey = (index) => props.steps[index]?.key ?? ''
 const isCompleted = (index) => wizardStore.completed[stepKey(index)] ?? index < wizardStore.step
 const isCurrent = (index) => wizardStore.step === index
 
-const currentStepLabel = computed(() => stepLabel(wizardStore.step))
-
 const progressPercent = computed(() => {
     const done = props.steps.reduce((count, _, index) => count + (isCompleted(index) ? 1 : 0), 0)
     return Math.round((done / Math.max(props.steps.length, 1)) * 100)
@@ -282,44 +280,46 @@ const finishWizard = () => {
         </div>
 
         <!-- Stepper -->
-        <div class="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
-            <nav class="overflow-x-auto no-scrollbar" aria-label="Intake steps">
-                <ol class="flex min-w-max items-start gap-1 sm:gap-2">
+        <div class="border-b border-gray-200 pb-4">
+            <nav class="overflow-x-auto no-scrollbar px-1 py-1" aria-label="Intake steps">
+                <ol class="flex min-w-max items-center gap-1 sm:gap-2">
                     <li
                         v-for="(step, index) in steps"
                         :key="step.key"
-                        class="flex items-center"
+                        class="flex shrink-0 items-center"
                     >
                         <span
                             v-if="index > 0"
                             aria-hidden="true"
-                            class="mx-1 mt-5 h-0.5 w-5 sm:w-10"
+                            class="mx-1 h-0.5 w-5 rounded-full sm:w-10"
                             :class="isCompleted(index - 1) ? 'bg-brand-500' : 'bg-gray-200'"
                         ></span>
                         <button
                             type="button"
                             :disabled="!isCompleted(index) && !isCurrent(index)"
                             :aria-current="isCurrent(index) ? 'step' : undefined"
-                            class="group flex flex-col items-center gap-1.5"
+                            class="group flex items-center gap-2 rounded-full px-1 py-0.5 transition hover:bg-gray-50 disabled:cursor-default disabled:hover:bg-transparent"
                             @click="navigateTo(index)"
                         >
                             <span
                                 :class="[
-                                    'flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold transition sm:h-11 sm:w-11',
-                                    isCompleted(index)
+                                    'flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold transition sm:h-9 sm:w-9 sm:text-sm',
+                                    isCompleted(index) || isCurrent(index)
                                         ? 'bg-brand-500 text-white'
-                                        : isCurrent(index)
-                                          ? 'bg-white text-brand-600 ring-2 ring-brand-500'
-                                          : 'bg-gray-100 text-gray-500',
+                                        : 'bg-gray-100 text-gray-500',
                                 ]"
                             >
-                                <Check v-if="isCompleted(index)" class="h-5 w-5" />
+                                <Check v-if="isCompleted(index) && !isCurrent(index)" class="h-4 w-4" />
                                 <span v-else>{{ index + 1 }}</span>
                             </span>
                             <span
                                 :class="[
-                                    'whitespace-nowrap text-xs font-medium sm:text-sm',
-                                    isCurrent(index) ? 'text-brand-700' : 'text-gray-600',
+                                    'whitespace-nowrap text-xs font-medium transition sm:text-sm',
+                                    isCurrent(index)
+                                        ? 'font-semibold text-brand-700'
+                                        : isCompleted(index)
+                                          ? 'text-gray-600'
+                                          : 'text-gray-400',
                                 ]"
                             >
                                 {{ step.label }}
@@ -329,15 +329,15 @@ const finishWizard = () => {
                 </ol>
             </nav>
 
-            <div class="mt-4">
-                <div class="h-1.5 w-full overflow-hidden rounded-full bg-gray-100">
+            <div class="mt-3 flex items-center gap-3">
+                <div class="h-1 flex-1 overflow-hidden rounded-full bg-gray-100">
                     <div
                         class="h-full rounded-full bg-brand-500 transition-all duration-300"
                         :style="{ width: `${progressPercent}%` }"
                     ></div>
                 </div>
-                <p class="mt-2 text-xs text-gray-500">
-                    Step {{ wizardStore.step + 1 }} of {{ steps.length }} · {{ currentStepLabel }}
+                <p class="shrink-0 text-xs text-gray-500">
+                    Step {{ wizardStore.step + 1 }} of {{ steps.length }}
                 </p>
             </div>
         </div>
