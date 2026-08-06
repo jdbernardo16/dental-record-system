@@ -26,6 +26,14 @@ const statusBadgeColor = () =>
         voided: 'error',
     })[props.consent.status] ?? 'light'
 
+const statusLabel = () =>
+    ({
+        unsigned: 'Unsigned',
+        patient_signed: 'Patient signed',
+        signed: 'Signed',
+        voided: 'Voided',
+    })[props.consent.status] ?? props.consent.status
+
 const formatDate = (value) => {
     if (!value) return '—'
     return new Date(value).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })
@@ -52,7 +60,7 @@ const printForm = () => {
                 <p class="mt-1 text-sm text-gray-500">Version {{ consent.version }} — {{ formatDate(consent.created_at) }}</p>
             </div>
             <div class="flex items-center gap-2">
-                <Badge :color="statusBadgeColor()">{{ consent.status }}</Badge>
+                <Badge :color="statusBadgeColor()">{{ statusLabel() }}</Badge>
                 <Link :href="route('patients.show', patient.id)">
                     <Button variant="outline" size="sm">Back to patient</Button>
                 </Link>
@@ -88,20 +96,9 @@ const printForm = () => {
 
             <!-- Sections -->
             <ol class="divide-y divide-gray-100 print:divide-gray-300">
-                <li v-for="section in consent.sections" :key="section.id" class="grid grid-cols-1 gap-3 py-4 sm:grid-cols-[1fr_9rem]">
-                    <div>
-                        <h3 class="text-sm font-semibold text-gray-800">{{ section.label }}</h3>
-                        <p class="mt-1 text-base leading-relaxed text-gray-700">{{ section.text }}</p>
-                    </div>
-                    <div class="flex flex-col items-center justify-center">
-                        <img
-                            v-if="section.initial_svg_path"
-                            :src="'/storage/' + section.initial_svg_path"
-                            :alt="`Initial for ${section.label}`"
-                            class="max-h-16 rounded border border-gray-200 bg-white"
-                        />
-                        <span v-else class="text-xs text-gray-400">No initial</span>
-                    </div>
+                <li v-for="section in consent.sections" :key="section.id" class="py-4">
+                    <h3 class="text-sm font-semibold text-gray-800">{{ section.label }}</h3>
+                    <p class="mt-1 text-base leading-relaxed text-gray-700">{{ section.text }}</p>
                 </li>
             </ol>
 

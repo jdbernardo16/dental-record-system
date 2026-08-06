@@ -153,6 +153,14 @@ const conditionsList = computed(() =>
     (props.medicalHistory?.conditions_checklist ?? []).map((key) => pdaConditionLabels[key] ?? key),
 )
 
+const consentStatusLabel = (status) =>
+    ({
+        unsigned: 'Unsigned',
+        patient_signed: 'Patient signed',
+        signed: 'Signed',
+        voided: 'Voided',
+    })[status] ?? status
+
 const formatBytes = (bytes) => {
     if (bytes >= 1048576) return `${(bytes / 1048576).toFixed(1)} MB`
     if (bytes >= 1024) return `${(bytes / 1024).toFixed(1)} KB`
@@ -379,23 +387,15 @@ const printExport = () => {
                         <div class="flex flex-wrap items-baseline justify-between gap-2">
                             <p class="text-sm font-semibold text-gray-800">
                                 Informed consent — v{{ form.version }}
-                                <span class="ml-2 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">{{ form.status }}</span>
+                                <span class="ml-2 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">{{ consentStatusLabel(form.status) }}</span>
                             </p>
                             <p class="text-xs text-gray-500">{{ formatDate(form.created_at) }}</p>
                         </div>
 
-                        <div class="mt-3 grid grid-cols-1 gap-x-8 gap-y-1.5 text-sm sm:grid-cols-2">
-                            <div v-for="section in form.sections" :key="section.id" class="flex items-center gap-2">
-                                <span class="min-w-0 flex-1 text-gray-600">{{ section.label }}</span>
-                                <img
-                                    v-if="section.initial_svg_path"
-                                    :src="storageUrl(section.initial_svg_path)"
-                                    alt="Initial"
-                                    class="h-10 w-24 border border-gray-200 bg-white object-contain"
-                                />
-                                <span v-else class="text-xs text-gray-400">Not initialed</span>
-                            </div>
-                        </div>
+                        <p class="mt-3 text-sm text-gray-600">
+                            The patient initialed all {{ form.sections.length }} consent statements and confirmed the
+                            acknowledgment and authorization on {{ formatDate(form.created_at) }}.
+                        </p>
 
                         <div class="mt-4 grid grid-cols-1 gap-4 border-t border-gray-200 pt-3 text-sm sm:grid-cols-3">
                             <div>
