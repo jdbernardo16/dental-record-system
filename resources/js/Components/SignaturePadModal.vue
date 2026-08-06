@@ -4,6 +4,7 @@ import { X } from 'lucide-vue-next'
 import { VueSignaturePad } from 'vue-signature-pad'
 import Button from '@/Components/Button.vue'
 import Modal from '@/Components/Modal.vue'
+import { normalizeSvg } from '@/lib/signatureSvg'
 
 const props = defineProps({
     show: { type: Boolean, default: false },
@@ -23,13 +24,13 @@ watch(
 
         hasInk.value = false
 
-        // The pad mounts inside the dialog after the show-flush, and its own
-        // resizeCanvas() runs before the dialog content has layout (bitmap
-        // ends up 0×0). Nudge the library's resize listener once layout exists.
+        // The pad mounts inside the dialog after the show-flush, so its own
+        // resizeCanvas() can run before the dialog content has layout (bitmap
+        // ends up 0×0). Resize the canvas directly once layout exists.
         await nextTick()
         requestAnimationFrame(() => {
             requestAnimationFrame(() => {
-                window.dispatchEvent(new Event('resize'))
+                pad.value?.resizeCanvas()
             })
         })
     },
@@ -80,7 +81,7 @@ const accept = () => {
     const result = pad.value?.saveSignature('image/svg+xml')
     if (!result || result.isEmpty || !result.data) return
 
-    const svg = extractSvg(result.data)
+    const svg = normalizeSvg(extractSvg(result.data))
     if (svg) emit('confirm', svg)
 }
 </script>

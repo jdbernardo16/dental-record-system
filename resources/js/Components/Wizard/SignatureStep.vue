@@ -6,6 +6,7 @@ import { route } from '../../../../vendor/tightenco/ziggy'
 import Button from '@/Components/Button.vue'
 import { VueSignaturePad } from 'vue-signature-pad'
 import { useToastStore } from '@/Stores/toast'
+import { normalizeSvg } from '@/lib/signatureSvg'
 
 const props = defineProps({
     patient: { type: Object, required: true },
@@ -19,21 +20,25 @@ const toastStore = useToastStore()
 
 const stepRoot = ref(null)
 
-// The pads mount inside v-show wizard steps with no layout (0×0 bitmap).
-// Once this step becomes visible, nudge the library's resize listener.
+// The pads mount inside v-show wizard steps with no layout (0×0 bitmap), and
+// signature_pad's window-resize listener is not reliable here. When this step
+// becomes visible, resize the canvases directly once layout exists.
 let visibilityObserver = null
+
+const resizePads = () => {
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            // resizeCanvas() sets the bitmap size from the canvas CSS size and
+            // clears it — safe here because it runs before the user draws.
+            patientPad.value?.resizeCanvas()
+            guardianPad.value?.resizeCanvas()
+        })
+    })
+}
 
 onMounted(() => {
     visibilityObserver = new IntersectionObserver((entries) => {
-        if (entries.some((entry) => entry.isIntersecting)) {
-            // Wait two frames so the v-show step has layout before nudging the
-            // library's window-resize listener (same nudge SignaturePadModal uses).
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                    window.dispatchEvent(new Event('resize'))
-                })
-            })
-        }
+        if (entries.some((entry) => entry.isIntersecting)) resizePads()
     })
     if (stepRoot.value) visibilityObserver.observe(stepRoot.value)
 })
@@ -93,7 +98,7 @@ const acceptPatient = () => {
     const result = patientPad.value?.saveSignature('image/svg+xml')
     if (!result || result.isEmpty || !result.data) return
 
-    const svg = extractSvg(result.data)
+    const svg = normalizeSvg(extractSvg(result.data))
     if (svg) {
         form.signature_svg = svg
         patientAccepted.value = true
@@ -129,7 +134,7 @@ const acceptGuardian = () => {
     const result = guardianPad.value?.saveSignature('image/svg+xml')
     if (!result || result.isEmpty || !result.data) return
 
-    const svg = extractSvg(result.data)
+    const svg = normalizeSvg(extractSvg(result.data))
     if (svg) {
         form.guardian_svg = svg
         guardianAccepted.value = true
