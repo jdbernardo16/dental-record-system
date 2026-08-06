@@ -1,0 +1,67 @@
+name: Deploy to Hostinger
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    name: Build and deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build assets
+        run: npm run build
+
+      - name: Commit build assets
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add public/build
+          if git diff --cached --quiet; then
+            echo "Build files unchanged — nothing to commit."
+          else
+            git commit -m "chore: deploy build assets [skip ci]"
+            git push origin main
+          fi
+
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -p "${{ secrets.SSH_PORT }}" "${{ secrets.SSH_HOST }}" \
+            >> ~/.ssh/known_hosts 2>/dev/null || true
+
+      - name: Pull and deploy on server
+        run: |
+          ssh -i ~/.ssh/deploy_key -p "${{ secrets.SSH_PORT }}" \
+            "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" \
+            "cd '${{ secrets.DEPLOY_PATH }}' && git pull origin main && bash deploy.sh"
+
+      - name: Health check
+        run: |
+          code="$(curl -fsS --retry 3 -o /dev/null -w '%{http_code}' "${{ secrets.SITE_URL }}")"
+          echo "Site responded with HTTP ${code}"
+
+      - name: Deployment summary
+        run: |
+          echo "## Deployed" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Commit: \`${{ github.sha }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Site: ${{ secrets.SITE_URL }}" >> "$GITHUB_STEP_SUMMARY"
