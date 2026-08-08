@@ -21,7 +21,9 @@ const clinicName = computed(() => page.props.clinic?.name || 'Dental Clinic');
 
         <div class="relative">
             <div class="text-center">
-                <img src="/images/jdc-rectangle.png" alt="Jerrmond Dental Clinic" class="h-10 w-auto" />
+                <div class="inline-block rounded-2xl bg-white p-3 shadow-lg">
+                    <img src="/images/jdc-rectangle.png" alt="Jerrmond Dental Clinic" class="h-10 w-auto" />
+                </div>
                 <p class="mt-3 text-xl font-semibold text-white">{{ clinicName }}</p>
                 <p class="mt-1 text-sm text-brand-100">
                     Patient records · Dental charts · Appointments

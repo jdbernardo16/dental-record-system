@@ -102,7 +102,7 @@ const isActive = (item) => {
                     !open && !hovered ? 'lg:justify-center lg:px-0' : '',
                 ]"
             >
-                <img src="/images/jdc-square.png" alt="JDC Logo" class="h-10 w-10 rounded-xl" />
+                    <img src="/images/jdc-square.png" alt="Jerrmond Dental Clinic" class="h-10 w-10 rounded-xl" />
                 <span
                     v-if="open || hovered"
                     class="whitespace-nowrap text-base font-semibold text-gray-900"
