@@ -39,11 +39,29 @@
   --color-gray-800: oklch(0.300 0.035 250);
   --color-gray-900: oklch(0.200 0.040 250);
 
-  --color-status-pending:   oklch(0.71 0.16 85);
-  --color-status-confirmed: oklch(0.55 0.25 263);
-  --color-status-completed: oklch(0.65 0.24 152);
-  --color-status-cancelled: oklch(0.45 0.01 280);
-  --color-status-no-show:   oklch(0.64 0.24 25);
+  /* Semantic Colors — JDC Design System */
+  --color-status-success:       oklch(0.550 0.18 145);
+  --color-status-success-light: oklch(0.970 0.03 145);
+  --color-status-success-dark:  oklch(0.450 0.15 145);
+
+  --color-status-warning:       oklch(0.750 0.16 85);
+  --color-status-warning-light: oklch(0.990 0.02 85);
+  --color-status-warning-dark:  oklch(0.550 0.14 85);
+
+  --color-status-error:         oklch(0.550 0.22 25);
+  --color-status-error-light:   oklch(0.980 0.02 25);
+  --color-status-error-dark:    oklch(0.450 0.18 25);
+
+  --color-status-info:          oklch(0.550 0.20 260);
+  --color-status-info-light:    oklch(0.970 0.03 260);
+  --color-status-info-dark:     oklch(0.450 0.18 260);
+
+  /* Legacy aliases for backward compatibility */
+  --color-status-pending:   var(--color-status-warning);
+  --color-status-confirmed: var(--color-status-info);
+  --color-status-completed: var(--color-status-success);
+  --color-status-cancelled: var(--color-status-error);
+  --color-status-no-show:   var(--color-status-error);
 
   /* Tooth condition palette (PDA legend) */
   --color-cond-caries:          oklch(0.64 0.24 25);
