@@ -610,3 +610,19 @@ No "TBD"/"TODO". The one deliberate implementation choice (getBBox vs hardcoded 
 - `apply(tooth, surface)` emit contract identical
 - `wholeToothOnly()` / `surfaceZones()` exports preserved
 - FDI keys: `state[tooth]` uses plain FDI strings ("11".."48") — unchanged from current app
+
+---
+
+## Known Follow-ups (accepted, tracked — do not silently drop)
+
+1. **FALLBACK_BOXES test** — `resources/js/Components/ToothChart.vue` lines 40-49 define 8 per-tooth-type fallback bounding boxes (used before `getBBox()` measurement and when the SVG is hidden via `v-show`). They are accurate (verified against measured geometry) but are magic numbers inside the SFC, not exported, and not test-asserted. Follow-up: export them (or extract to `lib/odontogram`) and add a value-parity test so geometry changes fail loudly.
+2. **Keyboard accessibility** — the chart is `role="img"` with click-only `<path>` targets (no `tabindex`/`@keydown`). This matches the previous component (not a regression) but react-odontogram upstream supports keyboard (`role="option"`, `tabIndex=0`, Enter/Space). Follow-up: make teeth (and ideally the 5 zones) focusable with `aria-label`s and Enter/Space handling — ~30 lines confined to `ToothChart.vue`, WCAG 2.1.1.
+3. **Reference docs MIT headers** — DONE (added to `docs/reference/odontogram/data.ts` and `utils.ts` in the finalize commit). Keep any future reference copies compliant.
+
+---
+
+## Post-Implementation Notes (what changed vs. the original plan sketch)
+
+- `toViewBox(qi, x, y)` and `quadrantFdiStart(qi, dentition)` were extracted into `lib/odontogram/quadrants.js` (not left inline in the component) so the label-flip math and the adult `['1','2','4','3']` lower-arch mapping are unit-tested. `ToothChart.vue` consumes them via `fdiNumber`/`toViewBox`.
+- FDI number labels render **outside** the mirrored quadrant `<g>` groups (viewBox-space coordinates) so they stay upright — a `<text>` inside a negatively-scaled group renders mirrored/upside-down.
+- Adult lower-arch quadrant order is `['1','2','4','3']` (not the upstream `['1','2','3','4']`) so the patient's right side renders on the viewer's left for BOTH arches, matching the PDA paper chart and the primary dentition mapping.
