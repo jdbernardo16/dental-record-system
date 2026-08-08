@@ -18,7 +18,7 @@ export const wholeToothOnly = () => ['missing_caries', 'missing_other', 'impacte
 
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { quadrants, teethPaths, VIEW_W, VIEW_H } from '@/lib/odontogram'
+import { quadrants, teethPaths, VIEW_W, VIEW_H, fdiNumber, toViewBox } from '@/lib/odontogram'
 
 const props = defineProps({
     state: { type: Object, required: true },
@@ -151,15 +151,9 @@ const wholeOnly = computed(() =>
     !props.readonly && props.selectedCondition !== null && wholeToothOnly().includes(props.selectedCondition),
 )
 
-/** FDI numbering per quadrant: adult 1-4 quadrants, primary 5-8 quadrants. */
-const quadrantStart = (qi, dentition) => {
-    const starts = dentition === 'primary' ? ['5', '6', '8', '7'] : ['1', '2', '3', '4']
-    return starts[qi]
-}
+const toothFdi = (qi, i, dentition) => fdiNumber(qi, i, dentition)
 
-const toothFdi = (qi, i, dentition) => `${quadrantStart(qi, dentition)}${i + 1}`
-
-const buildTooth = (fdi, typeIndex) => {
+const buildTooth = (qi, fdi, typeIndex) => {
     const shape = teethPaths[typeIndex]
     const box = boxes.value[fdi] ?? FALLBACK_BOXES[typeIndex]
     const whole = props.state?.[fdi]?.whole ?? null
@@ -208,6 +202,11 @@ const buildTooth = (fdi, typeIndex) => {
         }
     }
 
+    // Labels are rendered OUTSIDE the transformed quadrant <g> so they stay
+    // upright — map the local label anchor into viewBox coordinates.
+    const labelLocal = { x: box.x + box.width / 2, y: box.y + box.height + 12 }
+    const label = toViewBox(qi, labelLocal.x, labelLocal.y)
+
     return {
         fdi,
         shape,
@@ -216,8 +215,8 @@ const buildTooth = (fdi, typeIndex) => {
         highlights: Array.isArray(shape.lineHighlightPath) ? shape.lineHighlightPath : [shape.lineHighlightPath],
         symbol,
         zones,
-        labelX: box.x + box.width / 2,
-        labelY: box.y + box.height + 12,
+        labelX: label.x,
+        labelY: label.y,
     }
 }
 
@@ -226,7 +225,7 @@ const teethByQuadrant = computed(() => {
 
     return quadrants.map((q, qi) => ({
         ...q,
-        teeth: Array.from({ length: count }, (_, i) => buildTooth(toothFdi(qi, i, props.dentition), i)),
+        teeth: Array.from({ length: count }, (_, i) => buildTooth(qi, toothFdi(qi, i, props.dentition), i)),
     }))
 })
 
@@ -383,18 +382,23 @@ watch(() => props.dentition, () => nextTick(measure))
                         }"
                         @click="apply(tooth.fdi, zone.key)"
                     />
-
-                    <!-- tooth number -->
-                    <text
-                        :x="tooth.labelX"
-                        :y="tooth.labelY"
-                        text-anchor="middle"
-                        font-size="10"
-                        class="select-none fill-gray-400"
-                    >
-                        {{ tooth.fdi }}
-                    </text>
                 </g>
+            </g>
+
+            <!-- tooth numbers — rendered outside the mirrored quadrant groups so
+                 they stay upright (viewBox-space coordinates) -->
+            <g v-for="quadrant in teethByQuadrant" :key="`labels-${quadrant.name}`">
+                <text
+                    v-for="tooth in quadrant.teeth"
+                    :key="`label-${tooth.fdi}`"
+                    :x="tooth.labelX"
+                    :y="tooth.labelY"
+                    text-anchor="middle"
+                    font-size="10"
+                    class="select-none fill-gray-400"
+                >
+                    {{ tooth.fdi }}
+                </text>
             </g>
         </svg>
     </div>

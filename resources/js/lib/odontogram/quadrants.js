@@ -53,3 +53,37 @@ export const convertFDIToNotation = (fdi, notation) => {
 }
 
 export const toothId = (quadrant, toothType) => `teeth-${quadrant}${toothType}`
+
+/**
+ * First FDI digit per quadrant index (0-3), in the order the quadrant <g>
+ * groups render. The arch mirrors so the patient's right side renders on the
+ * viewer's left (PDA paper-chart convention):
+ *   adult   → ['1', '2', '4', '3']  → 11-18 top-left, 21-28 top-right,
+ *                                     41-48 bottom-left, 31-38 bottom-right
+ *   primary → ['5', '6', '8', '7']  → 51-55, 61-65, 81-85, 71-75
+ */
+export const quadrantFdiStart = (qi, dentition = 'adult') => {
+    const starts = dentition === 'primary' ? ['5', '6', '8', '7'] : ['1', '2', '4', '3']
+    return starts[qi]
+}
+
+/** Full FDI number for quadrant index qi, tooth type index i (0-based). */
+export const fdiNumber = (qi, i, dentition = 'adult') => `${quadrantFdiStart(qi, dentition)}${i + 1}`
+
+/**
+ * Map a quadrant-local point (x, y) into viewBox space, undoing the quadrant's
+ * mirror transform. Used to place tooth-number labels upright — a <text> inside
+ * a negatively-scaled <g> renders mirrored/upside-down.
+ */
+export const toViewBox = (qi, x, y) => {
+    switch (qi) {
+        case 1: // transform: scale(-1, 1) translate(-409, 0)  →  x' = 409 - x
+            return { x: VIEW_W - x, y }
+        case 2: // transform: scale(1, -1) translate(0, -694)  →  y' = 694 - y
+            return { x, y: VIEW_H - y }
+        case 3: // transform: scale(-1, -1) translate(-409, -694) → both flipped
+            return { x: VIEW_W - x, y: VIEW_H - y }
+        default: // identity
+            return { x, y }
+    }
+}

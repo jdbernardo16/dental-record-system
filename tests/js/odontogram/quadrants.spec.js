@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { convertFDIToNotation, toothId, quadrants, VIEW_W, VIEW_H } from '@/lib/odontogram'
+import { convertFDIToNotation, toothId, quadrants, VIEW_W, VIEW_H, quadrantFdiStart, fdiNumber, toViewBox } from '@/lib/odontogram'
 
 describe('odontogram quadrants', () => {
     it('has 4 quadrants covering all 32 FDI teeth', () => {
@@ -60,5 +60,40 @@ describe('odontogram quadrants', () => {
     it('keeps the arch viewBox dimensions', () => {
         expect(VIEW_W).toBe(409)
         expect(VIEW_H).toBe(694)
+    })
+
+    it('maps adult quadrants so the patient right side is on the viewer left', () => {
+        // Quadrant 0 renders top-left (mirrored), quadrant 1 top-right, etc.
+        expect(quadrantFdiStart(0, 'adult')).toBe('1') // upper right  → 11-18 top-left
+        expect(quadrantFdiStart(1, 'adult')).toBe('2') // upper left   → 21-28 top-right
+        expect(quadrantFdiStart(2, 'adult')).toBe('4') // lower right  → 41-48 bottom-left
+        expect(quadrantFdiStart(3, 'adult')).toBe('3') // lower left   → 31-38 bottom-right
+    })
+
+    it('maps primary quadrants to the 5x/6x/8x/7x ranges', () => {
+        expect(quadrantFdiStart(0, 'primary')).toBe('5')
+        expect(quadrantFdiStart(1, 'primary')).toBe('6')
+        expect(quadrantFdiStart(2, 'primary')).toBe('8')
+        expect(quadrantFdiStart(3, 'primary')).toBe('7')
+    })
+
+    it('builds full FDI numbers per quadrant', () => {
+        expect(fdiNumber(0, 0, 'adult')).toBe('11')
+        expect(fdiNumber(0, 7, 'adult')).toBe('18')
+        expect(fdiNumber(2, 7, 'adult')).toBe('48')
+        expect(fdiNumber(3, 0, 'adult')).toBe('31')
+        expect(fdiNumber(0, 4, 'primary')).toBe('55')
+        expect(fdiNumber(2, 4, 'primary')).toBe('85')
+    })
+
+    it('converts quadrant-local points to upright viewBox space', () => {
+        // Identity quadrant: unchanged
+        expect(toViewBox(0, 100, 50)).toEqual({ x: 100, y: 50 })
+        // scale(-1, 1) translate(-409, 0): x' = 409 - x
+        expect(toViewBox(1, 200, 50)).toEqual({ x: 209, y: 50 })
+        // scale(1, -1) translate(0, -694): y' = 694 - y
+        expect(toViewBox(2, 200, 50)).toEqual({ x: 200, y: 644 })
+        // scale(-1, -1) translate(-409, -694): both flipped
+        expect(toViewBox(3, 200, 50)).toEqual({ x: 209, y: 644 })
     })
 })
