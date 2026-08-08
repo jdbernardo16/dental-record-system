@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useForm } from '@inertiajs/vue3'
 import { Signature } from 'lucide-vue-next'
 import { route } from '../../../../vendor/tightenco/ziggy'
@@ -37,11 +37,16 @@ const resizePads = () => {
     })
 }
 
-onMounted(() => {
+const attachObserver = () => {
+    visibilityObserver?.disconnect()
     visibilityObserver = new IntersectionObserver((entries) => {
         if (entries.some((entry) => entry.isIntersecting)) resizePads()
     })
     if (stepRoot.value) visibilityObserver.observe(stepRoot.value)
+}
+
+onMounted(() => {
+    attachObserver()
 })
 
 onBeforeUnmount(() => {
@@ -49,6 +54,20 @@ onBeforeUnmount(() => {
 })
 
 const isMinor = computed(() => props.patientAge < 18)
+
+// The pads mount in the v-else branch, which appears only after the waiver is
+// saved (consentFormId flips from null to a number) — i.e. AFTER the observer
+// created in onMounted attached itself to the v-if placeholder element. Re-attach
+// the observer to the current stepRoot and resize directly (the observer only
+// fires on threshold crossing, so a direct resize after nextTick is needed).
+watch(
+    () => [props.consentFormId, isMinor.value],
+    async () => {
+        await nextTick()
+        attachObserver()
+        resizePads()
+    },
+)
 
 const form = useForm({
     signature_svg: '',

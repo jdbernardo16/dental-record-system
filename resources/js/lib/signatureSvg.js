@@ -15,22 +15,34 @@ const ZERO_VIEWBOX = /viewBox=["']0+ 0+ 0+ 0+["']/
 
 /**
  * Rewrite a zero-size signature SVG to the bounding box of its paths.
- * Returns the input unchanged when the SVG is fine or truly empty.
+ * Returns the input unchanged when the SVG is fine, or null when a zero-size
+ * capture has no measurable geometry (callers treat null as "not captured").
  */
 export function normalizeSvg(svg) {
     if (!svg || !ZERO_VIEWBOX.test(svg)) return svg
 
     const probe = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
-    probe.innerHTML = svg
+    probe.style.position = 'absolute'
+    probe.style.left = '-9999px'
+    probe.style.top = '0'
+    document.body.appendChild(probe)
 
     let bbox
     try {
-        bbox = probe.getBBox()
+        // Injecting the full <svg>…</svg> nests it inside the probe, so the
+        // probe's own getBBox() collapses to 0×0. Measure the nested svg's
+        // geometry instead — getBBox() derives from path data, not attributes.
+        probe.innerHTML = svg
+        const inner = probe.querySelector('svg')
+        if (!inner) return null
+        bbox = inner.getBBox()
     } catch {
-        return svg
+        return null
+    } finally {
+        probe.remove()
     }
 
-    if (!bbox || (bbox.width === 0 && bbox.height === 0)) return svg
+    if (!bbox || (bbox.width === 0 && bbox.height === 0)) return null
 
     const pad = 4
     const x = Math.floor(bbox.x - pad)
