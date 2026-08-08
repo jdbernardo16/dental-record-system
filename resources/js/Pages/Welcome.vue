@@ -1,8 +1,8 @@
 <script setup>
-import { computed } from 'vue';
-import { Head, Link, usePage } from '@inertiajs/vue3';
-import { Users, ScanLine, CalendarDays } from 'lucide-vue-next';
-import { Button } from '@/Components/ui/button';
+import { computed } from "vue";
+import { Head, Link, usePage } from "@inertiajs/vue3";
+import { Users, ScanLine, CalendarDays } from "lucide-vue-next";
+import { Button } from "@/Components/ui/button";
 
 defineProps({
     canLogin: {
@@ -15,7 +15,9 @@ defineProps({
 
 const page = usePage();
 
-const clinic = computed(() => page.props.clinic ?? { name: 'Dental Clinic', address: '' });
+const clinic = computed(
+    () => page.props.clinic ?? { name: "Dental Clinic", address: "" },
+);
 </script>
 
 <template>
@@ -25,8 +27,14 @@ const clinic = computed(() => page.props.clinic ?? { name: 'Dental Clinic', addr
         <div class="mx-auto max-w-6xl px-4 sm:px-6">
             <header class="flex items-center justify-between py-5">
                 <div class="flex items-center gap-2.5">
-                    <img src="/images/jdc-rectangle.png" alt="Jerrmond Dental Clinic" class="h-12 w-auto" />
-                    <span class="text-lg font-semibold text-gray-900">{{ clinic.name }}</span>
+                    <img
+                        src="/images/jdc-square.png"
+                        alt="Jerrmond Dental Clinic"
+                        class="h-12 w-auto"
+                    />
+                    <span class="text-lg font-semibold text-gray-900">{{
+                        clinic.name
+                    }}</span>
                 </div>
 
                 <nav class="flex items-center gap-3">
@@ -45,7 +53,9 @@ const clinic = computed(() => page.props.clinic ?? { name: 'Dental Clinic', addr
                         </Link>
 
                         <Link v-if="canRegister" :href="route('register')">
-                            <Button size="sm" variant="outline">Register</Button>
+                            <Button size="sm" variant="outline"
+                                >Register</Button
+                            >
                         </Link>
                     </template>
                 </nav>
@@ -53,7 +63,7 @@ const clinic = computed(() => page.props.clinic ?? { name: 'Dental Clinic', addr
 
             <section class="relative py-16 text-center sm:py-24">
                 <img
-                    src="/images/jdc-rectangle.png"
+                    src="/images/jdc-square.png"
                     alt=""
                     class="pointer-events-none absolute left-1/2 top-1/2 h-64 w-64 -translate-x-1/2 -translate-y-1/2 object-contain opacity-5"
                 />
@@ -65,23 +75,31 @@ const clinic = computed(() => page.props.clinic ?? { name: 'Dental Clinic', addr
                         Dental Clinic Patient Record System
                     </span>
 
-                    <h1 class="mt-6 text-3xl font-semibold tracking-tight text-gray-900 sm:text-5xl">
+                    <h1
+                        class="mt-6 text-3xl font-semibold tracking-tight text-gray-900 sm:text-5xl"
+                    >
                         Your clinic's records, all in one place.
                     </h1>
 
-                    <p class="mx-auto mt-4 max-w-2xl text-base text-gray-600 sm:text-lg">
-                        Patients, medical histories, dental charts, treatments, consents, and
-                        appointments — digitized for your tablets.
+                    <p
+                        class="mx-auto mt-4 max-w-2xl text-base text-gray-600 sm:text-lg"
+                    >
+                        Patients, medical histories, dental charts, treatments,
+                        consents, and appointments — digitized for your tablets.
                     </p>
 
-                    <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
+                    <div
+                        class="mt-8 flex flex-wrap items-center justify-center gap-3"
+                    >
                         <template v-if="$page.props.auth.user">
                             <Link :href="route('dashboard')">
                                 <Button size="md">Go to dashboard</Button>
                             </Link>
 
                             <Link :href="route('wizard.index')">
-                                <Button size="md" variant="outline">New patient intake</Button>
+                                <Button size="md" variant="outline"
+                                    >New patient intake</Button
+                                >
                             </Link>
                         </template>
 
@@ -91,7 +109,9 @@ const clinic = computed(() => page.props.clinic ?? { name: 'Dental Clinic', addr
                             </Link>
 
                             <Link v-if="canRegister" :href="route('register')">
-                                <Button size="md" variant="outline">Create an account</Button>
+                                <Button size="md" variant="outline"
+                                    >Create an account</Button
+                                >
                             </Link>
                         </template>
                     </div>
@@ -99,42 +119,68 @@ const clinic = computed(() => page.props.clinic ?? { name: 'Dental Clinic', addr
             </section>
 
             <section class="grid grid-cols-1 gap-4 pb-16 sm:grid-cols-3">
-                <div class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-                    <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-50 text-brand-500">
+                <div
+                    class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm"
+                >
+                    <div
+                        class="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-50 text-brand-500"
+                    >
                         <Users class="h-6 w-6" />
                     </div>
-                    <h2 class="mt-4 text-base font-semibold text-gray-800">Patients &amp; histories</h2>
+                    <h2 class="mt-4 text-base font-semibold text-gray-800">
+                        Patients &amp; histories
+                    </h2>
                     <p class="mt-1.5 text-sm text-gray-600">
-                        Register patients and capture full PDA medical histories at intake.
+                        Register patients and capture full PDA medical histories
+                        at intake.
                     </p>
                 </div>
 
-                <div class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-                    <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-50 text-brand-500">
+                <div
+                    class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm"
+                >
+                    <div
+                        class="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-50 text-brand-500"
+                    >
                         <ScanLine class="h-6 w-6" />
                     </div>
-                    <h2 class="mt-4 text-base font-semibold text-gray-800">Dental chart</h2>
+                    <h2 class="mt-4 text-base font-semibold text-gray-800">
+                        Dental chart
+                    </h2>
                     <p class="mt-1.5 text-sm text-gray-600">
-                        Tap-to-mark twin-arch chart with the PDA condition and restoration legend.
+                        Tap-to-mark twin-arch chart with the PDA condition and
+                        restoration legend.
                     </p>
                 </div>
 
-                <div class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-                    <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-50 text-brand-500">
+                <div
+                    class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm"
+                >
+                    <div
+                        class="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-50 text-brand-500"
+                    >
                         <CalendarDays class="h-6 w-6" />
                     </div>
-                    <h2 class="mt-4 text-base font-semibold text-gray-800">Appointments</h2>
+                    <h2 class="mt-4 text-base font-semibold text-gray-800">
+                        Appointments
+                    </h2>
                     <p class="mt-1.5 text-sm text-gray-600">
-                        Day-view scheduling with confirm, reschedule, cancel, and attendance.
+                        Day-view scheduling with confirm, reschedule, cancel,
+                        and attendance.
                     </p>
                 </div>
             </section>
 
             <footer class="border-t border-gray-200 py-8 text-center">
                 <p class="text-sm text-gray-500">
-                    {{ clinic.name }}<template v-if="clinic.address"> · {{ clinic.address }}</template>
+                    {{ clinic.name
+                    }}<template v-if="clinic.address">
+                        · {{ clinic.address }}</template
+                    >
                 </p>
-                <p class="mt-1 text-xs text-gray-400">© {{ new Date().getFullYear() }}</p>
+                <p class="mt-1 text-xs text-gray-400">
+                    © {{ new Date().getFullYear() }}
+                </p>
             </footer>
         </div>
     </div>

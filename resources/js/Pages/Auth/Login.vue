@@ -1,9 +1,9 @@
 <script setup>
-import { scrollToFirstError } from '@/lib/scroll'
-import { Button } from '@/Components/ui/button'
-import { CheckboxField, TextInput } from '@/Components/Fields'
-import GuestLayout from '@/Layouts/GuestLayout.vue'
-import { Head, Link, useForm } from '@inertiajs/vue3'
+import { scrollToFirstError } from "@/lib/scroll";
+import { Button } from "@/Components/ui/button";
+import { CheckboxField, TextInput } from "@/Components/Fields";
+import GuestLayout from "@/Layouts/GuestLayout.vue";
+import { Head, Link, useForm } from "@inertiajs/vue3";
 
 defineProps({
     canResetPassword: {
@@ -12,24 +12,24 @@ defineProps({
     status: {
         type: String,
     },
-})
+});
 
 const form = useForm({
-    username: '',
-    password: '',
+    username: "",
+    password: "",
     remember: false,
-})
+});
 
 const submit = () => {
-    form.post(route('login'), {
-        onFinish: () => form.reset('password'),
+    form.post(route("login"), {
+        onFinish: () => form.reset("password"),
         onError: () => scrollToFirstError(),
-    })
-}
+    });
+};
 </script>
 
 <template>
-    <GuestLayout>
+    <GuestLayout class="overflow-y-hidden">
         <Head title="Log in" />
 
         <div
@@ -79,8 +79,12 @@ const submit = () => {
             </div>
 
             <div class="mt-6">
-                <Button type="submit" class="w-full" :disabled="form.processing">
-                    {{ form.processing ? 'Signing in…' : 'Log in' }}
+                <Button
+                    type="submit"
+                    class="w-full"
+                    :disabled="form.processing"
+                >
+                    {{ form.processing ? "Signing in…" : "Log in" }}
                 </Button>
             </div>
         </form>

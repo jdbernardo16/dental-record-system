@@ -1,11 +1,11 @@
 <script setup>
-import { computed } from 'vue';
-import { Link, usePage } from '@inertiajs/vue3';
-import { ArrowLeft } from 'lucide-vue-next';
+import { computed } from "vue";
+import { Link, usePage } from "@inertiajs/vue3";
+import { ArrowLeft } from "lucide-vue-next";
 
 const page = usePage();
 
-const clinicName = computed(() => page.props.clinic?.name || 'Dental Clinic');
+const clinicName = computed(() => page.props.clinic?.name || "Dental Clinic");
 </script>
 
 <template>
@@ -19,18 +19,26 @@ const clinicName = computed(() => page.props.clinic?.name || 'Dental Clinic');
             class="pointer-events-none absolute -right-24 -bottom-32 h-112 w-112 rounded-full bg-brand-500/20 blur-3xl"
         ></div>
 
-        <div class="relative">
+        <div class="relative max-w-lg w-full">
             <div class="text-center">
                 <div class="inline-block rounded-2xl bg-white p-3 shadow-lg">
-                    <img src="/images/jdc-rectangle.png" alt="Jerrmond Dental Clinic" class="h-10 w-auto" />
+                    <img
+                        src="/images/jdc-square.png"
+                        alt="Jerrmond Dental Clinic"
+                        class="h-10 w-auto"
+                    />
                 </div>
-                <p class="mt-3 text-xl font-semibold text-white">{{ clinicName }}</p>
+                <p class="mt-3 text-xl font-semibold text-white">
+                    {{ clinicName }}
+                </p>
                 <p class="mt-1 text-sm text-brand-100">
                     Patient records · Dental charts · Appointments
                 </p>
             </div>
 
-            <div class="mt-8 w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl sm:p-8">
+            <div
+                class="mt-8 w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl sm:p-8"
+            >
                 <slot />
             </div>
 
