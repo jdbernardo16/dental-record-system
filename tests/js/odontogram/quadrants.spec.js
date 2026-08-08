@@ -48,6 +48,15 @@ describe('odontogram quadrants', () => {
         expect(convertFDIToNotation('teeth-24', 'FDI')).toBe('24')
     })
 
+    it('handles inputs without the teeth- prefix', () => {
+        expect(convertFDIToNotation('11', 'Universal')).toBe('8')
+        expect(convertFDIToNotation('48', 'Universal')).toBe('32')
+    })
+
+    it('falls back to the raw number for unmapped codes', () => {
+        expect(convertFDIToNotation('teeth-55', 'Universal')).toBe('55')
+    })
+
     it('keeps the arch viewBox dimensions', () => {
         expect(VIEW_W).toBe(409)
         expect(VIEW_H).toBe(694)
