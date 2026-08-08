@@ -5,56 +5,56 @@
 @theme {
   --font-sans: 'Figtree Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 
-  --color-brand-50:  oklch(0.985 0.01 210);
-  --color-brand-100: oklch(0.970 0.02 210);
-  --color-brand-200: oklch(0.940 0.04 210);
-  --color-brand-300: oklch(0.890 0.07 210);
-  --color-brand-400: oklch(0.780 0.10 210);
-  --color-brand-500: oklch(0.680 0.14 210);
-  --color-brand-600: oklch(0.600 0.12 210);
-  --color-brand-700: oklch(0.520 0.10 210);
-  --color-brand-800: oklch(0.420 0.12 250);
-  --color-brand-900: oklch(0.350 0.10 250);
+  --color-brand-50:  oklch(0.984 0.008 225.1);
+  --color-brand-100: oklch(0.970 0.016 221.1);
+  --color-brand-200: oklch(0.937 0.036 216.0);
+  --color-brand-300: oklch(0.880 0.067 217.7);
+  --color-brand-400: oklch(0.790 0.109 219.1);
+  --color-brand-500: oklch(0.706 0.144 232.4);
+  --color-brand-600: oklch(0.612 0.125 233.0);
+  --color-brand-700: oklch(0.532 0.107 231.9);
+  --color-brand-800: oklch(0.426 0.144 259.8);
+  --color-brand-900: oklch(0.366 0.121 259.8);
 
-  --color-secondary-50:  oklch(0.950 0.03 260);
-  --color-secondary-100: oklch(0.920 0.05 260);
-  --color-secondary-200: oklch(0.850 0.08 260);
-  --color-secondary-300: oklch(0.780 0.11 260);
-  --color-secondary-400: oklch(0.700 0.14 260);
-  --color-secondary-500: oklch(0.420 0.12 250);
-  --color-secondary-600: oklch(0.350 0.10 250);
-  --color-secondary-700: oklch(0.280 0.08 250);
-  --color-secondary-800: oklch(0.200 0.06 250);
-  --color-secondary-900: oklch(0.120 0.04 250);
+  --color-secondary-50:  oklch(0.959 0.019 260.2);
+  --color-secondary-100: oklch(0.917 0.040 263.7);
+  --color-secondary-200: oklch(0.829 0.085 261.1);
+  --color-secondary-300: oklch(0.742 0.133 260.7);
+  --color-secondary-400: oklch(0.662 0.180 260.3);
+  --color-secondary-500: oklch(0.426 0.144 259.8);
+  --color-secondary-600: oklch(0.366 0.121 259.8);
+  --color-secondary-700: oklch(0.306 0.095 259.4);
+  --color-secondary-800: oklch(0.240 0.069 259.2);
+  --color-secondary-900: oklch(0.168 0.037 257.8);
 
   /* JDC Neutral Palette — overrides Tailwind default gray */
-  --color-gray-50:  oklch(0.985 0.002 250);
-  --color-gray-100: oklch(0.970 0.003 250);
-  --color-gray-200: oklch(0.930 0.005 250);
-  --color-gray-300: oklch(0.880 0.008 250);
-  --color-gray-400: oklch(0.750 0.015 250);
-  --color-gray-500: oklch(0.620 0.020 250);
-  --color-gray-600: oklch(0.500 0.025 250);
-  --color-gray-700: oklch(0.400 0.030 250);
-  --color-gray-800: oklch(0.300 0.035 250);
-  --color-gray-900: oklch(0.200 0.040 250);
+  --color-gray-50:  oklch(0.984 0.003 247.858);
+  --color-gray-100: oklch(0.968 0.007 247.896);
+  --color-gray-200: oklch(0.929 0.013 255.508);
+  --color-gray-300: oklch(0.869 0.022 252.894);
+  --color-gray-400: oklch(0.704 0.040 256.788);
+  --color-gray-500: oklch(0.554 0.046 257.417);
+  --color-gray-600: oklch(0.446 0.043 257.281);
+  --color-gray-700: oklch(0.372 0.044 257.287);
+  --color-gray-800: oklch(0.279 0.041 260.031);
+  --color-gray-900: oklch(0.208 0.042 265.755);
 
   /* Semantic Colors — JDC Design System */
-  --color-status-success:       oklch(0.550 0.18 145);
-  --color-status-success-light: oklch(0.970 0.03 145);
-  --color-status-success-dark:  oklch(0.450 0.15 145);
+  --color-status-success:       oklch(0.627 0.170 149.2);
+  --color-status-success-light: oklch(0.982 0.018 155.8);
+  --color-status-success-dark:  oklch(0.527 0.137 150.1);
 
-  --color-status-warning:       oklch(0.750 0.16 85);
-  --color-status-warning-light: oklch(0.990 0.02 85);
-  --color-status-warning-dark:  oklch(0.550 0.14 85);
+  --color-status-warning:       oklch(0.769 0.165 70.1);
+  --color-status-warning-light: oklch(0.987 0.021 95.3);
+  --color-status-warning-dark:  oklch(0.555 0.146 49.0);
 
-  --color-status-error:         oklch(0.550 0.22 25);
-  --color-status-error-light:   oklch(0.980 0.02 25);
-  --color-status-error-dark:    oklch(0.450 0.18 25);
+  --color-status-error:         oklch(0.577 0.215 27.3);
+  --color-status-error-light:   oklch(0.971 0.013 17.4);
+  --color-status-error-dark:    oklch(0.505 0.190 27.5);
 
-  --color-status-info:          oklch(0.550 0.20 260);
-  --color-status-info-light:    oklch(0.970 0.03 260);
-  --color-status-info-dark:     oklch(0.450 0.18 260);
+  --color-status-info:          oklch(0.546 0.215 262.9);
+  --color-status-info-light:    oklch(0.970 0.014 254.6);
+  --color-status-info-dark:     oklch(0.488 0.217 264.4);
 
   /* Legacy aliases for backward compatibility */
   --color-status-pending:   var(--color-status-warning);
