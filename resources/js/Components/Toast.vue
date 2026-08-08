@@ -14,10 +14,10 @@ const icons = {
 }
 
 const iconClasses = {
-    success: 'text-status-completed',
-    error: 'text-status-cancelled',
-    warning: 'text-status-no-show',
-    info: 'text-status-confirmed',
+    success: 'text-status-success',
+    error: 'text-status-error',
+    warning: 'text-status-warning',
+    info: 'text-status-info',
 }
 </script>
 
