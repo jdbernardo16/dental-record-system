@@ -22,13 +22,13 @@ describe('buttonVariants size map', () => {
         expect(buttonVariants({ size: 'icon' })).toContain('size-9')
     })
 
-    it('does not change variant colors', () => {
-        expect(buttonVariants({ variant: 'default' })).toContain('bg-primary')
-        expect(buttonVariants({ variant: 'outline' })).toContain('border bg-background')
-        expect(buttonVariants({ variant: 'destructive' })).toContain('bg-destructive')
-        expect(buttonVariants({ variant: 'ghost' })).toContain('hover:bg-accent')
-        expect(buttonVariants({ variant: 'link' })).toContain('text-primary')
-        expect(buttonVariants({ variant: 'secondary' })).toContain('bg-secondary')
+    it('maps variants to JDC token colors', () => {
+        expect(buttonVariants({ variant: 'default' })).toContain('bg-brand-500')
+        expect(buttonVariants({ variant: 'outline' })).toContain('border border-gray-300')
+        expect(buttonVariants({ variant: 'destructive' })).toContain('bg-status-error')
+        expect(buttonVariants({ variant: 'ghost' })).toContain('hover:bg-gray-100')
+        expect(buttonVariants({ variant: 'link' })).toContain('text-brand-500')
+        expect(buttonVariants({ variant: 'secondary' })).toContain('bg-secondary-500')
     })
 })
 
@@ -41,7 +41,7 @@ describe('Button', () => {
 
         const button = wrapper.get('button')
         expect(button.text()).toBe('Save')
-        for (const cls of ['px-5', 'py-3', 'text-sm', 'border', 'bg-background']) {
+        for (const cls of ['px-5', 'py-3', 'text-sm', 'border', 'bg-white']) {
             expect(button.classes()).toContain(cls)
         }
     })
@@ -50,7 +50,7 @@ describe('Button', () => {
         const wrapper = mount(Button, { slots: { default: 'Go' } })
 
         const button = wrapper.get('button')
-        expect(button.classes()).toContain('bg-primary')
+        expect(button.classes()).toContain('bg-brand-500')
         expect(button.classes()).toContain('min-h-11')
     })
 })
