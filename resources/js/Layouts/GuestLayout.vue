@@ -2,7 +2,6 @@
 import { computed } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import { ArrowLeft } from 'lucide-vue-next';
-import BrandMark from '@/Components/BrandMark.vue';
 
 const page = usePage();
 
@@ -11,7 +10,7 @@ const clinicName = computed(() => page.props.clinic?.name || 'Dental Clinic');
 
 <template>
     <div
-        class="relative flex min-h-screen flex-col items-center justify-center overflow-x-clip bg-gradient-to-br from-brand-700 via-brand-800 to-brand-900 px-4 py-10"
+        class="relative flex min-h-screen flex-col items-center justify-center overflow-x-clip bg-gradient-to-br from-brand-900 via-secondary-900 to-secondary-900 px-4 py-10"
     >
         <div
             class="pointer-events-none absolute -top-24 -left-24 h-96 w-96 rounded-full bg-white/5 blur-3xl"
@@ -22,7 +21,7 @@ const clinicName = computed(() => page.props.clinic?.name || 'Dental Clinic');
 
         <div class="relative">
             <div class="text-center">
-                <BrandMark class="mx-auto h-14 w-14 text-white" />
+                <img src="/images/jdc-rectangle.png" alt="Jerrmond Dental Clinic" class="h-10 w-auto" />
                 <p class="mt-3 text-xl font-semibold text-white">{{ clinicName }}</p>
                 <p class="mt-1 text-sm text-brand-100">
                     Patient records · Dental charts · Appointments
