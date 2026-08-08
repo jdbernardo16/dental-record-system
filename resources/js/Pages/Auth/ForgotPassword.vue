@@ -32,7 +32,7 @@ const submit = () => {
             you to choose a new one.
         </div>
 
-        <div v-if="status" class="mb-4 text-sm font-medium text-green-600">
+        <div v-if="status" class="mb-4 text-sm font-medium text-status-success">
             {{ status }}
         </div>
 
