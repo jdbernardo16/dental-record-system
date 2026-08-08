@@ -10,9 +10,9 @@ describe('odontogram quadrants', () => {
 
     it('defines mirror transforms for each quadrant', () => {
         expect(quadrants[0].transform).toBe('')
-        expect(quadrants[1].transform).toContain('scale(-1, 1)')
-        expect(quadrants[2].transform).toContain('scale(1, -1)')
-        expect(quadrants[3].transform).toContain('scale(-1, -1)')
+        expect(quadrants[1].transform).toBe('scale(-1, 1) translate(-409, 0)')
+        expect(quadrants[2].transform).toBe('scale(1, -1) translate(0, -694)')
+        expect(quadrants[3].transform).toBe('scale(-1, -1) translate(-409, -694)')
     })
 
     it('builds correct FDI ids for all 32 teeth', () => {
