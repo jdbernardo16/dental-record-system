@@ -5,6 +5,17 @@ import tailwindcss from '@tailwindcss/vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
+    test: {
+        environment: 'happy-dom',
+        include: ['tests/js/**/*.spec.js'],
+        // The '@' alias is injected by laravel-vite-plugin (same config used
+        // by vitest), so imports like '@/lib/utils' resolve in tests too.
+        resolve: {
+            alias: {
+                '@': '/resources/js',
+            },
+        },
+    },
     plugins: [
         laravel({
             input: 'resources/js/app.js',

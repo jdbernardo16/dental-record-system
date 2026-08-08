@@ -5,9 +5,8 @@ import { Trash2 } from 'lucide-vue-next'
 import { route } from '../../../../vendor/tightenco/ziggy'
 import AppLayout from '@/Layouts/AppLayout.vue'
 import Badge from '@/Components/Badge.vue'
+import { DateField, RadioPills, TextInput } from '@/Components/Fields'
 import { Button } from '@/Components/ui/button'
-import FormField from '@/Components/FormField.vue'
-import { Input } from '@/Components/ui/input'
 import { useToastStore } from '@/Stores/toast'
 
 defineOptions({ layout: AppLayout })
@@ -85,181 +84,95 @@ const confirmDelete = () => {
 
             <section class="space-y-5">
                 <h2 class="text-sm font-semibold text-gray-800">Identity</h2>
-                <FormField id="first_name" label="First name" required :error="form.errors.first_name">
-                    <template #default="{ id }">
-                        <Input
-                            :id="id"
-                            v-model="form.first_name"
-                            required
-                            autofocus
-                            :aria-invalid="form.errors.first_name ? 'true' : 'false'"
-                        />
-                    </template>
-                </FormField>
-                <FormField id="middle_name" label="Middle name" :error="form.errors.middle_name">
-                    <template #default="{ id }">
-                        <Input
-                            :id="id"
-                            v-model="form.middle_name"
-                            placeholder="Optional"
-                            :aria-invalid="form.errors.middle_name ? 'true' : 'false'"
-                        />
-                    </template>
-                </FormField>
-                <FormField id="last_name" label="Last name" required :error="form.errors.last_name">
-                    <template #default="{ id }">
-                        <Input
-                            :id="id"
-                            v-model="form.last_name"
-                            required
-                            :aria-invalid="form.errors.last_name ? 'true' : 'false'"
-                        />
-                    </template>
-                </FormField>
-                <FormField id="sex" label="Sex" required :error="form.errors.sex">
-                    <template #default>
-                        <div class="inline-flex flex-wrap gap-1 rounded-full bg-gray-100 p-1" role="radiogroup" aria-label="Sex">
-                            <button
-                                v-for="option in sexOptions"
-                                :key="option.value"
-                                type="button"
-                                role="radio"
-                                :aria-checked="form.sex === option.value ? 'true' : 'false'"
-                                :class="[
-                                    'min-h-11 rounded-full px-4 text-sm font-medium transition',
-                                    form.sex === option.value ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500',
-                                ]"
-                                @click="form.sex = option.value"
-                            >
-                                {{ option.label }}
-                            </button>
-                        </div>
-                    </template>
-                </FormField>
-                <FormField id="birth_date" label="Birth date" required :error="form.errors.birth_date">
-                    <template #default="{ id }">
-                        <Input
-                            :id="id"
-                            v-model="form.birth_date"
-                            type="date"
-                            required
-                            :aria-invalid="form.errors.birth_date ? 'true' : 'false'"
-                        />
-                    </template>
-                </FormField>
-                <FormField id="civil_status" label="Civil status" required :error="form.errors.civil_status">
-                    <template #default>
-                        <div class="inline-flex flex-wrap gap-1 rounded-full bg-gray-100 p-1" role="radiogroup" aria-label="Civil status">
-                            <button
-                                v-for="option in civilStatusOptions"
-                                :key="option.value"
-                                type="button"
-                                role="radio"
-                                :aria-checked="form.civil_status === option.value ? 'true' : 'false'"
-                                :class="[
-                                    'min-h-11 rounded-full px-4 text-sm font-medium transition',
-                                    form.civil_status === option.value ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500',
-                                ]"
-                                @click="form.civil_status = option.value"
-                            >
-                                {{ option.label }}
-                            </button>
-                        </div>
-                    </template>
-                </FormField>
-                <FormField id="nationality" label="Nationality" required :error="form.errors.nationality">
-                    <template #default="{ id }">
-                        <Input
-                            :id="id"
-                            v-model="form.nationality"
-                            required
-                            :aria-invalid="form.errors.nationality ? 'true' : 'false'"
-                        />
-                    </template>
-                </FormField>
+                <TextInput
+                    v-model="form.first_name"
+                    label="First name"
+                    required
+                    :error="form.errors.first_name"
+                    autofocus
+                />
+                <TextInput
+                    v-model="form.middle_name"
+                    label="Middle name"
+                    :error="form.errors.middle_name"
+                    placeholder="Optional"
+                />
+                <TextInput
+                    v-model="form.last_name"
+                    label="Last name"
+                    required
+                    :error="form.errors.last_name"
+                />
+                <RadioPills
+                    v-model="form.sex"
+                    label="Sex"
+                    required
+                    :error="form.errors.sex"
+                    :options="sexOptions"
+                />
+                <DateField v-model="form.birth_date" label="Birth date" required :error="form.errors.birth_date" />
+                <RadioPills
+                    v-model="form.civil_status"
+                    label="Civil status"
+                    required
+                    :error="form.errors.civil_status"
+                    :options="civilStatusOptions"
+                />
+                <TextInput
+                    v-model="form.nationality"
+                    label="Nationality"
+                    required
+                    :error="form.errors.nationality"
+                />
             </section>
 
             <hr class="border-gray-100" />
 
             <section class="space-y-5">
                 <h2 class="text-sm font-semibold text-gray-800">Contact</h2>
-                <FormField id="occupation" label="Occupation" :error="form.errors.occupation">
-                    <template #default="{ id }">
-                        <Input
-                            :id="id"
-                            v-model="form.occupation"
-                            placeholder="Optional"
-                            :aria-invalid="form.errors.occupation ? 'true' : 'false'"
-                        />
-                    </template>
-                </FormField>
-                <FormField id="contact_number" label="Contact number" required :error="form.errors.contact_number">
-                    <template #default="{ id }">
-                        <Input
-                            :id="id"
-                            v-model="form.contact_number"
-                            required
-                            :aria-invalid="form.errors.contact_number ? 'true' : 'false'"
-                        />
-                    </template>
-                </FormField>
-                <FormField id="address" label="Address" required :error="form.errors.address">
-                    <template #default="{ id }">
-                        <Input
-                            :id="id"
-                            v-model="form.address"
-                            required
-                            :aria-invalid="form.errors.address ? 'true' : 'false'"
-                        />
-                    </template>
-                </FormField>
-                <FormField id="email_address" label="Email address" :error="form.errors.email_address">
-                    <template #default="{ id }">
-                        <Input
-                            :id="id"
-                            v-model="form.email_address"
-                            type="email"
-                            placeholder="Optional"
-                            :aria-invalid="form.errors.email_address ? 'true' : 'false'"
-                        />
-                    </template>
-                </FormField>
+                <TextInput
+                    v-model="form.occupation"
+                    label="Occupation"
+                    :error="form.errors.occupation"
+                    placeholder="Optional"
+                />
+                <TextInput
+                    v-model="form.contact_number"
+                    label="Contact number"
+                    required
+                    :error="form.errors.contact_number"
+                />
+                <TextInput
+                    v-model="form.address"
+                    label="Address"
+                    required
+                    :error="form.errors.address"
+                />
+                <TextInput
+                    v-model="form.email_address"
+                    label="Email address"
+                    type="email"
+                    :error="form.errors.email_address"
+                    placeholder="Optional"
+                />
             </section>
 
             <hr class="border-gray-100" />
 
             <section class="space-y-5">
                 <h2 class="text-sm font-semibold text-gray-800">Emergency contact</h2>
-                <FormField
-                    id="emergency_contact_person"
+                <TextInput
+                    v-model="form.emergency_contact_person"
                     label="Contact person"
                     required
                     :error="form.errors.emergency_contact_person"
-                >
-                    <template #default="{ id }">
-                        <Input
-                            :id="id"
-                            v-model="form.emergency_contact_person"
-                            required
-                            :aria-invalid="form.errors.emergency_contact_person ? 'true' : 'false'"
-                        />
-                    </template>
-                </FormField>
-                <FormField
-                    id="emergency_contact_number"
+                />
+                <TextInput
+                    v-model="form.emergency_contact_number"
                     label="Contact number"
                     required
                     :error="form.errors.emergency_contact_number"
-                >
-                    <template #default="{ id }">
-                        <Input
-                            :id="id"
-                            v-model="form.emergency_contact_number"
-                            required
-                            :aria-invalid="form.errors.emergency_contact_number ? 'true' : 'false'"
-                        />
-                    </template>
-                </FormField>
+                />
             </section>
 
             <hr class="border-gray-100" />
@@ -267,96 +180,55 @@ const confirmDelete = () => {
             <section class="space-y-5">
                 <h2 class="text-sm font-semibold text-gray-800">PDA additional details</h2>
                 <p class="text-xs text-gray-500">Optional fields from the PDA patient information record.</p>
-                <FormField id="religion" label="Religion" :error="form.errors.religion">
-                    <template #default="{ id }">
-                        <Input
-                            :id="id"
-                            v-model="form.religion"
-                            placeholder="Optional"
-                            :aria-invalid="form.errors.religion ? 'true' : 'false'"
-                        />
-                    </template>
-                </FormField>
-                <FormField id="nickname" label="Nickname" :error="form.errors.nickname">
-                    <template #default="{ id }">
-                        <Input
-                            :id="id"
-                            v-model="form.nickname"
-                            placeholder="Optional"
-                            :aria-invalid="form.errors.nickname ? 'true' : 'false'"
-                        />
-                    </template>
-                </FormField>
-                <FormField id="home_phone" label="Home phone" :error="form.errors.home_phone">
-                    <template #default="{ id }">
-                        <Input
-                            :id="id"
-                            v-model="form.home_phone"
-                            placeholder="02 8123 4567"
-                            :aria-invalid="form.errors.home_phone ? 'true' : 'false'"
-                        />
-                    </template>
-                </FormField>
-                <FormField id="office_phone" label="Office phone" :error="form.errors.office_phone">
-                    <template #default="{ id }">
-                        <Input
-                            :id="id"
-                            v-model="form.office_phone"
-                            placeholder="02 8765 4321"
-                            :aria-invalid="form.errors.office_phone ? 'true' : 'false'"
-                        />
-                    </template>
-                </FormField>
-                <FormField id="fax_number" label="Fax number" :error="form.errors.fax_number">
-                    <template #default="{ id }">
-                        <Input
-                            :id="id"
-                            v-model="form.fax_number"
-                            placeholder="Optional"
-                            :aria-invalid="form.errors.fax_number ? 'true' : 'false'"
-                        />
-                    </template>
-                </FormField>
-                <FormField id="dental_insurance" label="Dental insurance" :error="form.errors.dental_insurance">
-                    <template #default="{ id }">
-                        <Input
-                            :id="id"
-                            v-model="form.dental_insurance"
-                            placeholder="e.g. PhilHealth"
-                            :aria-invalid="form.errors.dental_insurance ? 'true' : 'false'"
-                        />
-                    </template>
-                </FormField>
-                <FormField id="effective_date" label="Effective date" :error="form.errors.effective_date">
-                    <template #default="{ id }">
-                        <Input
-                            :id="id"
-                            v-model="form.effective_date"
-                            type="date"
-                            :aria-invalid="form.errors.effective_date ? 'true' : 'false'"
-                        />
-                    </template>
-                </FormField>
-                <FormField id="guardian_name" label="Guardian name" :error="form.errors.guardian_name">
-                    <template #default="{ id }">
-                        <Input
-                            :id="id"
-                            v-model="form.guardian_name"
-                            placeholder="For minors"
-                            :aria-invalid="form.errors.guardian_name ? 'true' : 'false'"
-                        />
-                    </template>
-                </FormField>
-                <FormField id="guardian_occupation" label="Guardian occupation" :error="form.errors.guardian_occupation">
-                    <template #default="{ id }">
-                        <Input
-                            :id="id"
-                            v-model="form.guardian_occupation"
-                            placeholder="For minors"
-                            :aria-invalid="form.errors.guardian_occupation ? 'true' : 'false'"
-                        />
-                    </template>
-                </FormField>
+                <TextInput
+                    v-model="form.religion"
+                    label="Religion"
+                    :error="form.errors.religion"
+                    placeholder="Optional"
+                />
+                <TextInput
+                    v-model="form.nickname"
+                    label="Nickname"
+                    :error="form.errors.nickname"
+                    placeholder="Optional"
+                />
+                <TextInput
+                    v-model="form.home_phone"
+                    label="Home phone"
+                    :error="form.errors.home_phone"
+                    placeholder="02 8123 4567"
+                />
+                <TextInput
+                    v-model="form.office_phone"
+                    label="Office phone"
+                    :error="form.errors.office_phone"
+                    placeholder="02 8765 4321"
+                />
+                <TextInput
+                    v-model="form.fax_number"
+                    label="Fax number"
+                    :error="form.errors.fax_number"
+                    placeholder="Optional"
+                />
+                <TextInput
+                    v-model="form.dental_insurance"
+                    label="Dental insurance"
+                    :error="form.errors.dental_insurance"
+                    placeholder="e.g. PhilHealth"
+                />
+                <DateField v-model="form.effective_date" label="Effective date" :error="form.errors.effective_date" />
+                <TextInput
+                    v-model="form.guardian_name"
+                    label="Guardian name"
+                    :error="form.errors.guardian_name"
+                    placeholder="For minors"
+                />
+                <TextInput
+                    v-model="form.guardian_occupation"
+                    label="Guardian occupation"
+                    :error="form.errors.guardian_occupation"
+                    placeholder="For minors"
+                />
             </section>
 
             <div class="flex items-center justify-end gap-3 pt-2">

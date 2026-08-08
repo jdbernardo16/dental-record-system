@@ -1,7 +1,6 @@
 <script setup>
 import { Button } from '@/Components/ui/button'
-import FormField from '@/Components/FormField.vue'
-import { Input } from '@/Components/ui/input'
+import { TextInput } from '@/Components/Fields'
 import Modal from '@/Components/Modal.vue'
 import { useForm } from '@inertiajs/vue3'
 import { nextTick, ref } from 'vue'
@@ -68,21 +67,16 @@ const closeModal = () => {
                     confirm you would like to permanently delete your account.
                 </p>
 
-                <div class="mt-6">
-                    <FormField id="password" label="Password" :error="form.errors.password">
-                        <template #default="{ id }">
-                            <Input
-                                :id="id"
-                                ref="passwordInput"
-                                v-model="form.password"
-                                type="password"
-                                class="w-3/4"
-                                placeholder="Password"
-                                :aria-invalid="form.errors.password ? 'true' : 'false'"
-                                @keyup.enter="deleteUser"
-                            />
-                        </template>
-                    </FormField>
+                <div class="mt-6 w-3/4">
+                    <TextInput
+                        ref="passwordInput"
+                        v-model="form.password"
+                        label="Password"
+                        type="password"
+                        placeholder="Password"
+                        :error="form.errors.password"
+                        @keyup.enter="deleteUser"
+                    />
                 </div>
 
                 <div class="mt-6 flex justify-end">

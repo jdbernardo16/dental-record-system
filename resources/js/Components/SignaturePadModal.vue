@@ -2,7 +2,7 @@
 import { nextTick, ref, watch } from 'vue'
 import { X } from 'lucide-vue-next'
 import { VueSignaturePad } from 'vue-signature-pad'
-import Button from '@/Components/Button.vue'
+import { Button } from '@/Components/ui/button'
 import Modal from '@/Components/Modal.vue'
 import { normalizeSvg } from '@/lib/signatureSvg'
 

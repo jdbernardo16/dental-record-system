@@ -5,6 +5,8 @@ import { CalendarCheck2, Download, Printer, TrendingUp, Users, Stethoscope } fro
 import { route } from '../../../../vendor/tightenco/ziggy'
 import VueApexCharts from 'vue3-apexcharts'
 import AppLayout from '@/Layouts/AppLayout.vue'
+import { Button } from '@/Components/ui/button'
+import { DateField } from '@/Components/Fields'
 
 const apexchart = VueApexCharts
 
@@ -176,37 +178,19 @@ const workloadOptions = computed(() =>
             </div>
 
             <div class="flex flex-wrap items-end gap-3 print:hidden">
-                <label class="flex flex-col gap-1 text-xs font-medium text-gray-500">
-                    From
-                    <input
-                        v-model="from"
-                        type="date"
-                        class="h-11 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-800 focus:border-brand-500 focus:ring-brand-500"
-                    />
-                </label>
-                <label class="flex flex-col gap-1 text-xs font-medium text-gray-500">
-                    To
-                    <input
-                        v-model="to"
-                        type="date"
-                        class="h-11 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-800 focus:border-brand-500 focus:ring-brand-500"
-                    />
-                </label>
-                <button
-                    type="button"
-                    class="flex h-11 items-center gap-2 rounded-lg bg-brand-500 px-5 text-sm font-medium text-white transition hover:bg-brand-600"
-                    @click="applyRange"
-                >
+                <div class="w-44">
+                    <DateField v-model="from" label="From" />
+                </div>
+                <div class="w-44">
+                    <DateField v-model="to" label="To" />
+                </div>
+                <Button type="button" @click="applyRange">
                     Apply
-                </button>
-                <button
-                    type="button"
-                    class="flex h-11 items-center gap-2 rounded-lg border border-gray-200 bg-white px-5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
-                    @click="print"
-                >
+                </Button>
+                <Button type="button" variant="outline" @click="print">
                     <Printer class="h-4 w-4" />
                     Print
-                </button>
+                </Button>
             </div>
         </div>
 

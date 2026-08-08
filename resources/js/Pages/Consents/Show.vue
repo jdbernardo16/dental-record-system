@@ -5,7 +5,7 @@ import { Printer } from 'lucide-vue-next'
 import { route } from '../../../../vendor/tightenco/ziggy'
 import AppLayout from '@/Layouts/AppLayout.vue'
 import Badge from '@/Components/Badge.vue'
-import Button from '@/Components/Button.vue'
+import { Button } from '@/Components/ui/button'
 import { useToastStore } from '@/Stores/toast'
 
 defineOptions({ layout: AppLayout })

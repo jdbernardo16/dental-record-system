@@ -1,9 +1,8 @@
 <script setup>
 import { scrollToFirstError } from '@/lib/scroll'
 import { Button } from '@/Components/ui/button'
-import FormField from '@/Components/FormField.vue'
+import { TextInput } from '@/Components/Fields'
 import GuestLayout from '@/Layouts/GuestLayout.vue'
-import { Input } from '@/Components/ui/input'
 import { Head, useForm } from '@inertiajs/vue3'
 
 const form = useForm({
@@ -28,20 +27,16 @@ const submit = () => {
         </div>
 
         <form @submit.prevent="submit">
-            <FormField id="password" label="Password" required :error="form.errors.password">
-                <template #default="{ id }">
-                    <Input
-                        :id="id"
-                        v-model="form.password"
-                        type="password"
-                        class="w-full"
-                        required
-                        autocomplete="current-password"
-                        autofocus
-                        :aria-invalid="form.errors.password ? 'true' : 'false'"
-                    />
-                </template>
-            </FormField>
+            <TextInput
+                v-model="form.password"
+                label="Password"
+                required
+                type="password"
+                :error="form.errors.password"
+                class="w-full"
+                autocomplete="current-password"
+                autofocus
+            />
 
             <div class="mt-6">
                 <Button type="submit" class="w-full" :disabled="form.processing">

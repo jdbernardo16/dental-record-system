@@ -1,10 +1,8 @@
 <script setup>
 import { scrollToFirstError } from '@/lib/scroll'
 import { Button } from '@/Components/ui/button'
-import { Checkbox } from '@/Components/ui/checkbox'
-import FormField from '@/Components/FormField.vue'
+import { CheckboxField, TextInput } from '@/Components/Fields'
 import GuestLayout from '@/Layouts/GuestLayout.vue'
-import { Input } from '@/Components/ui/input'
 import { Head, Link, useForm } from '@inertiajs/vue3'
 
 defineProps({
@@ -46,42 +44,30 @@ const submit = () => {
             <p class="mt-0.5 text-sm text-gray-500">Sign in to your account.</p>
 
             <div class="mt-4">
-                <FormField id="username" label="Username" required :error="form.errors.username">
-                    <template #default="{ id }">
-                        <Input
-                            :id="id"
-                            v-model="form.username"
-                            type="text"
-                            class="w-full"
-                            required
-                            autocomplete="username"
-                            :aria-invalid="form.errors.username ? 'true' : 'false'"
-                        />
-                    </template>
-                </FormField>
+                <TextInput
+                    v-model="form.username"
+                    label="Username"
+                    required
+                    :error="form.errors.username"
+                    class="w-full"
+                    autocomplete="username"
+                />
             </div>
 
             <div class="mt-4">
-                <FormField id="password" label="Password" required :error="form.errors.password">
-                    <template #default="{ id }">
-                        <Input
-                            :id="id"
-                            v-model="form.password"
-                            type="password"
-                            class="w-full"
-                            required
-                            autocomplete="current-password"
-                            :aria-invalid="form.errors.password ? 'true' : 'false'"
-                        />
-                    </template>
-                </FormField>
+                <TextInput
+                    v-model="form.password"
+                    label="Password"
+                    required
+                    type="password"
+                    :error="form.errors.password"
+                    class="w-full"
+                    autocomplete="current-password"
+                />
             </div>
 
             <div class="mt-4 flex items-center justify-between">
-                <label class="flex items-center gap-2">
-                    <Checkbox v-model="form.remember" name="remember" />
-                    <span class="text-sm text-gray-600">Remember me</span>
-                </label>
+                <CheckboxField v-model="form.remember" label="Remember me" />
 
                 <Link
                     v-if="canResetPassword"

@@ -1,8 +1,7 @@
 <script setup>
 import { Button } from '@/Components/ui/button'
-import FormField from '@/Components/FormField.vue'
+import { TextInput } from '@/Components/Fields'
 import GuestLayout from '@/Layouts/GuestLayout.vue'
-import { Input } from '@/Components/ui/input'
 import { Head, useForm } from '@inertiajs/vue3'
 import { scrollToFirstError } from '@/lib/scroll'
 
@@ -38,20 +37,16 @@ const submit = () => {
         </div>
 
         <form @submit.prevent="submit">
-            <FormField id="email" label="Email" required :error="form.errors.email">
-                <template #default="{ id }">
-                    <Input
-                        :id="id"
-                        v-model="form.email"
-                        type="email"
-                        class="w-full"
-                        required
-                        autofocus
-                        autocomplete="username"
-                        :aria-invalid="form.errors.email ? 'true' : 'false'"
-                    />
-                </template>
-            </FormField>
+            <TextInput
+                v-model="form.email"
+                label="Email"
+                required
+                type="email"
+                :error="form.errors.email"
+                class="w-full"
+                autofocus
+                autocomplete="username"
+            />
 
             <div class="mt-6">
                 <Button type="submit" class="w-full" :disabled="form.processing">

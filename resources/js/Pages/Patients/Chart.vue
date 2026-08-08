@@ -5,7 +5,7 @@ import { History, X } from 'lucide-vue-next'
 import { route } from '../../../../vendor/tightenco/ziggy'
 import AppLayout from '@/Layouts/AppLayout.vue'
 import Badge from '@/Components/Badge.vue'
-import Button from '@/Components/Button.vue'
+import { Button } from '@/Components/ui/button'
 import ToothChart, { wholeToothOnly } from '@/Components/ToothChart.vue'
 import { useToastStore } from '@/Stores/toast'
 

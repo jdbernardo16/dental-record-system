@@ -3,7 +3,7 @@ import { computed } from 'vue';
 import { Head, Link, usePage } from '@inertiajs/vue3';
 import { Users, ScanLine, CalendarDays } from 'lucide-vue-next';
 import BrandMark from '@/Components/BrandMark.vue';
-import Button from '@/Components/Button.vue';
+import { Button } from '@/Components/ui/button';
 
 defineProps({
     canLogin: {

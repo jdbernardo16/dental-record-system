@@ -3,7 +3,8 @@ import { computed, watch } from 'vue'
 import { useForm } from '@inertiajs/vue3'
 import { ChevronDown } from 'lucide-vue-next'
 import { route } from '../../../../vendor/tightenco/ziggy'
-import Button from '@/Components/Button.vue'
+import { Button } from '@/Components/ui/button'
+import { CheckboxGroup, DateField, RadioPills, SelectField, TextInput, TextareaField } from '@/Components/Fields'
 import { useToastStore } from '@/Stores/toast'
 import { errorList, scrollToFirstError } from '@/lib/scroll'
 
@@ -33,11 +34,14 @@ const questions = [
 
 const answers = ['no', 'yes', 'not_applicable']
 const answerLabels = { no: 'No', yes: 'Yes', not_applicable: 'N/A' }
+const answerOptions = answers.map((value) => ({ value, label: answerLabels[value] }))
 
 const pdaAnswers = ['no', 'yes']
 const pdaAnswerLabels = { no: 'No', yes: 'Yes' }
+const pdaAnswerOptions = pdaAnswers.map((value) => ({ value, label: pdaAnswerLabels[value] }))
 
 const bloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']
+const bloodTypeOptions = bloodTypes.map((type) => ({ value: type, label: type }))
 
 const pdaPillQuestions = [
     { key: 'good_health', label: 'Are you in good health?', group: 'general' },
@@ -112,13 +116,10 @@ const pdaConditionLabels = {
     others: 'Others',
 }
 
-const toggleCondition = (key) => {
-    if (form.conditions_checklist.includes(key)) {
-        form.conditions_checklist = form.conditions_checklist.filter((item) => item !== key)
-    } else {
-        form.conditions_checklist = [...form.conditions_checklist, key]
-    }
-}
+const conditionChecklistOptions = Object.entries(pdaConditionLabels).map(([value, label]) => ({
+    value,
+    label,
+}))
 
 const form = useForm({
     hypertension: 'no',
@@ -196,16 +197,6 @@ const submit = () => {
         onError: () => scrollToFirstError(),
     })
 }
-
-const inputClasses = (field) => [
-    'h-11 w-full rounded-lg border bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10',
-    form.errors[field] ? 'border-status-cancelled' : 'border-gray-300',
-]
-
-const textareaClasses = (field) => [
-    'w-full rounded-lg border bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10',
-    form.errors[field] ? 'border-status-cancelled' : 'border-gray-300',
-]
 </script>
 
 <template>
@@ -219,36 +210,19 @@ const textareaClasses = (field) => [
         </ul>
 
         <div v-for="q in questions" :key="q.key" class="space-y-2.5">
-            <div class="flex flex-wrap items-center justify-between gap-3">
-                <p class="text-sm font-medium text-gray-700">{{ q.label }}</p>
-                <div class="inline-flex gap-1 rounded-full bg-gray-100 p-1" role="radiogroup" :aria-label="q.label">
-                    <button
-                        v-for="answer in answers"
-                        :key="answer"
-                        type="button"
-                        role="radio"
-                        :aria-checked="form[q.key] === answer"
-                        :class="[
-                            'min-h-11 rounded-full px-4 text-sm font-medium transition',
-                            form[q.key] === answer ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500',
-                        ]"
-                        @click="form[q.key] = answer"
-                    >
-                        {{ answerLabels[answer] }}
-                    </button>
-                </div>
-            </div>
-            <p v-if="form.errors[q.key]" class="text-xs text-status-cancelled">{{ form.errors[q.key] }}</p>
-            <textarea
+            <RadioPills
+                v-model="form[q.key]"
+                :label="q.label"
+                :options="answerOptions"
+                :error="form.errors[q.key]"
+            />
+            <TextareaField
                 v-if="q.detailsKey && form[q.key] === 'yes'"
                 v-model="form[q.detailsKey]"
                 :rows="2"
                 :placeholder="`Details for ${q.label.toLowerCase()}…`"
-                :class="textareaClasses(q.detailsKey)"
+                :error="form.errors[q.detailsKey]"
             />
-            <p v-if="q.detailsKey && form.errors[q.detailsKey]" class="text-xs text-status-cancelled">
-                {{ form.errors[q.detailsKey] }}
-            </p>
         </div>
 
         <div class="space-y-2 rounded-xl border border-gray-100 p-2">
@@ -262,88 +236,49 @@ const textareaClasses = (field) => [
                 <div class="space-y-4 border-t border-gray-100 p-3">
                     <template v-for="q in pdaQuestionsIn('general')" :key="q.key">
                         <div class="space-y-2.5">
-                            <div class="flex flex-wrap items-center justify-between gap-3">
-                                <p class="text-sm font-medium text-gray-700">{{ q.label }}</p>
-                                <div
-                                    class="inline-flex gap-1 rounded-full bg-gray-100 p-1"
-                                    role="radiogroup"
-                                    :aria-label="q.label"
-                                >
-                                    <button
-                                        v-for="answer in pdaAnswers"
-                                        :key="answer"
-                                        type="button"
-                                        role="radio"
-                                        :aria-checked="form[q.key] === answer"
-                                        :class="[
-                                            'min-h-11 rounded-full px-4 text-sm font-medium transition',
-                                            form[q.key] === answer
-                                                ? 'bg-white text-gray-900 shadow-sm'
-                                                : 'text-gray-500',
-                                        ]"
-                                        @click="form[q.key] = answer"
-                                    >
-                                        {{ pdaAnswerLabels[answer] }}
-                                    </button>
-                                </div>
-                            </div>
-                            <p v-if="form.errors[q.key]" class="text-xs text-status-cancelled">
-                                {{ form.errors[q.key] }}
-                            </p>
-                            <textarea
+                            <RadioPills
+                                v-model="form[q.key]"
+                                :label="q.label"
+                                :options="pdaAnswerOptions"
+                                :error="form.errors[q.key]"
+                            />
+                            <TextareaField
                                 v-if="q.detailsKey && form[q.key] === 'yes'"
                                 v-model="form[q.detailsKey]"
                                 :rows="2"
                                 :placeholder="`Details for ${q.label.toLowerCase()}…`"
-                                :class="textareaClasses(q.detailsKey)"
+                                :error="form.errors[q.detailsKey]"
                             />
-                            <p v-if="q.detailsKey && form.errors[q.detailsKey]" class="text-xs text-status-cancelled">
-                                {{ form.errors[q.detailsKey] }}
-                            </p>
                         </div>
                     </template>
 
                     <div>
-                        <label class="mb-1.5 block text-sm font-medium text-gray-700">Bleeding time</label>
-                        <input
+                        <TextInput
                             v-model="form.bleeding_time"
-                            type="text"
+                            label="Bleeding time"
                             placeholder="e.g. normal"
-                            :class="inputClasses('bleeding_time')"
+                            :error="form.errors.bleeding_time"
                         />
-                        <p v-if="form.errors.bleeding_time" class="mt-1.5 text-xs text-status-cancelled">
-                            {{ form.errors.bleeding_time }}
-                        </p>
                     </div>
 
                     <div>
-                        <label for="blood_type" class="mb-1.5 block text-sm font-medium text-gray-700">
-                            Blood type
-                        </label>
-                        <select
+                        <SelectField
                             id="blood_type"
                             v-model="form.blood_type"
-                            :class="inputClasses('blood_type')"
-                        >
-                            <option value="" disabled>Select blood type</option>
-                            <option v-for="type in bloodTypes" :key="type" :value="type">{{ type }}</option>
-                        </select>
-                        <p v-if="form.errors.blood_type" class="mt-1.5 text-xs text-status-cancelled">
-                            {{ form.errors.blood_type }}
-                        </p>
+                            label="Blood type"
+                            placeholder="Select blood type"
+                            :options="bloodTypeOptions"
+                            :error="form.errors.blood_type"
+                        />
                     </div>
 
                     <div>
-                        <label class="mb-1.5 block text-sm font-medium text-gray-700">Blood pressure</label>
-                        <input
+                        <TextInput
                             v-model="form.blood_pressure"
-                            type="text"
+                            label="Blood pressure"
                             placeholder="e.g. 120/80"
-                            :class="inputClasses('blood_pressure')"
+                            :error="form.errors.blood_pressure"
                         />
-                        <p v-if="form.errors.blood_pressure" class="mt-1.5 text-xs text-status-cancelled">
-                            {{ form.errors.blood_pressure }}
-                        </p>
                     </div>
                 </div>
             </details>
@@ -357,11 +292,11 @@ const textareaClasses = (field) => [
                 </summary>
                 <div class="space-y-4 border-t border-gray-100 p-3">
                     <div v-for="field in physicianFields" :key="field.key">
-                        <label class="mb-1.5 block text-sm font-medium text-gray-700">{{ field.label }}</label>
-                        <input v-model="form[field.key]" type="text" :class="inputClasses(field.key)" />
-                        <p v-if="form.errors[field.key]" class="mt-1.5 text-xs text-status-cancelled">
-                            {{ form.errors[field.key] }}
-                        </p>
+                        <TextInput
+                            v-model="form[field.key]"
+                            :label="field.label"
+                            :error="form.errors[field.key]"
+                        />
                     </div>
                 </div>
             </details>
@@ -375,38 +310,26 @@ const textareaClasses = (field) => [
                 </summary>
                 <div class="space-y-4 border-t border-gray-100 p-3">
                     <div>
-                        <label class="mb-1.5 block text-sm font-medium text-gray-700">Previous dentist</label>
-                        <input
+                        <TextInput
                             v-model="form.dental_history_previous_dentist"
-                            type="text"
-                            :class="inputClasses('dental_history_previous_dentist')"
+                            label="Previous dentist"
+                            :error="form.errors.dental_history_previous_dentist"
                         />
-                        <p v-if="form.errors.dental_history_previous_dentist" class="mt-1.5 text-xs text-status-cancelled">
-                            {{ form.errors.dental_history_previous_dentist }}
-                        </p>
                     </div>
                     <div>
-                        <label class="mb-1.5 block text-sm font-medium text-gray-700">Last dental visit</label>
-                        <input
+                        <DateField
                             v-model="form.dental_history_last_visit"
-                            type="date"
-                            :class="inputClasses('dental_history_last_visit')"
+                            label="Last dental visit"
+                            :error="form.errors.dental_history_last_visit"
                         />
-                        <p v-if="form.errors.dental_history_last_visit" class="mt-1.5 text-xs text-status-cancelled">
-                            {{ form.errors.dental_history_last_visit }}
-                        </p>
                     </div>
                     <div>
-                        <label class="mb-1.5 block text-sm font-medium text-gray-700">Referral source</label>
-                        <input
+                        <TextInput
                             v-model="form.referral_source"
-                            type="text"
+                            label="Referral source"
                             placeholder="Who may we thank for referring you?"
-                            :class="inputClasses('referral_source')"
+                            :error="form.errors.referral_source"
                         />
-                        <p v-if="form.errors.referral_source" class="mt-1.5 text-xs text-status-cancelled">
-                            {{ form.errors.referral_source }}
-                        </p>
                     </div>
                 </div>
             </details>
@@ -421,34 +344,12 @@ const textareaClasses = (field) => [
                 <div class="space-y-4 border-t border-gray-100 p-3">
                     <template v-for="q in pdaQuestionsIn('women')" :key="q.key">
                         <div class="space-y-2.5">
-                            <div class="flex flex-wrap items-center justify-between gap-3">
-                                <p class="text-sm font-medium text-gray-700">{{ q.label }}</p>
-                                <div
-                                    class="inline-flex gap-1 rounded-full bg-gray-100 p-1"
-                                    role="radiogroup"
-                                    :aria-label="q.label"
-                                >
-                                    <button
-                                        v-for="answer in pdaAnswers"
-                                        :key="answer"
-                                        type="button"
-                                        role="radio"
-                                        :aria-checked="form[q.key] === answer"
-                                        :class="[
-                                            'min-h-11 rounded-full px-4 text-sm font-medium transition',
-                                            form[q.key] === answer
-                                                ? 'bg-white text-gray-900 shadow-sm'
-                                                : 'text-gray-500',
-                                        ]"
-                                        @click="form[q.key] = answer"
-                                    >
-                                        {{ pdaAnswerLabels[answer] }}
-                                    </button>
-                                </div>
-                            </div>
-                            <p v-if="form.errors[q.key]" class="text-xs text-status-cancelled">
-                                {{ form.errors[q.key] }}
-                            </p>
+                            <RadioPills
+                                v-model="form[q.key]"
+                                :label="q.label"
+                                :options="pdaAnswerOptions"
+                                :error="form.errors[q.key]"
+                            />
                         </div>
                     </template>
                 </div>
@@ -462,44 +363,32 @@ const textareaClasses = (field) => [
                     <ChevronDown class="h-4 w-4 text-gray-400 transition group-open:rotate-180" />
                 </summary>
                 <div class="space-y-3 border-t border-gray-100 p-3">
-                    <div class="flex flex-wrap gap-2">
-                        <button
-                            v-for="(label, key) in pdaConditionLabels"
-                            :key="key"
-                            type="button"
-                            :aria-pressed="form.conditions_checklist.includes(key)"
-                            :class="[
-                                'min-h-11 min-w-11 rounded-lg border px-4 py-2 text-sm font-medium transition',
-                                form.conditions_checklist.includes(key)
-                                    ? 'border-brand-500 bg-brand-50 text-brand-700'
-                                    : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300',
-                            ]"
-                            @click="toggleCondition(key)"
-                        >
-                            {{ label }}
-                        </button>
-                    </div>
-                    <p v-if="form.errors.conditions_checklist" class="text-xs text-status-cancelled">
-                        {{ form.errors.conditions_checklist }}
-                    </p>
+                    <CheckboxGroup
+                        v-model="form.conditions_checklist"
+                        :options="conditionChecklistOptions"
+                        :error="form.errors.conditions_checklist"
+                    />
                 </div>
             </details>
         </div>
 
         <div>
-            <label class="mb-1.5 block text-sm font-medium text-gray-700">Remarks</label>
-            <textarea
+            <TextareaField
                 v-model="form.remarks"
+                label="Remarks"
                 :rows="3"
                 placeholder="Additional notes…"
-                :class="textareaClasses('remarks')"
+                :error="form.errors.remarks"
             />
-            <p v-if="form.errors.remarks" class="mt-1.5 text-xs text-status-cancelled">{{ form.errors.remarks }}</p>
         </div>
 
         <div class="flex items-center justify-end gap-2">
-            <Button v-if="cancelable" variant="outline" type="button" @click="$emit('cancel')">Cancel</Button>
-            <Button type="submit" :disabled="form.processing">{{ form.processing ? 'Saving…' : submitLabel }}</Button>
+            <Button v-if="cancelable" variant="outline" size="md" type="button" @click="$emit('cancel')">
+                Cancel
+            </Button>
+            <Button size="md" type="submit" :disabled="form.processing">
+                {{ form.processing ? 'Saving…' : submitLabel }}
+            </Button>
         </div>
     </form>
 </template>

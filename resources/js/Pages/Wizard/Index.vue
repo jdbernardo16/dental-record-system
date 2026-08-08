@@ -5,7 +5,8 @@ import { ArrowLeft, Check, Pencil, Signature } from 'lucide-vue-next'
 import { route } from '../../../../vendor/tightenco/ziggy'
 import AppLayout from '@/Layouts/AppLayout.vue'
 import Badge from '@/Components/Badge.vue'
-import Button from '@/Components/Button.vue'
+import { Button } from '@/Components/ui/button'
+import { DateField, RadioPills, TextInput } from '@/Components/Fields'
 import ConsultationForm from '@/Components/Wizard/ConsultationForm.vue'
 import MedicalHistoryForm from '@/Components/Wizard/MedicalHistoryForm.vue'
 import SignaturePadModal from '@/Components/SignaturePadModal.vue'
@@ -360,7 +361,7 @@ const finishWizard = () => {
                         </Link>
                     </div>
                     <div class="flex justify-end">
-                        <Button type="button" @click="wizardStore.go(1)">Continue</Button>
+                        <Button size="md" type="button" @click="wizardStore.go(1)">Continue</Button>
                     </div>
                 </div>
 
@@ -375,253 +376,117 @@ const finishWizard = () => {
 
                     <section class="space-y-5">
                         <h2 class="text-sm font-semibold text-gray-800">Identity</h2>
-                        <div>
-                            <label for="first_name" class="mb-1.5 block text-sm font-medium text-gray-700">
-                                First name
-                                <span class="text-status-cancelled">*</span>
-                            </label>
-                            <input
-                                id="first_name"
-                                v-model="patientForm.first_name"
-                                type="text"
-                                placeholder="Liza"
-                                required
-                                autofocus
-                                class="h-11 w-full rounded-lg border bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
-                                :class="{ 'border-status-cancelled': patientForm.errors.first_name }"
-                            />
-                            <p v-if="patientForm.errors.first_name" class="mt-1.5 text-xs text-status-cancelled">
-                                {{ patientForm.errors.first_name }}
-                            </p>
-                        </div>
-                        <div>
-                            <label for="middle_name" class="mb-1.5 block text-sm font-medium text-gray-700">Middle name</label>
-                            <input
-                                id="middle_name"
-                                v-model="patientForm.middle_name"
-                                type="text"
-                                placeholder="Optional"
-                                class="h-11 w-full rounded-lg border bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
-                                :class="{ 'border-status-cancelled': patientForm.errors.middle_name }"
-                            />
-                            <p v-if="patientForm.errors.middle_name" class="mt-1.5 text-xs text-status-cancelled">
-                                {{ patientForm.errors.middle_name }}
-                            </p>
-                        </div>
-                        <div>
-                            <label for="last_name" class="mb-1.5 block text-sm font-medium text-gray-700">
-                                Last name
-                                <span class="text-status-cancelled">*</span>
-                            </label>
-                            <input
-                                id="last_name"
-                                v-model="patientForm.last_name"
-                                type="text"
-                                placeholder="Reyes"
-                                required
-                                class="h-11 w-full rounded-lg border bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
-                                :class="{ 'border-status-cancelled': patientForm.errors.last_name }"
-                            />
-                            <p v-if="patientForm.errors.last_name" class="mt-1.5 text-xs text-status-cancelled">
-                                {{ patientForm.errors.last_name }}
-                            </p>
-                        </div>
-                        <div>
-                            <p class="mb-1.5 text-sm font-medium text-gray-700">
-                                Sex
-                                <span class="text-status-cancelled">*</span>
-                            </p>
-                            <div class="inline-flex flex-wrap gap-1 rounded-full bg-gray-100 p-1" role="radiogroup" aria-label="Sex">
-                        <button
-                            v-for="option in sexOptions"
-                            :key="option.value"
-                            type="button"
-                            role="radio"
-                            :aria-checked="patientForm.sex === option.value ? 'true' : 'false'"
-                            :class="[
-                                'min-h-11 rounded-full px-4 text-sm font-medium transition',
-                                patientForm.sex === option.value ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500',
-                            ]"
-                            @click="patientForm.sex = option.value"
-                        >
-                            {{ option.label }}
-                        </button>
-                    </div>
-                            <p v-if="patientForm.errors.sex" class="mt-1.5 text-xs text-status-cancelled">
-                                {{ patientForm.errors.sex }}
-                            </p>
-                        </div>
-                        <div>
-                            <label for="birth_date" class="mb-1.5 block text-sm font-medium text-gray-700">
-                                Birth date
-                                <span class="text-status-cancelled">*</span>
-                            </label>
-                            <input
-                                id="birth_date"
-                                v-model="patientForm.birth_date"
-                                type="date"
-                                required
-                                class="h-11 w-full rounded-lg border bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
-                                :class="{ 'border-status-cancelled': patientForm.errors.birth_date }"
-                            />
-                            <p v-if="patientForm.errors.birth_date" class="mt-1.5 text-xs text-status-cancelled">
-                                {{ patientForm.errors.birth_date }}
-                            </p>
-                        </div>
-                        <div>
-                            <p class="mb-1.5 text-sm font-medium text-gray-700">
-                                Civil status
-                                <span class="text-status-cancelled">*</span>
-                            </p>
-                            <div class="inline-flex flex-wrap gap-1 rounded-full bg-gray-100 p-1" role="radiogroup" aria-label="Civil status">
-                        <button
-                            v-for="option in civilStatusOptions"
-                            :key="option.value"
-                            type="button"
-                            role="radio"
-                            :aria-checked="patientForm.civil_status === option.value ? 'true' : 'false'"
-                            :class="[
-                                'min-h-11 rounded-full px-4 text-sm font-medium transition',
-                                patientForm.civil_status === option.value ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500',
-                            ]"
-                            @click="patientForm.civil_status = option.value"
-                        >
-                            {{ option.label }}
-                        </button>
-                    </div>
-                            <p v-if="patientForm.errors.civil_status" class="mt-1.5 text-xs text-status-cancelled">
-                                {{ patientForm.errors.civil_status }}
-                            </p>
-                        </div>
-                        <div>
-                            <label for="nationality" class="mb-1.5 block text-sm font-medium text-gray-700">
-                                Nationality
-                                <span class="text-status-cancelled">*</span>
-                            </label>
-                            <input
-                                id="nationality"
-                                v-model="patientForm.nationality"
-                                type="text"
-                                required
-                                class="h-11 w-full rounded-lg border bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
-                                :class="{ 'border-status-cancelled': patientForm.errors.nationality }"
-                            />
-                            <p v-if="patientForm.errors.nationality" class="mt-1.5 text-xs text-status-cancelled">
-                                {{ patientForm.errors.nationality }}
-                            </p>
-                        </div>
+                        <TextInput
+                            id="first_name"
+                            v-model="patientForm.first_name"
+                            label="First name"
+                            required
+                            placeholder="Liza"
+                            autofocus
+                            :error="patientForm.errors.first_name"
+                        />
+                        <TextInput
+                            id="middle_name"
+                            v-model="patientForm.middle_name"
+                            label="Middle name"
+                            placeholder="Optional"
+                            :error="patientForm.errors.middle_name"
+                        />
+                        <TextInput
+                            id="last_name"
+                            v-model="patientForm.last_name"
+                            label="Last name"
+                            required
+                            placeholder="Reyes"
+                            :error="patientForm.errors.last_name"
+                        />
+                        <RadioPills
+                            v-model="patientForm.sex"
+                            label="Sex"
+                            required
+                            :options="sexOptions"
+                            :error="patientForm.errors.sex"
+                        />
+                        <DateField
+                            id="birth_date"
+                            v-model="patientForm.birth_date"
+                            label="Birth date"
+                            required
+                            :error="patientForm.errors.birth_date"
+                        />
+                        <RadioPills
+                            v-model="patientForm.civil_status"
+                            label="Civil status"
+                            required
+                            :options="civilStatusOptions"
+                            :error="patientForm.errors.civil_status"
+                        />
+                        <TextInput
+                            id="nationality"
+                            v-model="patientForm.nationality"
+                            label="Nationality"
+                            required
+                            :error="patientForm.errors.nationality"
+                        />
                     </section>
 
                     <hr class="border-gray-100" />
 
                     <section class="space-y-5">
                         <h2 class="text-sm font-semibold text-gray-800">Contact</h2>
-                        <div>
-                            <label for="occupation" class="mb-1.5 block text-sm font-medium text-gray-700">Occupation</label>
-                            <input
-                                id="occupation"
-                                v-model="patientForm.occupation"
-                                type="text"
-                                placeholder="Optional"
-                                class="h-11 w-full rounded-lg border bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
-                                :class="{ 'border-status-cancelled': patientForm.errors.occupation }"
-                            />
-                            <p v-if="patientForm.errors.occupation" class="mt-1.5 text-xs text-status-cancelled">
-                                {{ patientForm.errors.occupation }}
-                            </p>
-                        </div>
-                        <div>
-                            <label for="contact_number" class="mb-1.5 block text-sm font-medium text-gray-700">
-                                Contact number
-                                <span class="text-status-cancelled">*</span>
-                            </label>
-                            <input
-                                id="contact_number"
-                                v-model="patientForm.contact_number"
-                                type="text"
-                                placeholder="0917 123 4567"
-                                required
-                                class="h-11 w-full rounded-lg border bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
-                                :class="{ 'border-status-cancelled': patientForm.errors.contact_number }"
-                            />
-                            <p v-if="patientForm.errors.contact_number" class="mt-1.5 text-xs text-status-cancelled">
-                                {{ patientForm.errors.contact_number }}
-                            </p>
-                        </div>
-                        <div>
-                            <label for="address" class="mb-1.5 block text-sm font-medium text-gray-700">
-                                Address
-                                <span class="text-status-cancelled">*</span>
-                            </label>
-                            <input
-                                id="address"
-                                v-model="patientForm.address"
-                                type="text"
-                                placeholder="House number, street, barangay, city"
-                                required
-                                class="h-11 w-full rounded-lg border bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
-                                :class="{ 'border-status-cancelled': patientForm.errors.address }"
-                            />
-                            <p v-if="patientForm.errors.address" class="mt-1.5 text-xs text-status-cancelled">
-                                {{ patientForm.errors.address }}
-                            </p>
-                        </div>
-                        <div>
-                            <label for="email_address" class="mb-1.5 block text-sm font-medium text-gray-700">Email address</label>
-                            <input
-                                id="email_address"
-                                v-model="patientForm.email_address"
-                                type="email"
-                                placeholder="Optional"
-                                class="h-11 w-full rounded-lg border bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
-                                :class="{ 'border-status-cancelled': patientForm.errors.email_address }"
-                            />
-                            <p v-if="patientForm.errors.email_address" class="mt-1.5 text-xs text-status-cancelled">
-                                {{ patientForm.errors.email_address }}
-                            </p>
-                        </div>
+                        <TextInput
+                            id="occupation"
+                            v-model="patientForm.occupation"
+                            label="Occupation"
+                            placeholder="Optional"
+                            :error="patientForm.errors.occupation"
+                        />
+                        <TextInput
+                            id="contact_number"
+                            v-model="patientForm.contact_number"
+                            label="Contact number"
+                            required
+                            placeholder="0917 123 4567"
+                            :error="patientForm.errors.contact_number"
+                        />
+                        <TextInput
+                            id="address"
+                            v-model="patientForm.address"
+                            label="Address"
+                            required
+                            placeholder="House number, street, barangay, city"
+                            :error="patientForm.errors.address"
+                        />
+                        <TextInput
+                            id="email_address"
+                            v-model="patientForm.email_address"
+                            type="email"
+                            label="Email address"
+                            placeholder="Optional"
+                            :error="patientForm.errors.email_address"
+                        />
                     </section>
 
                     <hr class="border-gray-100" />
 
                     <section class="space-y-5">
                         <h2 class="text-sm font-semibold text-gray-800">Emergency contact</h2>
-                        <div>
-                            <label for="emergency_contact_person" class="mb-1.5 block text-sm font-medium text-gray-700">
-                                Contact person
-                                <span class="text-status-cancelled">*</span>
-                            </label>
-                            <input
-                                id="emergency_contact_person"
-                                v-model="patientForm.emergency_contact_person"
-                                type="text"
-                                placeholder="John Reyes"
-                                required
-                                class="h-11 w-full rounded-lg border bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
-                                :class="{ 'border-status-cancelled': patientForm.errors.emergency_contact_person }"
-                            />
-                            <p v-if="patientForm.errors.emergency_contact_person" class="mt-1.5 text-xs text-status-cancelled">
-                                {{ patientForm.errors.emergency_contact_person }}
-                            </p>
-                        </div>
-                        <div>
-                            <label for="emergency_contact_number" class="mb-1.5 block text-sm font-medium text-gray-700">
-                                Contact number
-                                <span class="text-status-cancelled">*</span>
-                            </label>
-                            <input
-                                id="emergency_contact_number"
-                                v-model="patientForm.emergency_contact_number"
-                                type="text"
-                                placeholder="0917 987 6543"
-                                required
-                                class="h-11 w-full rounded-lg border bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
-                                :class="{ 'border-status-cancelled': patientForm.errors.emergency_contact_number }"
-                            />
-                            <p v-if="patientForm.errors.emergency_contact_number" class="mt-1.5 text-xs text-status-cancelled">
-                                {{ patientForm.errors.emergency_contact_number }}
-                            </p>
-                        </div>
+                        <TextInput
+                            id="emergency_contact_person"
+                            v-model="patientForm.emergency_contact_person"
+                            label="Contact person"
+                            required
+                            placeholder="John Reyes"
+                            :error="patientForm.errors.emergency_contact_person"
+                        />
+                        <TextInput
+                            id="emergency_contact_number"
+                            v-model="patientForm.emergency_contact_number"
+                            label="Contact number"
+                            required
+                            placeholder="0917 987 6543"
+                            :error="patientForm.errors.emergency_contact_number"
+                        />
                     </section>
 
                     <hr class="border-gray-100" />
@@ -629,138 +494,75 @@ const finishWizard = () => {
                     <section class="space-y-5">
                         <h2 class="text-sm font-semibold text-gray-800">PDA additional details</h2>
                         <p class="text-xs text-gray-500">Optional fields from the PDA patient information record.</p>
-                        <div>
-                            <label for="religion" class="mb-1.5 block text-sm font-medium text-gray-700">Religion</label>
-                            <input
-                                id="religion"
-                                v-model="patientForm.religion"
-                                type="text"
-                                placeholder="Optional"
-                                class="h-11 w-full rounded-lg border bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
-                                :class="{ 'border-status-cancelled': patientForm.errors.religion }"
-                            />
-                            <p v-if="patientForm.errors.religion" class="mt-1.5 text-xs text-status-cancelled">
-                                {{ patientForm.errors.religion }}
-                            </p>
-                        </div>
-                        <div>
-                            <label for="nickname" class="mb-1.5 block text-sm font-medium text-gray-700">Nickname</label>
-                            <input
-                                id="nickname"
-                                v-model="patientForm.nickname"
-                                type="text"
-                                placeholder="Optional"
-                                class="h-11 w-full rounded-lg border bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
-                                :class="{ 'border-status-cancelled': patientForm.errors.nickname }"
-                            />
-                            <p v-if="patientForm.errors.nickname" class="mt-1.5 text-xs text-status-cancelled">
-                                {{ patientForm.errors.nickname }}
-                            </p>
-                        </div>
-                        <div>
-                            <label for="home_phone" class="mb-1.5 block text-sm font-medium text-gray-700">Home phone</label>
-                            <input
-                                id="home_phone"
-                                v-model="patientForm.home_phone"
-                                type="text"
-                                placeholder="02 8123 4567"
-                                class="h-11 w-full rounded-lg border bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
-                                :class="{ 'border-status-cancelled': patientForm.errors.home_phone }"
-                            />
-                            <p v-if="patientForm.errors.home_phone" class="mt-1.5 text-xs text-status-cancelled">
-                                {{ patientForm.errors.home_phone }}
-                            </p>
-                        </div>
-                        <div>
-                            <label for="office_phone" class="mb-1.5 block text-sm font-medium text-gray-700">Office phone</label>
-                            <input
-                                id="office_phone"
-                                v-model="patientForm.office_phone"
-                                type="text"
-                                placeholder="02 8765 4321"
-                                class="h-11 w-full rounded-lg border bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
-                                :class="{ 'border-status-cancelled': patientForm.errors.office_phone }"
-                            />
-                            <p v-if="patientForm.errors.office_phone" class="mt-1.5 text-xs text-status-cancelled">
-                                {{ patientForm.errors.office_phone }}
-                            </p>
-                        </div>
-                        <div>
-                            <label for="fax_number" class="mb-1.5 block text-sm font-medium text-gray-700">Fax number</label>
-                            <input
-                                id="fax_number"
-                                v-model="patientForm.fax_number"
-                                type="text"
-                                placeholder="Optional"
-                                class="h-11 w-full rounded-lg border bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
-                                :class="{ 'border-status-cancelled': patientForm.errors.fax_number }"
-                            />
-                            <p v-if="patientForm.errors.fax_number" class="mt-1.5 text-xs text-status-cancelled">
-                                {{ patientForm.errors.fax_number }}
-                            </p>
-                        </div>
-                        <div>
-                            <label for="dental_insurance" class="mb-1.5 block text-sm font-medium text-gray-700">Dental insurance</label>
-                            <input
-                                id="dental_insurance"
-                                v-model="patientForm.dental_insurance"
-                                type="text"
-                                placeholder="e.g. PhilHealth"
-                                class="h-11 w-full rounded-lg border bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
-                                :class="{ 'border-status-cancelled': patientForm.errors.dental_insurance }"
-                            />
-                            <p v-if="patientForm.errors.dental_insurance" class="mt-1.5 text-xs text-status-cancelled">
-                                {{ patientForm.errors.dental_insurance }}
-                            </p>
-                        </div>
-                        <div>
-                            <label for="effective_date" class="mb-1.5 block text-sm font-medium text-gray-700">Effective date</label>
-                            <input
-                                id="effective_date"
-                                v-model="patientForm.effective_date"
-                                type="date"
-                                class="h-11 w-full rounded-lg border bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
-                                :class="{ 'border-status-cancelled': patientForm.errors.effective_date }"
-                            />
-                            <p v-if="patientForm.errors.effective_date" class="mt-1.5 text-xs text-status-cancelled">
-                                {{ patientForm.errors.effective_date }}
-                            </p>
-                        </div>
-                        <div>
-                            <label for="guardian_name" class="mb-1.5 block text-sm font-medium text-gray-700">Guardian name</label>
-                            <input
-                                id="guardian_name"
-                                v-model="patientForm.guardian_name"
-                                type="text"
-                                placeholder="For minors"
-                                class="h-11 w-full rounded-lg border bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
-                                :class="{ 'border-status-cancelled': patientForm.errors.guardian_name }"
-                            />
-                            <p v-if="patientForm.errors.guardian_name" class="mt-1.5 text-xs text-status-cancelled">
-                                {{ patientForm.errors.guardian_name }}
-                            </p>
-                        </div>
-                        <div>
-                            <label for="guardian_occupation" class="mb-1.5 block text-sm font-medium text-gray-700">Guardian occupation</label>
-                            <input
-                                id="guardian_occupation"
-                                v-model="patientForm.guardian_occupation"
-                                type="text"
-                                placeholder="For minors"
-                                class="h-11 w-full rounded-lg border bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
-                                :class="{ 'border-status-cancelled': patientForm.errors.guardian_occupation }"
-                            />
-                            <p v-if="patientForm.errors.guardian_occupation" class="mt-1.5 text-xs text-status-cancelled">
-                                {{ patientForm.errors.guardian_occupation }}
-                            </p>
-                        </div>
+                        <TextInput
+                            id="religion"
+                            v-model="patientForm.religion"
+                            label="Religion"
+                            placeholder="Optional"
+                            :error="patientForm.errors.religion"
+                        />
+                        <TextInput
+                            id="nickname"
+                            v-model="patientForm.nickname"
+                            label="Nickname"
+                            placeholder="Optional"
+                            :error="patientForm.errors.nickname"
+                        />
+                        <TextInput
+                            id="home_phone"
+                            v-model="patientForm.home_phone"
+                            label="Home phone"
+                            placeholder="02 8123 4567"
+                            :error="patientForm.errors.home_phone"
+                        />
+                        <TextInput
+                            id="office_phone"
+                            v-model="patientForm.office_phone"
+                            label="Office phone"
+                            placeholder="02 8765 4321"
+                            :error="patientForm.errors.office_phone"
+                        />
+                        <TextInput
+                            id="fax_number"
+                            v-model="patientForm.fax_number"
+                            label="Fax number"
+                            placeholder="Optional"
+                            :error="patientForm.errors.fax_number"
+                        />
+                        <TextInput
+                            id="dental_insurance"
+                            v-model="patientForm.dental_insurance"
+                            label="Dental insurance"
+                            placeholder="e.g. PhilHealth"
+                            :error="patientForm.errors.dental_insurance"
+                        />
+                        <DateField
+                            id="effective_date"
+                            v-model="patientForm.effective_date"
+                            label="Effective date"
+                            :error="patientForm.errors.effective_date"
+                        />
+                        <TextInput
+                            id="guardian_name"
+                            v-model="patientForm.guardian_name"
+                            label="Guardian name"
+                            placeholder="For minors"
+                            :error="patientForm.errors.guardian_name"
+                        />
+                        <TextInput
+                            id="guardian_occupation"
+                            v-model="patientForm.guardian_occupation"
+                            label="Guardian occupation"
+                            placeholder="For minors"
+                            :error="patientForm.errors.guardian_occupation"
+                        />
                     </section>
 
                     <div class="flex items-center justify-between gap-3 pt-2">
                         <p class="text-xs text-gray-500">
                             Required fields are marked with <span class="text-status-cancelled">*</span>
                         </p>
-                        <Button type="submit" :disabled="patientForm.processing">
+                        <Button size="md" type="submit" :disabled="patientForm.processing">
                             {{ patientForm.processing ? 'Saving…' : 'Register & continue' }}
                         </Button>
                     </div>
@@ -885,7 +687,7 @@ const finishWizard = () => {
                 </div>
 
                 <div class="flex justify-end">
-                    <Button type="button" @click="onChartDone">Continue to treatment</Button>
+                    <Button size="md" type="button" @click="onChartDone">Continue to treatment</Button>
                 </div>
             </div>
 
@@ -945,14 +747,14 @@ const finishWizard = () => {
                 </div>
 
                 <div class="flex justify-end">
-                    <Button type="button" @click="finishWizard">Finish</Button>
+                    <Button size="md" type="button" @click="finishWizard">Finish</Button>
                 </div>
             </div>
         </div>
 
         <!-- Footer navigation -->
         <div class="flex items-center justify-between gap-3">
-            <Button variant="outline" :disabled="wizardStore.step === 0" @click="backStep">
+            <Button variant="outline" size="md" :disabled="wizardStore.step === 0" @click="backStep">
                 <ArrowLeft class="h-4 w-4" />
                 Back
             </Button>

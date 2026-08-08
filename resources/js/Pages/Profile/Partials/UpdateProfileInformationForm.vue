@@ -1,7 +1,6 @@
 <script setup>
 import { Button } from '@/Components/ui/button'
-import FormField from '@/Components/FormField.vue'
-import { Input } from '@/Components/ui/input'
+import { TextInput } from '@/Components/Fields'
 import { Link, useForm, usePage } from '@inertiajs/vue3'
 import { scrollToFirstError } from '@/lib/scroll'
 
@@ -44,34 +43,25 @@ const submit = () => {
             @submit.prevent="submit"
             class="mt-6 space-y-6"
         >
-            <FormField id="name" label="Name" required :error="form.errors.name">
-                <template #default="{ id }">
-                    <Input
-                        :id="id"
-                        v-model="form.name"
-                        type="text"
-                        class="w-full"
-                        required
-                        autofocus
-                        autocomplete="name"
-                        :aria-invalid="form.errors.name ? 'true' : 'false'"
-                    />
-                </template>
-            </FormField>
+            <TextInput
+                v-model="form.name"
+                label="Name"
+                required
+                :error="form.errors.name"
+                class="w-full"
+                autofocus
+                autocomplete="name"
+            />
 
-            <FormField id="email" label="Email" required :error="form.errors.email">
-                <template #default="{ id }">
-                    <Input
-                        :id="id"
-                        v-model="form.email"
-                        type="email"
-                        class="w-full"
-                        required
-                        autocomplete="username"
-                        :aria-invalid="form.errors.email ? 'true' : 'false'"
-                    />
-                </template>
-            </FormField>
+            <TextInput
+                v-model="form.email"
+                label="Email"
+                required
+                type="email"
+                :error="form.errors.email"
+                class="w-full"
+                autocomplete="username"
+            />
 
             <div v-if="mustVerifyEmail && user.email_verified_at === null">
                 <p class="mt-2 text-sm text-gray-800">

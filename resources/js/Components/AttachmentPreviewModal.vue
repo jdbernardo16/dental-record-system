@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { FileText, Minus, Plus, Trash2, X } from 'lucide-vue-next'
-import Button from '@/Components/Button.vue'
+import { Button } from '@/Components/ui/button'
 
 const props = defineProps({
     show: { type: Boolean, default: false },

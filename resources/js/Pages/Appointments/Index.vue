@@ -5,8 +5,8 @@ import { CalendarPlus, Check, ChevronLeft, ChevronRight, X } from 'lucide-vue-ne
 import { route } from '../../../../vendor/tightenco/ziggy'
 import AppLayout from '@/Layouts/AppLayout.vue'
 import Badge from '@/Components/Badge.vue'
-import Button from '@/Components/Button.vue'
-import Input from '@/Components/Input.vue'
+import { Button } from '@/Components/ui/button'
+import { DateField, SelectField, TextareaField, TextInput } from '@/Components/Fields'
 import { scrollToFirstError } from '@/lib/scroll'
 import Modal from '@/Components/Modal.vue'
 import { useToastStore } from '@/Stores/toast'
@@ -94,6 +94,14 @@ const filteredPatients = computed(() => {
             p.patient_number.toLowerCase().includes(term),
     )
 })
+
+// reka-ui Select cannot deselect and rejects empty-string item values, so
+// the "No dentist assigned" state is represented by SelectField's noneLabel
+// sentinel item: picking it emits '' — preserving the previous native
+// <option value=""> reset-to-empty behavior.
+const dentistOptions = computed(() =>
+    props.dentists.map((d) => ({ value: String(d.id), label: d.name })),
+)
 
 const createForm = useForm({
     patient_id: '',
@@ -223,7 +231,7 @@ watch(
                 >
                     <ChevronLeft class="h-5 w-5" />
                 </button>
-                <Button v-if="!isToday" variant="outline" @click="goTo(todayLocal())">
+                <Button v-if="!isToday" variant="outline" size="md" @click="goTo(todayLocal())">
                     Today
                 </Button>
                 <button
@@ -288,13 +296,10 @@ watch(
             </div>
 
             <div>
-                <label for="patient_search" class="mb-1.5 block text-sm font-medium text-gray-700">
-                    Patient
-                    <span class="text-status-cancelled">*</span>
-                </label>
-                <Input
+                <TextInput
                     id="patient_search"
                     v-model="patientSearch"
+                    label="Patient"
                     type="search"
                     placeholder="Search by name or patient number…"
                 />
@@ -326,42 +331,31 @@ watch(
             </div>
 
             <div>
-                <label for="dentist_id" class="mb-1.5 block text-sm font-medium text-gray-700">
-                    Dentist
-                </label>
-                <select
+                <SelectField
                     id="dentist_id"
                     v-model="createForm.dentist_id"
-                    :aria-invalid="createForm.errors.dentist_id ? 'true' : 'false'"
-                    class="h-11 w-full rounded-lg border bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
-                    :class="createForm.errors.dentist_id ? 'border-status-cancelled' : 'border-gray-300'"
-                >
-                    <option value="">No dentist assigned</option>
-                    <option v-for="d in dentists" :key="d.id" :value="d.id">{{ d.name }}</option>
-                </select>
-                <p v-if="createForm.errors.dentist_id" class="mt-1.5 text-xs text-status-cancelled">
-                    {{ createForm.errors.dentist_id }}
-                </p>
+                    label="Dentist"
+                    noneLabel="No dentist assigned"
+                    :options="dentistOptions"
+                    :error="createForm.errors.dentist_id"
+                />
             </div>
 
             <div class="grid grid-cols-1 gap-5 sm:grid-cols-3">
-                <Input v-model="createForm.appointment_date" type="date" label="Date" required :error="createForm.errors.appointment_date" />
-                <Input v-model="createForm.start_time" type="time" label="Start" required :error="createForm.errors.start_time" />
-                <Input v-model="createForm.end_time" type="time" label="End" :error="createForm.errors.end_time" />
+                <DateField v-model="createForm.appointment_date" label="Date" required :error="createForm.errors.appointment_date" />
+                <TextInput v-model="createForm.start_time" type="time" label="Start" required :error="createForm.errors.start_time" />
+                <TextInput v-model="createForm.end_time" type="time" label="End" :error="createForm.errors.end_time" />
             </div>
 
             <div>
-                <label for="create_reason" class="mb-1.5 block text-sm font-medium text-gray-700">Reason</label>
-                <textarea
+                <TextareaField
                     id="create_reason"
                     v-model="createForm.reason"
+                    label="Reason"
                     :rows="2"
                     placeholder="Optional…"
-                    class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
+                    :error="createForm.errors.reason"
                 />
-                <p v-if="createForm.errors.reason" class="mt-1.5 text-xs text-status-cancelled">
-                    {{ createForm.errors.reason }}
-                </p>
             </div>
 
             <p v-if="createForm.errors.appointment" class="rounded-lg bg-status-cancelled/10 px-4 py-3 text-sm font-medium text-status-cancelled">
@@ -448,21 +442,15 @@ watch(
         <form class="space-y-5 p-6" @submit.prevent="submitCancel">
             <h2 class="text-lg font-semibold text-gray-800">Cancel appointment</h2>
             <div>
-                <label for="cancel_reason" class="mb-1.5 block text-sm font-medium text-gray-700">
-                    Reason
-                    <span class="text-status-cancelled">*</span>
-                </label>
-                <textarea
+                <TextareaField
                     id="cancel_reason"
                     v-model="cancelForm.reason"
+                    label="Reason"
+                    required
                     :rows="3"
                     placeholder="Why is this appointment being cancelled?"
-                    class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
-                    :class="cancelForm.errors.reason ? 'border-status-cancelled' : ''"
+                    :error="cancelForm.errors.reason"
                 />
-                <p v-if="cancelForm.errors.reason" class="mt-1.5 text-xs text-status-cancelled">
-                    {{ cancelForm.errors.reason }}
-                </p>
             </div>
             <div class="flex items-center justify-end gap-2">
                 <Button variant="outline" size="sm" type="button" :disabled="cancelForm.processing" @click="showCancel = false">
@@ -479,10 +467,10 @@ watch(
         <form class="space-y-5 p-6" @submit.prevent="submitReschedule">
             <h2 class="text-lg font-semibold text-gray-800">Reschedule appointment</h2>
             <div class="grid grid-cols-1 gap-5">
-                <Input v-model="rescheduleForm.appointment_date" type="date" label="Date" required :error="rescheduleForm.errors.appointment_date" />
+                <DateField v-model="rescheduleForm.appointment_date" label="Date" required :error="rescheduleForm.errors.appointment_date" />
                 <div class="grid grid-cols-2 gap-4">
-                    <Input v-model="rescheduleForm.start_time" type="time" label="Start" required :error="rescheduleForm.errors.start_time" />
-                    <Input v-model="rescheduleForm.end_time" type="time" label="End" :error="rescheduleForm.errors.end_time" />
+                    <TextInput v-model="rescheduleForm.start_time" type="time" label="Start" required :error="rescheduleForm.errors.start_time" />
+                    <TextInput v-model="rescheduleForm.end_time" type="time" label="End" :error="rescheduleForm.errors.end_time" />
                 </div>
             </div>
             <p v-if="rescheduleForm.errors.appointment" class="rounded-lg bg-status-cancelled/10 px-4 py-3 text-sm font-medium text-status-cancelled">

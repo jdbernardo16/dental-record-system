@@ -5,9 +5,7 @@ import { Head, useForm } from '@inertiajs/vue3'
 import { route } from '../../../../vendor/tightenco/ziggy'
 import AppLayout from '@/Layouts/AppLayout.vue'
 import { Button } from '@/Components/ui/button'
-import FormField from '@/Components/FormField.vue'
-import { Input } from '@/Components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select'
+import { SelectField, TextInput } from '@/Components/Fields'
 import { useToastStore } from '@/Stores/toast'
 
 defineOptions({ layout: AppLayout })
@@ -74,144 +72,95 @@ const submit = () => {
             <section class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
                 <h2 class="mb-4 text-xs font-semibold tracking-wide text-gray-400 uppercase">General</h2>
                 <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                    <FormField id="clinic_name" label="Clinic name" required :error="form.errors['clinic.name']">
-                        <template #default="{ id }">
-                            <Input
-                                :id="id"
-                                v-model="form.clinic.name"
-                                required
-                                :aria-invalid="form.errors['clinic.name'] ? 'true' : 'false'"
-                            />
-                        </template>
-                    </FormField>
-                    <FormField id="clinic_address" label="Address" :error="form.errors['clinic.address']">
-                        <template #default="{ id }">
-                            <Input
-                                :id="id"
-                                v-model="form.clinic.address"
-                                :aria-invalid="form.errors['clinic.address'] ? 'true' : 'false'"
-                            />
-                        </template>
-                    </FormField>
+                    <TextInput
+                        id="clinic_name"
+                        v-model="form.clinic.name"
+                        label="Clinic name"
+                        required
+                        :error="form.errors['clinic.name']"
+                    />
+                    <TextInput
+                        id="clinic_address"
+                        v-model="form.clinic.address"
+                        label="Address"
+                        :error="form.errors['clinic.address']"
+                    />
                 </div>
             </section>
 
             <section class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
                 <h2 class="mb-4 text-xs font-semibold tracking-wide text-gray-400 uppercase">Scheduling</h2>
                 <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                    <FormField
+                    <SelectField
                         id="appointment_overlap"
+                        v-model="overlapValue"
                         label="Allow overlapping appointments"
+                        :options="[
+                            { value: 'false', label: 'No' },
+                            { value: 'true', label: 'Yes' },
+                        ]"
                         :error="form.errors['appointment.overlap']"
-                    >
-                        <template #default="{ id }">
-                            <Select v-model="overlapValue" name="appointment_overlap">
-                                <SelectTrigger
-                                    :id="id"
-                                    class="w-full"
-                                    :aria-invalid="form.errors['appointment.overlap'] ? 'true' : 'false'"
-                                >
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="false">No</SelectItem>
-                                    <SelectItem value="true">Yes</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </template>
-                    </FormField>
+                    />
                 </div>
             </section>
 
             <section class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
                 <h2 class="mb-4 text-xs font-semibold tracking-wide text-gray-400 uppercase">Patient records</h2>
                 <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                    <FormField
+                    <SelectField
                         id="patient_number_prefix"
+                        v-model="form.patient.number.prefix"
                         label="Patient number format"
+                        :options="[{ value: 'year', label: 'Year-based (YYYY-NNNN)' }]"
                         :error="form.errors['patient.number.prefix']"
-                    >
-                        <template #default="{ id }">
-                            <Select v-model="form.patient.number.prefix" name="patient_number_prefix">
-                                <SelectTrigger
-                                    :id="id"
-                                    class="w-full"
-                                    :aria-invalid="form.errors['patient.number.prefix'] ? 'true' : 'false'"
-                                >
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="year">Year-based (YYYY-NNNN)</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </template>
-                    </FormField>
+                    />
                 </div>
             </section>
 
             <section class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
                 <h2 class="mb-4 text-xs font-semibold tracking-wide text-gray-400 uppercase">Consent</h2>
                 <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                    <FormField id="consent_version" label="Consent form version" required :error="form.errors['consent.version']">
-                        <template #default="{ id }">
-                            <Input
-                                :id="id"
-                                v-model="form.consent.version"
-                                required
-                                maxlength="10"
-                                :aria-invalid="form.errors['consent.version'] ? 'true' : 'false'"
-                            />
-                        </template>
-                    </FormField>
+                    <TextInput
+                        id="consent_version"
+                        v-model="form.consent.version"
+                        label="Consent form version"
+                        required
+                        maxlength="10"
+                        :error="form.errors['consent.version']"
+                    />
                 </div>
             </section>
 
             <section class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
                 <h2 class="mb-4 text-xs font-semibold tracking-wide text-gray-400 uppercase">Uploads</h2>
                 <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                    <FormField
+                    <TextInput
                         id="attachment_max_size_mb"
+                        v-model="form.attachment.max_size_mb"
+                        type="number"
                         label="Max file size (MB)"
                         required
+                        min="1"
+                        max="512"
                         :error="form.errors['attachment.max_size_mb']"
-                    >
-                        <template #default="{ id }">
-                            <Input
-                                :id="id"
-                                v-model="form.attachment.max_size_mb"
-                                type="number"
-                                required
-                                min="1"
-                                max="512"
-                                :aria-invalid="form.errors['attachment.max_size_mb'] ? 'true' : 'false'"
-                            />
-                        </template>
-                    </FormField>
+                    />
                 </div>
             </section>
 
             <section class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
                 <h2 class="mb-4 text-xs font-semibold tracking-wide text-gray-400 uppercase">Archiving</h2>
                 <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                    <FormField
+                    <TextInput
                         id="archive_inactivity_years"
+                        v-model="form.archive.inactivity_years"
+                        type="number"
                         label="Archive after (years)"
                         required
-                        :error="form.errors['archive.inactivity_years']"
+                        min="1"
+                        max="20"
                         hint="Patients with no activity for this many years are soft-deleted, then purged after the grace period."
-                    >
-                        <template #default="{ id }">
-                            <Input
-                                :id="id"
-                                v-model="form.archive.inactivity_years"
-                                type="number"
-                                required
-                                min="1"
-                                max="20"
-                                :aria-invalid="form.errors['archive.inactivity_years'] ? 'true' : 'false'"
-                            />
-                        </template>
-                    </FormField>
+                        :error="form.errors['archive.inactivity_years']"
+                    />
                 </div>
             </section>
 

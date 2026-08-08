@@ -6,7 +6,8 @@ import { route } from '../../../../vendor/tightenco/ziggy'
 import AppLayout from '@/Layouts/AppLayout.vue'
 import AttachmentPreviewModal from '@/Components/AttachmentPreviewModal.vue'
 import Badge from '@/Components/Badge.vue'
-import Button from '@/Components/Button.vue'
+import { Button } from '@/Components/ui/button'
+import { SelectField, TextareaField } from '@/Components/Fields'
 import ConsultationForm from '@/Components/Wizard/ConsultationForm.vue'
 import MedicalHistoryForm from '@/Components/Wizard/MedicalHistoryForm.vue'
 import SignaturePadModal from '@/Components/SignaturePadModal.vue'
@@ -408,6 +409,17 @@ const xrayLabels = Object.fromEntries(
         type,
         type.replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase()),
     ]),
+)
+
+const categoryOptions = computed(() =>
+    Object.entries(props.attachmentOptions?.categories ?? {}).map(([value, meta]) => ({
+        value,
+        label: meta.label,
+    })),
+)
+
+const xrayOptions = computed(() =>
+    (props.attachmentOptions?.xrayTypes ?? []).map((type) => ({ value: type, label: xrayLabels[type] })),
 )
 
 const activeCategory = ref('all')
@@ -1174,59 +1186,32 @@ const confirmDeleteAttachment = (attachment) => {
                         </div>
 
                         <div>
-                            <label for="attachment_category" class="mb-1.5 block text-sm font-medium text-gray-700">
-                                Category
-                            </label>
-                            <select
-                                id="attachment_category"
+                            <SelectField
                                 v-model="uploadForm.category"
-                                class="h-11 w-full rounded-lg border bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
-                                :class="uploadForm.errors.category ? 'border-status-cancelled' : 'border-gray-300'"
-                            >
-                                <option v-for="(meta, value) in attachmentOptions?.categories ?? {}" :key="value" :value="value">
-                                    {{ meta.label }}
-                                </option>
-                            </select>
-                            <p v-if="uploadForm.errors.category" class="mt-1.5 text-xs text-status-cancelled">
-                                {{ uploadForm.errors.category }}
-                            </p>
+                                label="Category"
+                                :error="uploadForm.errors.category"
+                                :options="categoryOptions"
+                            />
                         </div>
 
                         <div v-if="uploadForm.category === 'xray'">
-                            <label for="attachment_xray_type" class="mb-1.5 block text-sm font-medium text-gray-700">
-                                X-ray type
-                            </label>
-                            <select
-                                id="attachment_xray_type"
+                            <SelectField
                                 v-model="uploadForm.xray_type"
-                                class="h-11 w-full rounded-lg border bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
-                                :class="uploadForm.errors.xray_type ? 'border-status-cancelled' : 'border-gray-300'"
-                            >
-                                <option value="">Select type…</option>
-                                <option v-for="type in attachmentOptions?.xrayTypes ?? []" :key="type" :value="type">
-                                    {{ xrayLabels[type] }}
-                                </option>
-                            </select>
-                            <p v-if="uploadForm.errors.xray_type" class="mt-1.5 text-xs text-status-cancelled">
-                                {{ uploadForm.errors.xray_type }}
-                            </p>
+                                label="X-ray type"
+                                placeholder="Select type…"
+                                :error="uploadForm.errors.xray_type"
+                                :options="xrayOptions"
+                            />
                         </div>
 
                         <div class="sm:col-span-2">
-                            <label for="attachment_notes" class="mb-1.5 block text-sm font-medium text-gray-700">
-                                Notes
-                            </label>
-                            <textarea
-                                id="attachment_notes"
+                            <TextareaField
                                 v-model="uploadForm.notes"
+                                label="Notes"
                                 :rows="2"
                                 placeholder="Optional notes about this file…"
-                                class="w-full rounded-lg border bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10"
-                                :class="uploadForm.errors.notes ? 'border-status-cancelled' : 'border-gray-300'"
+                                :error="uploadForm.errors.notes"
                             />
-                            <p v-if="uploadForm.errors.notes" class="mt-1.5 text-xs text-status-cancelled">
-                                {{ uploadForm.errors.notes }}
-                            </p>
                         </div>
                     </div>
 

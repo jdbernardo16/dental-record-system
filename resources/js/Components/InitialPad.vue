@@ -2,7 +2,7 @@
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { Eraser } from 'lucide-vue-next'
 import { VueSignaturePad } from 'vue-signature-pad'
-import Button from '@/Components/Button.vue'
+import { Button } from '@/Components/ui/button'
 
 defineProps({
     modelValue: { type: String, default: null },

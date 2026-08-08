@@ -1,8 +1,8 @@
 <script setup>
 import { useForm } from '@inertiajs/vue3'
 import { route } from '../../../../vendor/tightenco/ziggy'
-import Button from '@/Components/Button.vue'
-import Input from '@/Components/Input.vue'
+import { Button } from '@/Components/ui/button'
+import { DateField, SelectField, TextInput, TextareaField } from '@/Components/Fields'
 import { useToastStore } from '@/Stores/toast'
 import { computed } from 'vue'
 import { errorList, scrollToFirstError } from '@/lib/scroll'
@@ -46,6 +46,20 @@ const form = useForm({
 
 const formErrorList = computed(() => errorList(form.errors))
 
+// toothOptions arrives as a plain array of tooth labels — flatten to
+// SelectField's [{ value, label }] shape.
+const toothSelectOptions = computed(() =>
+    props.toothOptions.map((tooth) => ({ value: tooth, label: tooth })),
+)
+
+// consultations arrive as objects — label them like the old <select> did.
+const consultationSelectOptions = computed(() =>
+    props.consultations.map((consultation) => ({
+        value: String(consultation.id),
+        label: `#${consultation.id} — ${consultation.chief_complaint}`,
+    })),
+)
+
 const submit = () => {
     form.post(route('treatments.store', props.patientId), {
         // keep the wizard on the treatment step — a remount would resume a completed intake at step 0
@@ -59,16 +73,6 @@ const submit = () => {
         onError: () => scrollToFirstError(),
     })
 }
-
-const selectClasses = (field) => [
-    'h-11 w-full rounded-lg border bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10',
-    form.errors[field] ? 'border-status-cancelled' : 'border-gray-300',
-]
-
-const textareaClasses = (field) => [
-    'w-full rounded-lg border bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-2 focus:ring-brand-500/10',
-    form.errors[field] ? 'border-status-cancelled' : 'border-gray-300',
-]
 </script>
 
 <template>
@@ -82,104 +86,77 @@ const textareaClasses = (field) => [
         </ul>
 
         <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
-            <Input
+            <DateField
                 v-model="form.treatment_date"
-                type="date"
                 label="Treatment date"
                 required
                 :error="form.errors.treatment_date"
             />
 
             <div>
-                <label for="tooth_number" class="mb-1.5 block text-sm font-medium text-gray-700">Tooth</label>
-                <select
+                <SelectField
                     id="tooth_number"
                     v-model="form.tooth_number"
-                    :class="selectClasses('tooth_number')"
-                >
-                    <option value="">Non-tooth procedure</option>
-                    <option v-for="tooth in toothOptions" :key="tooth" :value="tooth">{{ tooth }}</option>
-                </select>
-                <p v-if="form.errors.tooth_number" class="mt-1.5 text-xs text-status-cancelled">
-                    {{ form.errors.tooth_number }}
-                </p>
+                    label="Tooth"
+                    noneLabel="Non-tooth procedure"
+                    :options="toothSelectOptions"
+                    :error="form.errors.tooth_number"
+                />
             </div>
 
             <div class="sm:col-span-2">
-                <label for="procedure_name" class="mb-1.5 block text-sm font-medium text-gray-700">
-                    Procedure
-                    <span class="text-status-cancelled">*</span>
-                </label>
-                <input
+                <TextInput
                     id="procedure_name"
                     v-model="form.procedure_name"
-                    type="text"
+                    label="Procedure"
+                    required
                     list="treatment-procedures"
                     placeholder="e.g. Composite restoration"
-                    :class="selectClasses('procedure_name')"
+                    :error="form.errors.procedure_name"
                 />
                 <datalist id="treatment-procedures">
                     <option v-for="procedure in procedures" :key="procedure" :value="procedure" />
                 </datalist>
-                <p v-if="form.errors.procedure_name" class="mt-1.5 text-xs text-status-cancelled">
-                    {{ form.errors.procedure_name }}
-                </p>
             </div>
 
             <div>
-                <label for="consultation_id" class="mb-1.5 block text-sm font-medium text-gray-700">
-                    Linked consultation
-                </label>
-                <select
+                <SelectField
                     id="consultation_id"
                     v-model="form.consultation_id"
-                    :class="selectClasses('consultation_id')"
-                >
-                    <option value="">None</option>
-                    <option
-                        v-for="consultation in consultations"
-                        :key="consultation.id"
-                        :value="consultation.id"
-                    >
-                        #{{ consultation.id }} — {{ consultation.chief_complaint }}
-                    </option>
-                </select>
-                <p v-if="form.errors.consultation_id" class="mt-1.5 text-xs text-status-cancelled">
-                    {{ form.errors.consultation_id }}
-                </p>
+                    label="Linked consultation"
+                    noneLabel="None"
+                    :options="consultationSelectOptions"
+                    :error="form.errors.consultation_id"
+                />
             </div>
 
             <div>
-                <label for="description" class="mb-1.5 block text-sm font-medium text-gray-700">Description</label>
-                <textarea
+                <TextareaField
                     id="description"
                     v-model="form.description"
+                    label="Description"
                     :rows="3"
                     placeholder="Procedure details…"
-                    :class="textareaClasses('description')"
+                    :error="form.errors.description"
                 />
-                <p v-if="form.errors.description" class="mt-1.5 text-xs text-status-cancelled">
-                    {{ form.errors.description }}
-                </p>
             </div>
 
             <div>
-                <label for="notes" class="mb-1.5 block text-sm font-medium text-gray-700">Notes</label>
-                <textarea
+                <TextareaField
                     id="notes"
                     v-model="form.notes"
+                    label="Notes"
                     :rows="3"
                     placeholder="Additional notes…"
-                    :class="textareaClasses('notes')"
+                    :error="form.errors.notes"
                 />
-                <p v-if="form.errors.notes" class="mt-1.5 text-xs text-status-cancelled">
-                    {{ form.errors.notes }}
-                </p>
             </div>
         </div>
 
         <div class="flex items-center justify-end gap-2">
-            <Button type="submit" :disabled="form.processing">{{ form.processing ? 'Saving…' : 'Save treatment' }}</Button>
+            <Button size="md" type="submit" :disabled="form.processing">
+                {{ form.processing ? 'Saving…' : 'Save treatment' }}
+            </Button>
         </div>
     </form>
 </template>

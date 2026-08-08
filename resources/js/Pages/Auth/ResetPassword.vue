@@ -1,9 +1,8 @@
 <script setup>
 import { scrollToFirstError } from '@/lib/scroll'
 import { Button } from '@/Components/ui/button'
-import FormField from '@/Components/FormField.vue'
+import { TextInput } from '@/Components/Fields'
 import GuestLayout from '@/Layouts/GuestLayout.vue'
-import { Input } from '@/Components/ui/input'
 import { Head, useForm } from '@inertiajs/vue3'
 
 const props = defineProps({
@@ -37,56 +36,39 @@ const submit = () => {
         <Head title="Reset Password" />
 
         <form @submit.prevent="submit">
-            <FormField id="email" label="Email" required :error="form.errors.email">
-                <template #default="{ id }">
-                    <Input
-                        :id="id"
-                        v-model="form.email"
-                        type="email"
-                        class="w-full"
-                        required
-                        autofocus
-                        autocomplete="username"
-                        :aria-invalid="form.errors.email ? 'true' : 'false'"
-                    />
-                </template>
-            </FormField>
+            <TextInput
+                v-model="form.email"
+                label="Email"
+                required
+                type="email"
+                :error="form.errors.email"
+                class="w-full"
+                autofocus
+                autocomplete="username"
+            />
 
             <div class="mt-4">
-                <FormField id="password" label="Password" required :error="form.errors.password">
-                    <template #default="{ id }">
-                        <Input
-                            :id="id"
-                            v-model="form.password"
-                            type="password"
-                            class="w-full"
-                            required
-                            autocomplete="new-password"
-                            :aria-invalid="form.errors.password ? 'true' : 'false'"
-                        />
-                    </template>
-                </FormField>
+                <TextInput
+                    v-model="form.password"
+                    label="Password"
+                    required
+                    type="password"
+                    :error="form.errors.password"
+                    class="w-full"
+                    autocomplete="new-password"
+                />
             </div>
 
             <div class="mt-4">
-                <FormField
-                    id="password_confirmation"
+                <TextInput
+                    v-model="form.password_confirmation"
                     label="Confirm Password"
                     required
+                    type="password"
                     :error="form.errors.password_confirmation"
-                >
-                    <template #default="{ id }">
-                        <Input
-                            :id="id"
-                            v-model="form.password_confirmation"
-                            type="password"
-                            class="w-full"
-                            required
-                            autocomplete="new-password"
-                            :aria-invalid="form.errors.password_confirmation ? 'true' : 'false'"
-                        />
-                    </template>
-                </FormField>
+                    class="w-full"
+                    autocomplete="new-password"
+                />
             </div>
 
             <div class="mt-6">

@@ -4,7 +4,7 @@ import { ChevronLeft, ChevronRight, Pencil, Plus, Trash2 } from 'lucide-vue-next
 import { route } from '../../../../vendor/tightenco/ziggy'
 import AppLayout from '@/Layouts/AppLayout.vue'
 import Badge from '@/Components/Badge.vue'
-import Button from '@/Components/Button.vue'
+import { Button } from '@/Components/ui/button'
 
 defineOptions({ layout: AppLayout })
 
@@ -53,7 +53,7 @@ const goTo = (url) => {
                 <p class="mt-1 text-sm text-gray-500">Manage clinic staff accounts and roles.</p>
             </div>
             <Link v-if="can.create" :href="route('users.create')" class="inline-block">
-                <Button variant="primary" size="sm">
+                <Button variant="default" size="sm">
                     <Plus class="h-4 w-4" />
                     Add user
                 </Button>

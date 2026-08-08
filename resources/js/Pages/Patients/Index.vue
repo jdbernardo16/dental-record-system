@@ -4,8 +4,8 @@ import { Head, Link, router } from '@inertiajs/vue3'
 import { ChevronLeft, ChevronRight, Eye, Pencil, Plus, Search, Trash2 } from 'lucide-vue-next'
 import { route } from '../../../../vendor/tightenco/ziggy'
 import AppLayout from '@/Layouts/AppLayout.vue'
-import Button from '@/Components/Button.vue'
-import Input from '@/Components/Input.vue'
+import { TextInput } from '@/Components/Fields'
+import { Button } from '@/Components/ui/button'
 import { useToastStore } from '@/Stores/toast'
 
 defineOptions({ layout: AppLayout })
@@ -67,7 +67,7 @@ const goTo = (url) => {
                 <p class="mt-1 text-sm text-gray-500">Search the registry and manage patient records.</p>
             </div>
             <Link v-if="can.create" :href="route('patients.create')" class="inline-block">
-                <Button variant="primary" size="sm">
+                <Button variant="default" size="sm">
                     <Plus class="h-4 w-4" />
                     Register patient
                 </Button>
@@ -75,7 +75,7 @@ const goTo = (url) => {
         </div>
 
         <div class="max-w-md">
-            <Input
+            <TextInput
                 v-model="search"
                 label="Search"
                 placeholder="Name, patient number, or contact…"
