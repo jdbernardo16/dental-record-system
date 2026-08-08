@@ -7,6 +7,7 @@ import VueApexCharts from 'vue3-apexcharts'
 import AppLayout from '@/Layouts/AppLayout.vue'
 import { Button } from '@/Components/ui/button'
 import { DateField } from '@/Components/Fields'
+import { jdcColors } from '@/lib/colors'
 
 const apexchart = VueApexCharts
 
@@ -63,11 +64,11 @@ const statusLabels = {
 }
 
 const statusTokenColors = {
-    'status-pending': 'oklch(0.71 0.16 85)',
-    'status-confirmed': 'oklch(0.55 0.25 263)',
-    'status-completed': 'oklch(0.65 0.24 152)',
-    'status-cancelled': 'oklch(0.45 0.01 280)',
-    'status-no-show': 'oklch(0.64 0.24 25)',
+    'status-pending': jdcColors.status.pending,
+    'status-confirmed': jdcColors.status.confirmed,
+    'status-completed': jdcColors.status.completed,
+    'status-cancelled': jdcColors.status.cancelled,
+    'status-no-show': jdcColors.status['no-show'],
 }
 
 const summaryMonths = computed(() => props.appointmentSummary.map((row) => row.month))
@@ -101,7 +102,7 @@ const conditionCategories = computed(() =>
 )
 const conditionColors = computed(() =>
     conditionRows.value.map(
-        (row) => conditionTokenColors[props.conditionLabels[row.condition]?.color] ?? 'oklch(0.60 0.10 200)',
+        (row) => conditionTokenColors[props.conditionLabels[row.condition]?.color] ?? jdcColors.brand[500],
     ),
 )
 const conditionSeries = computed(() => [{ name: 'Teeth', data: conditionRows.value.map((row) => row.count) }])
@@ -121,18 +122,18 @@ const baseChartOptions = (categories, { stacked = false, horizontal = false, col
         toolbar: { show: false },
         fontFamily: 'inherit',
     },
-    colors: colors.length ? colors : ['oklch(0.60 0.10 200)'], // brand-500
+    colors: colors.length ? colors : [jdcColors.brand[500]], // JDC brand-500
     plotOptions: { bar: { borderRadius: 6, columnWidth: '40%', horizontal } },
     dataLabels: { enabled: false },
-    grid: { borderColor: 'oklch(0.928 0.006 264.531)', strokeDashArray: 4 }, // gray-200
+    grid: { borderColor: jdcColors.gray[200], strokeDashArray: 4 }, // JDC gray-200
     xaxis: {
         categories,
         axisBorder: { show: false },
         axisTicks: { show: false },
-        labels: { style: { colors: 'oklch(0.551 0.027 264.364)' } }, // gray-500
+        labels: { style: { colors: jdcColors.gray[500] } }, // JDC gray-500
     },
     yaxis: {
-        labels: { style: { colors: 'oklch(0.551 0.027 264.364)' } },
+        labels: { style: { colors: jdcColors.gray[500] } },
     },
     legend: { position: 'top', horizontalAlign: 'right' },
     tooltip: { shared: true, intersect: false },
@@ -150,7 +151,7 @@ const summaryOptions = computed(() =>
 const procedureOptions = computed(() =>
     baseChartOptions(procedureCategories.value, {
         horizontal: true,
-        colors: ['oklch(0.70 0.09 200)'], // brand-400
+        colors: [jdcColors.brand[400]], // JDC brand-400
     }),
 )
 const conditionOptions = computed(() =>
@@ -162,7 +163,7 @@ const conditionOptions = computed(() =>
 const workloadOptions = computed(() =>
     baseChartOptions(workloadCategories.value, {
         horizontal: true,
-        colors: ['oklch(0.53 0.09 200)'], // brand-600
+        colors: [jdcColors.brand[600]], // JDC brand-600
     }),
 )
 </script>

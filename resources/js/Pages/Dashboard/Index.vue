@@ -15,6 +15,7 @@ import AppLayout from '@/Layouts/AppLayout.vue'
 import Badge from '@/Components/Badge.vue'
 import { Button } from '@/Components/ui/button'
 import { Card, CardAction, CardContent, CardFooter, CardHeader, CardTitle } from '@/Components/ui/card'
+import { jdcColors } from '@/lib/colors'
 
 const apexchart = VueApexCharts
 
@@ -76,18 +77,18 @@ const chartOptions = computed(() => ({
         toolbar: { show: false },
         fontFamily: 'inherit',
     },
-    colors: ['oklch(0.60 0.10 200)', 'oklch(0.79 0.08 200)'], // brand-500, brand-300 tokens
+    colors: [jdcColors.brand[500], jdcColors.brand[300]], // JDC brand tokens
     plotOptions: { bar: { borderRadius: 6, columnWidth: '40%' } },
     dataLabels: { enabled: false },
-    grid: { borderColor: 'oklch(0.928 0.006 264.531)', strokeDashArray: 4 }, // gray-200
+    grid: { borderColor: jdcColors.gray[200], strokeDashArray: 4 }, // JDC gray-200
     xaxis: {
         categories: props.monthlyStats.series.labels,
         axisBorder: { show: false },
         axisTicks: { show: false },
-        labels: { style: { colors: 'oklch(0.551 0.027 264.364)' } }, // gray-500
+        labels: { style: { colors: jdcColors.gray[500] } }, // JDC gray-500
     },
     yaxis: {
-        labels: { style: { colors: 'oklch(0.551 0.027 264.364)' } },
+        labels: { style: { colors: jdcColors.gray[500] } },
     },
     legend: { position: 'top', horizontalAlign: 'right' },
     tooltip: { shared: true, intersect: false },
