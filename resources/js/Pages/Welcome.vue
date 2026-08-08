@@ -2,7 +2,6 @@
 import { computed } from 'vue';
 import { Head, Link, usePage } from '@inertiajs/vue3';
 import { Users, ScanLine, CalendarDays } from 'lucide-vue-next';
-import BrandMark from '@/Components/BrandMark.vue';
 import { Button } from '@/Components/ui/button';
 
 defineProps({
@@ -26,7 +25,7 @@ const clinic = computed(() => page.props.clinic ?? { name: 'Dental Clinic', addr
         <div class="mx-auto max-w-6xl px-4 sm:px-6">
             <header class="flex items-center justify-between py-5">
                 <div class="flex items-center gap-2.5">
-                    <BrandMark class="h-9 w-9 text-brand-500" />
+                    <img src="/images/jdc-rectangle.png" alt="Jerrmond Dental Clinic" class="h-12 w-auto" />
                     <span class="text-lg font-semibold text-gray-900">{{ clinic.name }}</span>
                 </div>
 
@@ -53,8 +52,10 @@ const clinic = computed(() => page.props.clinic ?? { name: 'Dental Clinic', addr
             </header>
 
             <section class="relative py-16 text-center sm:py-24">
-                <BrandMark
-                    class="pointer-events-none absolute left-1/2 top-1/2 h-64 w-64 -translate-x-1/2 -translate-y-1/2 text-brand-500/5"
+                <img
+                    src="/images/jdc-rectangle.png"
+                    alt=""
+                    class="pointer-events-none absolute left-1/2 top-1/2 h-64 w-64 -translate-x-1/2 -translate-y-1/2 object-contain opacity-5"
                 />
 
                 <div class="relative">
