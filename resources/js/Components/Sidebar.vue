@@ -9,7 +9,6 @@ import {
     LayoutDashboard,
     Settings,
     ShieldCheck,
-    Stethoscope,
     Users,
 } from 'lucide-vue-next'
 import Badge from '../Components/Badge.vue'
@@ -103,9 +102,7 @@ const isActive = (item) => {
                     !open && !hovered ? 'lg:justify-center lg:px-0' : '',
                 ]"
             >
-                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-500">
-                    <Stethoscope class="h-5 w-5 text-white" />
-                </span>
+                <img src="/images/jdc-square.png" alt="JDC Logo" class="h-10 w-10 rounded-xl" />
                 <span
                     v-if="open || hovered"
                     class="whitespace-nowrap text-base font-semibold text-gray-900"
