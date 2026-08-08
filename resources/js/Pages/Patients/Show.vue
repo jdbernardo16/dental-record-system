@@ -589,11 +589,11 @@ const confirmDeleteAttachment = (attachment) => {
                     <dl class="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
                         <div class="flex items-start justify-between gap-4">
                             <dt class="text-gray-500">Contact person</dt>
-                            <dd class="text-right font-medium text-gray-800">{{ patient.emergency_contact_person }}</dd>
+                            <dd class="text-right font-medium text-gray-800">{{ patient.emergency_contact_person || '—' }}</dd>
                         </div>
                         <div class="flex items-start justify-between gap-4">
                             <dt class="text-gray-500">Contact number</dt>
-                            <dd class="text-right font-medium text-gray-800">{{ patient.emergency_contact_number }}</dd>
+                            <dd class="text-right font-medium text-gray-800">{{ patient.emergency_contact_number || '—' }}</dd>
                         </div>
                     </dl>
                 </div>

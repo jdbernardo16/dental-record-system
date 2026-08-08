@@ -238,7 +238,7 @@ const printExport = () => {
                         <div class="flex justify-between gap-4"><dt class="text-gray-500">Address</dt><dd class="text-right font-medium text-gray-800">{{ patient.address }}</dd></div>
                         <div class="flex justify-between gap-4"><dt class="text-gray-500">Dental insurance</dt><dd class="font-medium text-gray-800">{{ patient.dental_insurance || '—' }}</dd></div>
                         <div class="flex justify-between gap-4"><dt class="text-gray-500">Effective date</dt><dd class="font-medium text-gray-800">{{ patient.effective_date || '—' }}</dd></div>
-                        <div class="flex justify-between gap-4"><dt class="text-gray-500">Emergency contact</dt><dd class="text-right font-medium text-gray-800">{{ patient.emergency_contact_person }} · {{ patient.emergency_contact_number }}</dd></div>
+                        <div class="flex justify-between gap-4"><dt class="text-gray-500">Emergency contact</dt><dd class="text-right font-medium text-gray-800">{{ [patient.emergency_contact_person, patient.emergency_contact_number].filter(Boolean).join(' · ') || '—' }}</dd></div>
                         <div v-if="patient.guardian_name" class="flex justify-between gap-4"><dt class="text-gray-500">Guardian</dt><dd class="text-right font-medium text-gray-800">{{ patient.guardian_name }}<span v-if="patient.guardian_occupation"> · {{ patient.guardian_occupation }}</span></dd></div>
                     </dl>
                 </div>

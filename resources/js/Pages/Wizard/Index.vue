@@ -475,7 +475,6 @@ const finishWizard = () => {
                             id="emergency_contact_person"
                             v-model="patientForm.emergency_contact_person"
                             label="Contact person"
-                            required
                             placeholder="John Reyes"
                             :error="patientForm.errors.emergency_contact_person"
                         />
@@ -483,7 +482,6 @@ const finishWizard = () => {
                             id="emergency_contact_number"
                             v-model="patientForm.emergency_contact_number"
                             label="Contact number"
-                            required
                             placeholder="0917 987 6543"
                             :error="patientForm.errors.emergency_contact_number"
                         />

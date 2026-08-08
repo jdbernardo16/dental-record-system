@@ -17,6 +17,19 @@ const dayTriggers = () => [...document.querySelectorAll('[data-reka-calendar-cel
 
 const dayByValue = (value) => dayTriggers().find((el) => el.getAttribute('data-value') === value)
 
+const monthSelect = () =>
+    document.querySelector('[data-slot="calendar"] select[aria-label="Select month"]')
+
+const yearSelect = () =>
+    document.querySelector('[data-slot="calendar"] select[aria-label="Select year"]')
+
+// Native selects are teleported to <body>; drive v-model via the change event.
+const changeSelect = async (el, value) => {
+    el.value = value
+    el.dispatchEvent(new Event('change', { bubbles: true }))
+    await flushPromises()
+}
+
 afterEach(async () => {
     await new Promise((resolve) => setTimeout(resolve, 0)) // settle popper autoUpdate/rAF
     document.body.innerHTML = ''
@@ -139,6 +152,60 @@ describe('DateField', () => {
     it('disables the trigger button', () => {
         const wrapper = mountField({ disabled: true })
         expect(wrapper.get('[data-slot="date-field-trigger"]').attributes('disabled')).toBeDefined()
+        wrapper.unmount()
+    })
+
+    it('renders month and year selects showing the current placeholder', async () => {
+        const wrapper = mountField({ modelValue: '2026-08-08' })
+        await openPopover(wrapper)
+
+        expect(monthSelect()).toBeTruthy()
+        expect(yearSelect()).toBeTruthy()
+        // 12 months, January–December.
+        expect(monthSelect().options).toHaveLength(12)
+        expect(monthSelect().options[0].textContent).toBe('January')
+        expect(monthSelect().options[11].textContent).toBe('December')
+        expect(monthSelect().value).toBe('8')
+        // Year range starts 120 years back (birth date use case) through today.
+        expect(yearSelect().value).toBe('2026')
+        expect(Number(yearSelect().options[0].value)).toBe(new Date().getFullYear() - 120)
+        wrapper.unmount()
+    })
+
+    it('jumps to a target month via the month select', async () => {
+        const wrapper = mountField({ modelValue: '2026-08-08' })
+        await openPopover(wrapper)
+
+        await changeSelect(monthSelect(), '3')
+
+        expect(monthSelect().value).toBe('3')
+        // The grid now renders March 2026, not August 2026.
+        expect(dayByValue('2026-03-10')).toBeTruthy()
+        expect(dayByValue('2026-08-10')).toBeUndefined()
+        wrapper.unmount()
+    })
+
+    it('jumps to a past year via the year select and keeps it after picking a day', async () => {
+        const wrapper = mountField({ modelValue: '2026-08-08' })
+        await openPopover(wrapper)
+
+        await changeSelect(yearSelect(), '1997')
+
+        expect(yearSelect().value).toBe('1997')
+        // The grid now renders August 1997.
+        expect(dayByValue('1997-08-10')).toBeTruthy()
+        expect(dayByValue('2026-08-10')).toBeUndefined()
+
+        // Selecting a day still works and the placeholder follows the selection.
+        dayByValue('1997-08-10').click()
+        await flushPromises()
+        expect(wrapper.emitted('update:modelValue')?.[0]).toEqual(['1997-08-10'])
+
+        // Re-opening the calendar shows the picked month/year in the selects.
+        await wrapper.get('[data-slot="date-field-trigger"]').trigger('click')
+        await flushPromises()
+        expect(yearSelect().value).toBe('1997')
+        expect(monthSelect().value).toBe('8')
         wrapper.unmount()
     })
 })

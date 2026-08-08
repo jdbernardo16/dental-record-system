@@ -15,7 +15,6 @@ import {
     CalendarGridRow,
     CalendarHeadCell,
     CalendarHeader,
-    CalendarHeading,
     CalendarNextButton,
     CalendarPrevButton,
 } from '@/Components/ui/calendar'
@@ -70,6 +69,47 @@ const calendarValue = computed({
 const minDate = computed(() => toCalendarDate(props.min))
 const maxDate = computed(() => toCalendarDate(props.max))
 
+// Controlled placeholder (reka-ui CalendarRoot `placeholder` prop): the month
+// displayed in the calendar header. Initialized to the modelValue's month when
+// set, otherwise today. reka-ui keeps it in sync when a day is picked
+// (update:placeholder) or when navigating with the prev/next arrows.
+const today = new Date()
+const todayYear = today.getFullYear()
+const todayMonth = today.getMonth() + 1
+const todayDay = today.getDate()
+
+const placeholderRef = ref(
+    toCalendarDate(props.modelValue) ?? new CalendarDate(todayYear, todayMonth, todayDay),
+)
+
+const monthNames = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December',
+]
+
+const placeholderMonth = computed({
+    get: () => placeholderRef.value.month,
+    set: (month) => {
+        placeholderRef.value = new CalendarDate(placeholderRef.value.year, Number(month), 1)
+    },
+})
+
+const placeholderYear = computed({
+    get: () => placeholderRef.value.year,
+    set: (year) => {
+        placeholderRef.value = new CalendarDate(Number(year), placeholderRef.value.month, 1)
+    },
+})
+
+// Year options span the min/max bounds when set (birth date use case: no
+// bounds → currentYear − 120 … currentYear); swap if the bounds ever invert.
+const yearOptions = computed(() => {
+    const min = props.min ? (toCalendarDate(props.min)?.year ?? todayYear - 120) : todayYear - 120
+    const max = props.max ? (toCalendarDate(props.max)?.year ?? todayYear) : todayYear
+    const [start, end] = min <= max ? [min, max] : [max, min]
+    return Array.from({ length: end - start + 1 }, (_, i) => start + i)
+})
+
 const displayValue = computed(() => {
     if (!props.modelValue) return ''
     const date = toLocalDate(props.modelValue)
@@ -117,11 +157,35 @@ const clearValue = () => {
                     :side-offset="6"
                     class="bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 w-auto rounded-md border shadow-md"
                 >
-                    <Calendar v-model="calendarValue" :min-value="minDate" :max-value="maxDate">
+                    <Calendar
+                        v-model="calendarValue"
+                        v-model:placeholder="placeholderRef"
+                        :min-value="minDate"
+                        :max-value="maxDate"
+                    >
                         <template #default="{ grid }">
                             <CalendarHeader>
                                 <CalendarPrevButton />
-                                <CalendarHeading />
+                                <div class="flex items-center gap-1">
+                                    <select
+                                        v-model="placeholderMonth"
+                                        aria-label="Select month"
+                                        class="h-8 rounded-md border border-input bg-transparent px-2 text-sm text-gray-800 shadow-xs outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+                                    >
+                                        <option v-for="(month, index) in monthNames" :key="month" :value="index + 1">
+                                            {{ month }}
+                                        </option>
+                                    </select>
+                                    <select
+                                        v-model="placeholderYear"
+                                        aria-label="Select year"
+                                        class="h-8 rounded-md border border-input bg-transparent px-2 text-sm text-gray-800 shadow-xs outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+                                    >
+                                        <option v-for="year in yearOptions" :key="year" :value="year">
+                                            {{ year }}
+                                        </option>
+                                    </select>
+                                </div>
                                 <CalendarNextButton />
                             </CalendarHeader>
                             <div class="mt-3 flex flex-col gap-3">

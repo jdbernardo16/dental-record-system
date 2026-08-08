@@ -146,14 +146,12 @@ const submit = () => {
                 <TextInput
                     v-model="form.emergency_contact_person"
                     label="Contact person"
-                    required
                     :error="form.errors.emergency_contact_person"
                     placeholder="John Reyes"
                 />
                 <TextInput
                     v-model="form.emergency_contact_number"
                     label="Contact number"
-                    required
                     :error="form.errors.emergency_contact_number"
                     placeholder="0917 987 6543"
                 />

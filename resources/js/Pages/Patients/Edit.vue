@@ -164,13 +164,11 @@ const confirmDelete = () => {
                 <TextInput
                     v-model="form.emergency_contact_person"
                     label="Contact person"
-                    required
                     :error="form.errors.emergency_contact_person"
                 />
                 <TextInput
                     v-model="form.emergency_contact_number"
                     label="Contact number"
-                    required
                     :error="form.errors.emergency_contact_number"
                 />
             </section>
