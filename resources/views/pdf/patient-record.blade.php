@@ -55,7 +55,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Patient Record — {{ $fullName }}</title>
+    <title>Patient Record - {{ $fullName }}</title>
     <style>
         @page { size: A4; margin: 16mm 14mm 18mm 14mm; }
         body { font-family: DejaVu Sans, sans-serif; font-size: 10pt; color: #1f2937; line-height: 1.45; }
@@ -75,6 +75,17 @@
         .footer { position: fixed; bottom: -12mm; left: 0; right: 0; text-align: center;
                   font-size: 8pt; color: #9ca3af; border-top: 1px solid #e5e7eb; padding-top: 3px; }
         .two-col { width: 50%; }
+        .consent-doc { page-break-before: always; border: 1px solid #d1d5db;
+                       border-radius: 4px; padding: 12px 14px; margin-bottom: 14px; }
+        .consent-title { font-size: 12pt; font-weight: bold; color: #111827; margin: 0 0 2px; }
+        .consent-meta { font-size: 8.5pt; color: #6b7280; margin: 0 0 8px; }
+        .sec-label { font-size: 9.5pt; font-weight: bold; color: #374151; margin: 0 0 2px; }
+        .sec-text { font-size: 9.5pt; color: #1f2937; margin: 0; line-height: 1.5; }
+        .quote { font-size: 9.5pt; font-style: italic; color: #374151;
+                 border-left: 3px solid #d1d5db; padding: 2px 8px; margin: 8px 0; }
+        .sig-table td { width: 33%; text-align: center; border: none; }
+        .sig-name { font-size: 9pt; font-weight: bold; color: #111827; margin: 4px 0 0; }
+        .sig-date { font-size: 8pt; color: #6b7280; margin: 0; }
     </style>
 </head>
 <body>
@@ -223,7 +234,7 @@
     @endif
 
     @if ($canViewClinical['consents'] && $consentForms->isNotEmpty())
-        <div class="section">Consent Forms</div>
+        <div class="section">Consent Forms — Summary</div>
         <table>
             <thead>
                 <tr><th style="width:16%">Date</th><th style="width:10%">Version</th><th>Status</th><th style="width:22%">Dentist</th></tr>
@@ -239,6 +250,101 @@
                 @endforeach
             </tbody>
         </table>
+
+        <div class="section">Consent Forms — Documents</div>
+
+        @php
+            // Signature/initial SVGs live on the public disk — inline them so
+            // the document shows the actual signatures and initials.
+            $svgOf = function (string|null $path): ?string {
+                if (! $path) {
+                    return null;
+                }
+                return \Illuminate\Support\Facades\Storage::disk('public')->exists($path)
+                    ? \Illuminate\Support\Facades\Storage::disk('public')->get($path)
+                    : null;
+            };
+            $fitSvg = fn (string $svg, int $w, int $h): string =>
+                preg_replace('/width="\d+" height="\d+"/', "width=\"{$w}\" height=\"{$h}\"", $svg, 1);
+        @endphp
+
+        @foreach ($consentForms as $consent)
+            @if ($enumValue($consent->status) === 'voided')
+                @continue {{-- voided drafts are just summary rows --}}
+            @endif
+
+            <div class="consent-doc">
+                <p class="consent-title">Informed Consent — v{{ $consent->version }}</p>
+                <p class="consent-meta">
+                    Status: <strong>{{ $statusLabel($enumValue($consent->status)) }}</strong>
+                    &nbsp;·&nbsp; Created {{ $consent->created_at?->format('F j, Y') }}
+                    &nbsp;·&nbsp; Dentist: {{ $consent->dentist?->name ?? '—' }}
+                </p>
+
+                <table>
+                    <tr>
+                        <td class="label-cell" style="width:22%">Patient</td>
+                        <td>{{ $consent->patient_name }}</td>
+                        <td class="label-cell" style="width:18%">Birth date</td>
+                        <td>{{ $consent->patient?->birth_date?->format('F j, Y') }}</td>
+                        <td class="label-cell" style="width:14%">Age</td>
+                        <td>{{ $consent->patient?->age }} years</td>
+                    </tr>
+                </table>
+
+                @foreach ($consent->sections as $section)
+                    <div style="margin:7px 0;">
+                        <p class="sec-label">{{ $loop->iteration }}. {{ $section->label }}</p>
+                        <p class="sec-text">{{ $section->text }}</p>
+                        @php $initialSvg = $svgOf($section->initial_svg_path); @endphp
+                        @if ($initialSvg)
+                            <div style="text-align:right;">
+                                {!! $fitSvg($initialSvg, 140, 42) !!}
+                            </div>
+                        @endif
+                    </div>
+                @endforeach
+
+                <p class="quote">“{{ $consent->consent_text['acknowledgment'] ?? '—' }}”</p>
+                <p class="quote">“{{ $consent->consent_text['authorization'] ?? '—' }}”</p>
+
+                @php
+                    $patientSvg = $svgOf($consent->patient_signature_path);
+                    $guardianSvg = $svgOf($consent->guardian_signature_path);
+                    $dentistSvg = $svgOf($consent->dentist_signature_path);
+                @endphp
+                @if ($patientSvg || $guardianSvg || $dentistSvg)
+                    <table class="sig-table">
+                        <tr>
+                            @if ($patientSvg)
+                                <td>
+                                    <p class="sec-label">Patient signature</p>
+                                    {!! $fitSvg($patientSvg, 230, 69) !!}
+                                    <p class="sig-name">{{ $consent->patient_name }}</p>
+                                    <p class="sig-date">{{ $consent->patient_signed_at?->format('M j, Y g:i A') }}</p>
+                                </td>
+                            @endif
+                            @if ($guardianSvg)
+                                <td>
+                                    <p class="sec-label">Parent / guardian signature</p>
+                                    {!! $fitSvg($guardianSvg, 230, 69) !!}
+                                    <p class="sig-name">{{ $consent->guardian_name }}</p>
+                                    <p class="sig-date">{{ $consent->patient_signed_at?->format('M j, Y g:i A') }}</p>
+                                </td>
+                            @endif
+                            @if ($dentistSvg)
+                                <td>
+                                    <p class="sec-label">Dentist signature</p>
+                                    {!! $fitSvg($dentistSvg, 230, 69) !!}
+                                    <p class="sig-name">{{ $consent->dentist?->name ?? '—' }}</p>
+                                    <p class="sig-date">{{ $consent->dentist_signed_at?->format('M j, Y g:i A') }}</p>
+                                </td>
+                            @endif
+                        </tr>
+                    </table>
+                @endif
+            </div>
+        @endforeach
     @endif
 
     <div class="footer">Generated by {{ $clinic['name'] }} — {{ $exportedAt }}</div>
