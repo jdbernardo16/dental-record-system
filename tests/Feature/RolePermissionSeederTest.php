@@ -19,6 +19,8 @@ it('seeds the three roles with the full permission catalogue', function () {
     expect($assistant->can('appointments.create'))->toBeTrue();
     expect($assistant->can('patients.create'))->toBeTrue();
     expect($assistant->can('patients.update'))->toBeTrue();
+    expect($assistant->can('medical-histories.create'))->toBeTrue();
     expect($assistant->can('attachments.upload'))->toBeTrue();
     expect($assistant->can('patients.delete'))->toBeFalse();
+    expect($assistant->can('medical-histories.view'))->toBeFalse();
 });

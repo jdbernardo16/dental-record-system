@@ -31,6 +31,7 @@ class RolePermissionSeeder extends Seeder
             // front-desk account type).
             'Assistant' => [
                 'patients.view', 'patients.create', 'patients.update',
+                'medical-histories.create',
                 'appointments.view', 'appointments.create', 'appointments.update',
                 'appointments.cancel', 'appointments.attendance',
                 'dental-chart.view',

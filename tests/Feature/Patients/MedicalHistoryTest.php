@@ -48,16 +48,18 @@ it('updates existing medical history instead of duplicating', function () {
     expect($patient->medicalHistory->hypertension)->toBe('yes');
 });
 
-it('blocks receptionists from editing medical history', function () {
-    $user = User::factory()->create()->assignRole('Assistant');
+it('lets assistants record medical history (intake completion)', function () {
+    $assistant = User::factory()->create()->assignRole('Assistant');
     $patient = Patient::factory()->create();
 
-    $this->actingAs($user)->post("/patients/{$patient->id}/medical-history", [
+    $this->actingAs($assistant)->post("/patients/{$patient->id}/medical-history", [
         'hypertension' => 'no', 'diabetes' => 'no', 'tuberculosis' => 'no',
         'heart_disease' => 'no', 'pregnancy' => 'no', 'allergies' => 'no',
         'medications' => 'no', 'smoking_history' => 'no',
         'alcohol_consumption' => 'no', 'previous_surgeries' => 'no',
-    ])->assertForbidden();
+    ])->assertRedirect();
+
+    expect($patient->medicalHistory->hypertension)->toBe('no');
 });
 
 it('rejects answer values outside the allowed set', function () {
