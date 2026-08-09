@@ -59,6 +59,12 @@ class WizardController extends Controller
             default => 0,
         };
 
+        // Explicit step override (e.g. "New waiver" on the patient record jumps
+        // straight to the medical history step). Clamped to the step range.
+        if ($request->has('step')) {
+            $resumeStep = min(max((int) $request->query('step'), 0), count(self::STEPS) - 1);
+        }
+
         $service = app(DentalChartService::class);
 
         $consentSections = array_map(

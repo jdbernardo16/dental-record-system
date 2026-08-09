@@ -849,7 +849,7 @@ const confirmDeleteAttachment = (attachment) => {
                             {{ appointments.total ? `${appointments.total} on record` : 'No appointments on record' }}
                         </p>
                     </div>
-                    <Link v-if="can.appointments?.view" :href="route('appointments.index')">
+                    <Link v-if="can.appointments?.view" :href="route('appointments.index', { patient: patient.id })">
                         <Button variant="outline" size="sm">View calendar</Button>
                     </Link>
                 </div>
@@ -1078,7 +1078,7 @@ const confirmDeleteAttachment = (attachment) => {
                     </div>
                     <Link
                         v-if="can.consents?.create"
-                        :href="route('wizard.index', patient.id)"
+                        :href="route('wizard.index', { patient: patient.id, step: 1 })"
                         class="inline-flex"
                     >
                         <Button variant="outline" size="sm">

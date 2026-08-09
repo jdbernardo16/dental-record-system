@@ -61,3 +61,14 @@ it('resumes an existing patient at the first incomplete step', function () {
     $this->actingAs($dentist)->get("/wizard/{$patient->id}")
         ->assertInertia(fn ($page) => $page->where('resumeStep', 4)); // 4 = dental chart
 });
+
+it('honors an explicit step query param (new waiver jumps to medical history)', function () {
+    $dentist = User::factory()->create()->assignRole('Dentist');
+    $patient = Patient::factory()->create();
+
+    $this->actingAs($dentist)->get("/wizard/{$patient->id}?step=1")
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('Wizard/Index')
+            ->where('resumeStep', 1)); // 1 = medical history
+});
