@@ -4,7 +4,7 @@ import Sidebar from '../Components/Sidebar.vue'
 import Header from '../Components/Header.vue'
 import Toast from '../Components/Toast.vue'
 
-const sidebarOpen = ref(false)
+const sidebarOpen = ref(window.innerWidth >= 1024)
 </script>
 
 <template>
