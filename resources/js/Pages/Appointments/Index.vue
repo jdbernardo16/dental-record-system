@@ -342,7 +342,7 @@ watch(
         </div>
     </div>
 
-    <Modal :show="showCreate" max-width="lg" @close="showCreate = false">
+    <Modal :show="showCreate" max-width="xl" @close="showCreate = false">
         <form class="space-y-5 p-6" @submit.prevent="submitCreate">
             <div class="flex items-center justify-between">
                 <h2 class="text-lg font-semibold text-gray-800">
@@ -653,7 +653,7 @@ watch(
 
     <Modal
         :show="showReschedule"
-        max-width="lg"
+        max-width="xl"
         @close="showReschedule = false"
     >
         <form class="space-y-5 p-6" @submit.prevent="submitReschedule">
