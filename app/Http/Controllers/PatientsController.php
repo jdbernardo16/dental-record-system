@@ -225,9 +225,10 @@ class PatientsController extends Controller
         $pdf = Pdf::loadView('pdf.patient-record', $this->patientExportData($request, $patient));
         $content = $pdf->output();
 
-        // The blade copies signature/initial SVGs to temp files so dompdf can
-        // render them as images — remove them now that the PDF is generated.
-        foreach (glob(sys_get_temp_dir().'/dcprs-*.tmp') ?: [] as $file) {
+        // The blade copies signature/initial SVGs to temp files (tempnam —
+        // no extension) so dompdf can render them as images — remove them now
+        // that the PDF is generated.
+        foreach (glob(sys_get_temp_dir().'/dcprs-*') ?: [] as $file) {
             @unlink($file);
         }
 
