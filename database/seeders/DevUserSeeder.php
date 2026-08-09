@@ -14,13 +14,15 @@ class DevUserSeeder extends Seeder
     {
         $users = [
             ['username' => 'admin', 'name' => 'Administrator', 'email' => 'admin@test.com', 'role' => 'Administrator'],
-            ['username' => 'dentist', 'name' => 'Dr. Ana Reyes', 'email' => 'dentist@test.com', 'role' => 'Dentist'],
+            ['username' => 'dentist', 'name' => 'Jerrmond De Jesus', 'email' => 'dentist@test.com', 'role' => 'Dentist'],
             ['username' => 'assistant', 'name' => 'Mia Santos', 'email' => 'assistant@test.com', 'role' => 'Assistant'],
             ['username' => 'receptionist', 'name' => 'Joy Cruz', 'email' => 'receptionist@test.com', 'role' => 'Receptionist'],
         ];
 
         foreach ($users as $data) {
-            $user = User::firstOrCreate(
+            // updateOrCreate (not firstOrCreate) so name/email changes in this
+            // seeder are applied to dev databases that already ran it.
+            $user = User::updateOrCreate(
                 ['username' => $data['username']],
                 ['name' => $data['name'], 'email' => $data['email'], 'password' => bcrypt('password')],
             );
