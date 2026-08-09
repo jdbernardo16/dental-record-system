@@ -10,19 +10,24 @@ use App\Enums\RestorationType;
 use App\Enums\Sex;
 use App\Enums\ToothCondition;
 use App\Enums\ToothSurface;
+use App\Http\Requests\ConfirmImportRequest;
+use App\Http\Requests\ImportPatientsRequest;
 use App\Http\Requests\StorePatientRequest;
 use App\Http\Requests\UpdatePatientRequest;
 use App\Models\Consultation;
 use App\Models\Patient;
 use App\Repositories\PatientRepository;
 use App\Services\DentalChartService;
+use App\Services\PatientImportService;
 use App\Services\SettingsService;
+use App\Support\PdfExport;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
-use App\Support\PdfExport;
 use Inertia\Inertia;
 use Inertia\Response;
+use InvalidArgumentException;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class PatientsController extends Controller
 {
@@ -33,7 +38,120 @@ class PatientsController extends Controller
     {
         $this->authorize('viewAny', Patient::class);
 
+        return Inertia::render('Patients/Index', $this->indexProps($request));
+    }
+
+    /**
+     * Stream a CSV export of the currently filtered patient list.
+     */
+    public function exportCsv(Request $request): StreamedResponse
+    {
+        $this->authorize('viewAny', Patient::class);
+
+        $search = $request->query('search');
+
+        return response()->streamDownload(function () use ($search) {
+            $handle = fopen('php://output', 'w');
+            fwrite($handle, "\xEF\xBB\xBF");
+            fputcsv($handle, array_merge(['patient_number'], PatientImportService::IMPORTABLE_COLUMNS));
+
+            Patient::query()
+                ->when($search, fn ($query) => $query->search($search))
+                ->orderByDesc('created_at')
+                ->cursor()
+                ->each(function (Patient $patient) use ($handle) {
+                    fputcsv($handle, [
+                        $this->csvCell($patient->patient_number),
+                        $this->csvCell($patient->first_name),
+                        $this->csvCell($patient->middle_name ?? ''),
+                        $this->csvCell($patient->last_name),
+                        $this->csvCell($patient->getRawOriginal('sex')),
+                        $this->csvCell($patient->birth_date?->format('Y-m-d')),
+                        $this->csvCell($patient->getRawOriginal('civil_status')),
+                        $this->csvCell($patient->nationality),
+                        $this->csvCell($patient->occupation ?? ''),
+                        $this->csvCell($patient->contact_number),
+                        $this->csvCell($patient->address),
+                        $this->csvCell($patient->email_address ?? ''),
+                    ]);
+                });
+
+            fclose($handle);
+        }, 'patients-'.now()->format('Ymd-Hi').'.csv', ['Content-Type' => 'text/csv; charset=utf-8']);
+    }
+
+    /**
+     * Neutralize spreadsheet formula injection for CSV cell values.
+     */
+    private function csvCell(?string $value): string
+    {
+        if ($value === null || $value === '') {
+            return '';
+        }
+
+        $first = $value[0];
+
+        return in_array($first, ['=', '+', '-', '@', "\t", "\r"], true)
+            ? "'".$value
+            : $value;
+    }
+
+    /**
+     * Stream a CSV template containing only the importable header row.
+     */
+    public function importTemplate(): StreamedResponse
+    {
+        return response()->streamDownload(function () {
+            $handle = fopen('php://output', 'w');
+            fputcsv($handle, PatientImportService::IMPORTABLE_COLUMNS);
+            fclose($handle);
+        }, 'patient-import-template.csv', ['Content-Type' => 'text/csv; charset=utf-8']);
+    }
+
+    /**
+     * Validate an uploaded CSV and preview per-row statuses before commit.
+     */
+    public function importPreview(ImportPatientsRequest $request): Response
+    {
+        $service = app(PatientImportService::class);
+
+        try {
+            $preview = $service->preview(
+                $service->validateRows($service->parse($request->file('file')))
+            );
+        } catch (InvalidArgumentException $e) {
+            return Redirect::back()->withErrors(['file' => $e->getMessage()]);
+        }
+
         return Inertia::render('Patients/Index', [
+            ...$this->indexProps($request),
+            'importPreview' => $preview,
+        ]);
+    }
+
+    /**
+     * Commit a previously previewed import batch.
+     */
+    public function import(ConfirmImportRequest $request): RedirectResponse
+    {
+        try {
+            $result = app(PatientImportService::class)
+                ->import($request->validated()['token'], $request->user());
+        } catch (InvalidArgumentException $e) {
+            return Redirect::back()->withErrors(['token' => $e->getMessage()]);
+        }
+
+        return Redirect::back()->with('importResult', $result);
+    }
+
+    /**
+     * Shared props for the patient index page (full render or partial reload).
+     *
+     * @return array<string, mixed>
+     */
+    private function indexProps(Request $request): array
+    {
+        return [
             'patients' => app(PatientRepository::class)
                 ->search($request->query('search'))
                 ->withQueryString(),
@@ -44,8 +162,9 @@ class PatientsController extends Controller
                 'create' => $request->user()->can('patients.create'),
                 'update' => $request->user()->can('patients.update'),
                 'delete' => $request->user()->can('patients.delete'),
+                'import' => $request->user()->can('patients.create'),
             ],
-        ]);
+        ];
     }
 
     /**

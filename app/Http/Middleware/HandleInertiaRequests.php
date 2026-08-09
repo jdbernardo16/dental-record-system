@@ -32,6 +32,7 @@ class HandleInertiaRequests extends Middleware
     {
         return [
             ...parent::share($request),
+            'importResult' => $request->session()->get('importResult'),
             'auth' => [
                 'user' => $request->user(),
                 'can' => [

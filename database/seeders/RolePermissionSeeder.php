@@ -20,7 +20,7 @@ class RolePermissionSeeder extends Seeder
             'Dentist' => [
                 'patients.view', 'patients.create', 'patients.update',
                 'medical-histories.view', 'medical-histories.create', 'medical-histories.update',
-                'appointments.view',
+                'appointments.view', 'appointments.update', 'appointments.cancel', 'appointments.attendance',
                 'consultations.view', 'consultations.create', 'consultations.update',
                 'dental-chart.view', 'dental-chart.update',
                 'treatments.view', 'treatments.create', 'treatments.update', 'treatments.sign',

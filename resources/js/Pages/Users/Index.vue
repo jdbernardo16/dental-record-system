@@ -110,19 +110,19 @@ const goTo = (url) => {
                                 <div class="flex items-center justify-end gap-2">
                                     <Link
                                         :href="route('users.edit', user.id)"
-                                        class="inline-flex h-9 items-center gap-2 rounded-lg px-3 text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-800"
+                                        :aria-label="`Edit ${user.name}`"
+                                        class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-800"
                                     >
                                         <Pencil class="h-4 w-4" />
-                                        Edit
                                     </Link>
                                     <button
                                         v-if="can.delete"
                                         type="button"
-                                        class="inline-flex h-9 items-center gap-2 rounded-lg px-3 text-sm font-medium text-status-cancelled hover:bg-status-cancelled/10"
+                                        :aria-label="`Delete ${user.name}`"
+                                        class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-status-cancelled hover:bg-status-cancelled/10"
                                         @click="confirmDelete(user)"
                                     >
                                         <Trash2 class="h-4 w-4" />
-                                        Delete
                                     </button>
                                 </div>
                             </td>

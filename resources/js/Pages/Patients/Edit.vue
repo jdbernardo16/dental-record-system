@@ -1,10 +1,12 @@
 <script setup>
+import { ref } from 'vue'
 import { scrollToFirstError } from '@/lib/scroll'
 import { Head, Link, router, useForm } from '@inertiajs/vue3'
 import { Trash2 } from 'lucide-vue-next'
 import { route } from '../../../../vendor/tightenco/ziggy'
 import AppLayout from '@/Layouts/AppLayout.vue'
 import Badge from '@/Components/Badge.vue'
+import ConfirmDeleteModal from '@/Components/ConfirmDeleteModal.vue'
 import { DateField, RadioPills, TextInput } from '@/Components/Fields'
 import { Button } from '@/Components/ui/button'
 import { useToastStore } from '@/Stores/toast'
@@ -58,12 +60,22 @@ const submit = () => {
     })
 }
 
-const confirmDelete = () => {
-    if (window.confirm(`Delete ${fullName()}? The record can be restored by an administrator.`)) {
-        router.delete(route('patients.destroy', props.patient.id), {
-            onSuccess: () => toastStore.show('Patient deleted.'),
-        })
-    }
+const showDelete = ref(false)
+const deleting = ref(false)
+
+const openDelete = () => {
+    showDelete.value = true
+}
+
+const deletePatient = () => {
+    deleting.value = true
+    router.delete(route('patients.destroy', props.patient.id), {
+        onSuccess: () => {
+            toastStore.show('Patient deleted.')
+            showDelete.value = false
+        },
+        onFinish: () => (deleting.value = false),
+    })
 }
 </script>
 
@@ -271,10 +283,18 @@ const confirmDelete = () => {
                 <p class="text-sm font-semibold text-gray-800">Danger zone</p>
                 <p class="mt-0.5 text-sm text-gray-500">Soft-delete this patient record. It can be restored by an administrator.</p>
             </div>
-            <Button variant="destructive" @click="confirmDelete">
+            <Button variant="destructive" @click="openDelete">
                 <Trash2 class="h-4 w-4" />
                 Delete patient
             </Button>
         </div>
+
+        <ConfirmDeleteModal
+            :show="showDelete"
+            :processing="deleting"
+            :message="`Delete ${fullName()}? The record can be restored by an administrator.`"
+            @confirm="deletePatient"
+            @close="showDelete = false"
+        />
     </div>
 </template>

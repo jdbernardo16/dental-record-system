@@ -43,6 +43,10 @@ Route::middleware(['auth', 'verified', 'permission:users.delete'])->delete('/use
 
 Route::middleware(['auth', 'verified', 'permission:patients.view'])->get('/patients', [PatientsController::class, 'index'])->name('patients.index');
 Route::middleware(['auth', 'verified', 'permission:patients.create'])->get('/patients/create', [PatientsController::class, 'create'])->name('patients.create');
+Route::middleware(['auth', 'verified', 'permission:patients.view'])->get('/patients/export', [PatientsController::class, 'exportCsv'])->name('patients.export-csv');
+Route::middleware(['auth', 'verified', 'permission:patients.create'])->get('/patients/import/template', [PatientsController::class, 'importTemplate'])->name('patients.import-template');
+Route::middleware(['auth', 'verified', 'permission:patients.create'])->post('/patients/import/preview', [PatientsController::class, 'importPreview'])->name('patients.import-preview');
+Route::middleware(['auth', 'verified', 'permission:patients.create'])->post('/patients/import', [PatientsController::class, 'import'])->name('patients.import');
 Route::middleware(['auth', 'verified', 'permission:patients.view'])->get('/patients/{patient}', [PatientsController::class, 'show'])->name('patients.show');
 Route::middleware(['auth', 'verified', 'permission:patients.view'])->get('/patients/{patient}/export', [PatientsController::class, 'export'])->name('patients.export');
 Route::middleware(['auth', 'verified', 'permission:patients.view'])->get('/patients/{patient}/pdf', [PatientsController::class, 'pdf'])->name('patients.pdf');

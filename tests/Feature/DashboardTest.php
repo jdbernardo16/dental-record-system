@@ -30,12 +30,33 @@ it('renders dashboard widgets for any role', function () {
             ->has('monthlyStats'));
 });
 
-it('gates follow-ups and pending procedures behind permissions', function () {
+it('gates follow-ups behind permissions', function () {
     $user = User::factory()->create()->assignRole('Assistant');
 
     $this->actingAs($user)->get('/dashboard')
         ->assertOk()
         ->assertInertia(fn ($page) => $page
             ->has('followUps')
-            ->has('pendingProcedures.count'));
+            ->missing('pendingProcedures'));
+});
+
+it('lists only confirmed follow-ups in the next 7 days', function () {
+    $user = User::factory()->create()->assignRole('Assistant');
+    $patient = Patient::factory()->create();
+    Appointment::factory()->create([
+        'patient_id' => $patient->id,
+        'appointment_date' => now()->addDay()->toDateString(),
+        'status' => 'confirmed',
+        'is_follow_up' => true,
+    ]);
+    Appointment::factory()->create([
+        'patient_id' => $patient->id,
+        'appointment_date' => now()->addDay()->toDateString(),
+        'status' => 'confirmed',
+        'is_follow_up' => false,
+    ]);
+
+    $this->actingAs($user)->get('/dashboard')
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page->has('followUps', 1));
 });

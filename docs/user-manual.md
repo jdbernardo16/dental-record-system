@@ -93,7 +93,7 @@ appear — you will never see actions you are not allowed to perform.
 | View / register / edit patients | ✅ | ✅ | edit only | register |
 | Delete (soft) patients | ✅ | | | |
 | Medical history (view/edit) | ✅ | ✅ | | |
-| Appointments (view / create / update / cancel / attendance) | ✅ | view | ✅ | ✅ |
+| Appointments (view / create / update / cancel / attendance) | ✅ | ✅ (no create) | ✅ | ✅ |
 | Consultations | ✅ | ✅ | | |
 | Dental chart (view / update) | ✅ | ✅ / view | view | |
 | Treatments (create / sign) | ✅ | ✅ | | |
@@ -299,9 +299,9 @@ Sidebar → **Appointments** opens the **day view** — one day at a time, table
   appointment returns to **Pending** so the patient can be re-confirmed.
 - **Cancel** — tap the appointment → **Cancel**, and enter the **reason** (required).
 
-> **Follow-ups:** to flag an appointment as a follow-up, add "follow-up" context in the
-> reason — the dashboard's Follow-ups widget lists confirmed appointments in the next 7
-> days.
+> **Follow-ups:** tick the **Follow-up appointment** checkbox in the New appointment form to
+> flag an appointment as a follow-up — the dashboard's Follow-ups widget lists confirmed
+> follow-ups in the next 7 days.
 
 ---
 

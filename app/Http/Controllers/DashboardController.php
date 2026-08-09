@@ -7,8 +7,6 @@ use App\Models\Appointment;
 use App\Models\Patient;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -33,15 +31,6 @@ class DashboardController extends Controller
         $recentPatients = Patient::orderByDesc('created_at')
             ->limit(10)
             ->get(['id', 'first_name', 'middle_name', 'last_name', 'patient_number']);
-
-        // Phase 2 (treatments table) — 0-safe until then.
-        $pendingProcedures = ['count' => 0, 'items' => collect()];
-        if (Schema::hasTable('treatments') && $user->can('treatments.view')) {
-            $pendingProcedures = [
-                'count' => DB::table('treatments')->whereNull('signed_at')->count(),
-                'items' => DB::table('treatments')->whereNull('signed_at')->orderByDesc('created_at')->limit(5)->get(),
-            ];
-        }
 
         $months = collect(range(5, 0))
             ->map(fn (int $offset) => now()->copy()->subMonths($offset)->startOfMonth());
@@ -69,14 +58,11 @@ class DashboardController extends Controller
         return Inertia::render('Dashboard/Index', [
             'todayAppointments' => $todayAppointments,
             'recentPatients' => $recentPatients,
-            'pendingProcedures' => $pendingProcedures,
             'monthlyStats' => $monthlyStats,
             'followUps' => $followUps,
-            'statusOptions' => AppointmentStatus::meta(),
             'can' => [
                 'viewAppointments' => $user->can('appointments.view'),
                 'viewPatients' => $user->can('patients.view'),
-                'viewTreatments' => $user->can('treatments.view'),
                 'viewReports' => $user->can('reports.view'),
             ],
         ]);

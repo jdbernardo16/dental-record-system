@@ -29,6 +29,7 @@ class StoreAppointmentRequest extends FormRequest
             'start_time' => ['required', 'date_format:H:i'],
             'end_time' => ['nullable', 'date_format:H:i', 'after:start_time'],
             'reason' => ['nullable', 'string', 'max:255'],
+            'is_follow_up' => ['sometimes', 'boolean'],
         ];
     }
 }

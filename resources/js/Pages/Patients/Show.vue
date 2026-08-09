@@ -6,6 +6,7 @@ import { route } from '../../../../vendor/tightenco/ziggy'
 import AppLayout from '@/Layouts/AppLayout.vue'
 import AttachmentPreviewModal from '@/Components/AttachmentPreviewModal.vue'
 import Badge from '@/Components/Badge.vue'
+import ConfirmDeleteModal from '@/Components/ConfirmDeleteModal.vue'
 import { Button } from '@/Components/ui/button'
 import { SelectField, TextareaField } from '@/Components/Fields'
 import ConsultationForm from '@/Components/Wizard/ConsultationForm.vue'
@@ -164,13 +165,23 @@ const pdaDisplayRows = () => {
     return rows
 }
 
-const confirmDelete = () => {
-    if (window.confirm(`Delete ${fullName()}? The record can be restored by an administrator.`)) {
-        router.delete(route('patients.destroy', props.patient.id), {
-            onSuccess: () => toastStore.show('Patient deleted.'),
-            onError: () => scrollToFirstError(),
-        })
-    }
+const showDelete = ref(false)
+const deleting = ref(false)
+
+const openDelete = () => {
+    showDelete.value = true
+}
+
+const deletePatient = () => {
+    deleting.value = true
+    router.delete(route('patients.destroy', props.patient.id), {
+        onSuccess: () => {
+            toastStore.show('Patient deleted.')
+            showDelete.value = false
+        },
+        onError: () => scrollToFirstError(),
+        onFinish: () => (deleting.value = false),
+    })
 }
 
 const adding = ref(false)
@@ -533,7 +544,7 @@ const confirmDeleteAttachment = (attachment) => {
                     variant="outline"
                     size="sm"
                     class="border-status-cancelled/30 text-status-cancelled hover:bg-status-cancelled/10"
-                    @click="confirmDelete"
+                    @click="openDelete"
                 >
                     <Trash2 class="h-4 w-4" />
                     Delete
@@ -1361,6 +1372,14 @@ const confirmDeleteAttachment = (attachment) => {
             :can-delete="can.attachments?.delete"
             @close="previewAttachment = null"
             @delete="confirmDeleteAttachment"
+        />
+
+        <ConfirmDeleteModal
+            :show="showDelete"
+            :processing="deleting"
+            :message="`Delete ${fullName()}? The record can be restored by an administrator.`"
+            @confirm="deletePatient"
+            @close="showDelete = false"
         />
     </div>
 </template>

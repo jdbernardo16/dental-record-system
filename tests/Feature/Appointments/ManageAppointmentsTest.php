@@ -35,6 +35,19 @@ it('creates an appointment through the store route', function () {
     expect(Appointment::first()->status->value)->toBe('pending');
 });
 
+it('stores the follow-up flag when creating an appointment', function () {
+    $user = User::factory()->create()->assignRole('Assistant');
+    $patient = Patient::factory()->create();
+
+    $this->actingAs($user)->post('/appointments', [
+        'patient_id' => $patient->id, 'appointment_date' => '2026-08-10',
+        'start_time' => '09:00', 'end_time' => '09:30', 'reason' => 'Check-up',
+        'is_follow_up' => true,
+    ])->assertRedirect('/appointments?date=2026-08-10');
+
+    expect(Appointment::first()->is_follow_up)->toBeTrue();
+});
+
 it('rejects a non-dentist user as the assigned dentist', function () {
     $user = User::factory()->create()->assignRole('Assistant');
     $receptionist = User::factory()->create()->assignRole('Assistant');
@@ -202,4 +215,26 @@ it('keeps the back-to-patient param when creating an appointment from a patient 
         'end_time' => '09:30',
         'reason' => 'Check-up',
     ])->assertRedirect("/appointments?date=2026-08-10&patient={$patient->id}");
+});
+
+it('allows a dentist to manage appointments without creating them', function () {
+    $user = User::factory()->create()->assignRole('Dentist');
+    $appointment = Appointment::factory()->create([
+        'status' => 'pending',
+        'appointment_date' => '2026-08-10',
+    ]);
+
+    $this->actingAs($user)->get('/appointments?date=2026-08-10')
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('Appointments/Index')
+            ->where('can.update', true)
+            ->where('can.cancel', true)
+            ->where('can.attendance', true)
+            ->where('can.create', false));
+
+    $this->actingAs($user)->post("/appointments/{$appointment->id}/confirm")
+        ->assertRedirect();
+
+    expect($appointment->fresh()->status->value)->toBe('confirmed');
 });

@@ -14,6 +14,7 @@ import BackToPatient from "@/Components/BackToPatient.vue";
 import Badge from "@/Components/Badge.vue";
 import { Button } from "@/Components/ui/button";
 import {
+    CheckboxField,
     DateField,
     SearchSelectField,
     SelectField,
@@ -129,6 +130,7 @@ const createForm = useForm({
     start_time: "",
     end_time: "",
     reason: "",
+    is_follow_up: false,
     patient: props.backToPatient?.id ?? "",
 });
 
@@ -424,6 +426,13 @@ watch(
                 />
             </div>
 
+            <CheckboxField
+                id="create_follow_up"
+                v-model="createForm.is_follow_up"
+                label="Follow-up appointment"
+                hint="Flags this appointment for the dashboard Follow-ups widget."
+            />
+
             <p
                 v-if="createForm.errors.appointment"
                 class="rounded-lg bg-status-cancelled/10 px-4 py-3 text-sm font-medium text-status-cancelled"
@@ -454,7 +463,7 @@ watch(
         </form>
     </Modal>
 
-    <Modal :show="showDetail" max-width="lg" @close="closeDetail">
+    <Modal :show="showDetail" max-width="2xl" @close="closeDetail">
         <div v-if="selected" class="space-y-5 p-6">
             <div class="flex items-start justify-between gap-3">
                 <div>
