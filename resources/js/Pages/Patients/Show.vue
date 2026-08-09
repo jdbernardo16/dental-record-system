@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { Head, Link, router, useForm } from '@inertiajs/vue3'
-import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight, FileText, FlaskConical, Folder, FolderOpen, Image as ImageIcon, Paperclip, Pencil, Plus, Scan, Signature, Stethoscope, Trash2, Upload, Wrench } from 'lucide-vue-next'
+import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight, FileText, FlaskConical, Folder, FolderOpen, Image as ImageIcon, Paperclip, Pencil, Plus, Scan, Signature, Stethoscope, Trash2, Upload, Wrench, X } from 'lucide-vue-next'
 import { route } from '../../../../vendor/tightenco/ziggy'
 import AppLayout from '@/Layouts/AppLayout.vue'
 import AttachmentPreviewModal from '@/Components/AttachmentPreviewModal.vue'
@@ -14,6 +14,7 @@ import SignaturePadModal from '@/Components/SignaturePadModal.vue'
 import ToothChart from '@/Components/ToothChart.vue'
 import TreatmentForm from '@/Components/Wizard/TreatmentForm.vue'
 import { useToastStore } from '@/Stores/toast'
+import { encodeSvgPayload } from '@/lib/svgWire'
 import { scrollToFirstError } from '@/lib/scroll'
 
 defineOptions({ layout: AppLayout })
@@ -314,6 +315,9 @@ const openSign = (treatment) => {
 
 const confirmSign = (svg) => {
     signForm.signature_svg = svg
+    // Base64-encode on the wire: the CDN WAF rejects POST bodies containing
+    // the literal `<svg` tag. The server decodes before storage.
+    signForm.transform((data) => ({ ...data, signature_svg: encodeSvgPayload(data.signature_svg) }))
     signForm.post(route('treatments.sign', signingTreatment.value.id), {
         preserveScroll: true,
         onSuccess: () => {
@@ -363,6 +367,9 @@ const openConsentSign = (consentForm) => {
 
 const confirmConsentSign = (svg) => {
     consentSignForm.signature_svg = svg
+    // Base64-encode on the wire: the CDN WAF rejects POST bodies containing
+    // the literal `<svg` tag. The server decodes before storage.
+    consentSignForm.transform((data) => ({ ...data, signature_svg: encodeSvgPayload(data.signature_svg) }))
     consentSignForm.post(route('consents.dentist-sign', signingConsent.value.id), {
         onError: () => scrollToFirstError(),
         preserveScroll: true,
@@ -676,7 +683,7 @@ const confirmDeleteAttachment = (attachment) => {
                     </p>
                 </div>
                 <Button v-if="can.consultations?.create" variant="outline" size="sm" @click="adding = !adding">
-                    <Plus class="h-4 w-4" />
+                    <component :is="adding ? X : Plus" class="h-4 w-4" />
                     {{ adding ? 'Cancel' : 'Add consultation' }}
                 </Button>
             </div>
@@ -942,7 +949,7 @@ const confirmDeleteAttachment = (attachment) => {
                         </p>
                     </div>
                     <Button v-if="can.treatments?.create" variant="outline" size="sm" @click="addingTreatment = !addingTreatment">
-                        <Plus class="h-4 w-4" />
+                        <component :is="addingTreatment ? X : Plus" class="h-4 w-4" />
                         {{ addingTreatment ? 'Cancel' : 'Add treatment' }}
                     </Button>
                 </div>
