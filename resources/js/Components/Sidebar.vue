@@ -159,7 +159,7 @@ const isActive = (item) => {
                     v-if="open"
                     class="whitespace-nowrap text-base font-semibold text-gray-900"
                 >
-                    Dental Clinic
+                    Jerrmond Dental Clinic
                 </span>
             </div>
 

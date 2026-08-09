@@ -9,14 +9,22 @@ import {
     Pencil,
     Plus,
     Search,
+    SlidersHorizontal,
     Trash2,
     Upload,
+    X,
 } from "lucide-vue-next";
 import { route } from "../../../../vendor/tightenco/ziggy";
 import AppLayout from "@/Layouts/AppLayout.vue";
 import Badge from "@/Components/Badge.vue";
 import ConfirmDeleteModal from "@/Components/ConfirmDeleteModal.vue";
-import { TextInput } from "@/Components/Fields";
+import {
+    DateField,
+    RadioPills,
+    SelectField,
+    TextInput,
+} from "@/Components/Fields";
+import Drawer from "@/Components/Drawer.vue";
 import Modal from "@/Components/Modal.vue";
 import { Button } from "@/Components/ui/button";
 import { scrollToFirstError } from "@/lib/scroll";
@@ -35,21 +43,151 @@ const props = defineProps({
 const toastStore = useToastStore();
 
 const search = ref(props.filters.search ?? "");
+
+// Backend-driven filter/sort state ('' = filter unset, mirroring props).
+const filters = ref({
+    sex: props.filters.sex ?? "",
+    civil_status: props.filters.civil_status ?? "",
+    age_min: props.filters.age_min ?? "",
+    age_max: props.filters.age_max ?? "",
+    date_from: props.filters.date_from ?? "",
+    date_to: props.filters.date_to ?? "",
+    sort: props.filters.sort ?? "created_at",
+    direction: props.filters.direction ?? "desc",
+});
+
+const sexOptions = [
+    { value: "male", label: "Male" },
+    { value: "female", label: "Female" },
+];
+
+const civilStatusOptions = [
+    { value: "single", label: "Single" },
+    { value: "married", label: "Married" },
+    { value: "widowed", label: "Widowed" },
+    { value: "separated", label: "Separated" },
+    { value: "divorced", label: "Divorced" },
+    { value: "annulled", label: "Annulled" },
+    { value: "other", label: "Other" },
+];
+
+const sortOptions = [
+    { value: "name", label: "Name" },
+    { value: "patient_number", label: "Patient number" },
+    { value: "age", label: "Age" },
+    { value: "sex", label: "Sex" },
+    { value: "created_at", label: "Date registered" },
+];
+
+const directionOptions = [
+    { value: "asc", label: "Ascending" },
+    { value: "desc", label: "Descending" },
+];
+
+// Sort/direction are always sent explicitly so the backend applies exactly
+// what the user picked (e.g. sort=name&direction=desc).
+const queryParams = () => ({
+    search: search.value || undefined,
+    sex: filters.value.sex || undefined,
+    civil_status: filters.value.civil_status || undefined,
+    age_min: filters.value.age_min || undefined,
+    age_max: filters.value.age_max || undefined,
+    date_from: filters.value.date_from || undefined,
+    date_to: filters.value.date_to || undefined,
+    sort: filters.value.sort,
+    direction: filters.value.direction,
+});
+
+// Shared navigation: always reads the current `filters` ref + search text.
+const navigate = () => {
+    router.get(route("patients.index"), queryParams(), {
+        preserveState: true,
+        replace: true,
+    });
+};
+
 let debounceTimer = null;
 
-watch(search, (value) => {
+// Debounced re-apply for the search box only; filter/sort changes are
+// committed explicitly via the drawer's Apply/Clear buttons.
+watch(search, () => {
     clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(() => {
-        router.get(
-            route("patients.index"),
-            { search: value || undefined },
-            {
-                preserveState: true,
-                replace: true,
-            },
-        );
-    }, 300);
+    debounceTimer = setTimeout(navigate, 300);
 });
+
+// Drawer state. Edits land in `draft` and only reach the URL via Apply.
+const showFilters = ref(false);
+
+const draftDefaults = () => ({
+    sex: "",
+    civil_status: "",
+    age_min: "",
+    age_max: "",
+    date_from: "",
+    date_to: "",
+    sort: "created_at",
+    direction: "desc",
+});
+
+const draft = ref(draftDefaults());
+
+const openFilters = () => {
+    draft.value = {
+        sex: props.filters.sex ?? "",
+        civil_status: props.filters.civil_status ?? "",
+        age_min: props.filters.age_min ?? "",
+        age_max: props.filters.age_max ?? "",
+        date_from: props.filters.date_from ?? "",
+        date_to: props.filters.date_to ?? "",
+        sort: props.filters.sort ?? "created_at",
+        direction: props.filters.direction ?? "desc",
+    };
+    showFilters.value = true;
+};
+
+const applyFilters = () => {
+    filters.value = { ...draft.value };
+    navigate();
+    showFilters.value = false;
+};
+
+// Clears and applies in one go, keeping the drawer open so the user sees the
+// reset state. The current search text is preserved (it lives in `search`).
+const clearFilters = () => {
+    draft.value = draftDefaults();
+    filters.value = { ...draft.value };
+    navigate();
+};
+
+// Badge on the Filter button: counts every non-default filter/sort value.
+const activeFilterCount = computed(() => {
+    const f = filters.value;
+    return (
+        (f.sex !== "" ? 1 : 0) +
+        (f.civil_status !== "" ? 1 : 0) +
+        (f.age_min !== "" ? 1 : 0) +
+        (f.age_max !== "" ? 1 : 0) +
+        (f.date_from !== "" ? 1 : 0) +
+        (f.date_to !== "" ? 1 : 0) +
+        (f.sort !== "created_at" ? 1 : 0) +
+        (f.direction !== "desc" ? 1 : 0)
+    );
+});
+
+// Export honors whatever filters are currently applied (server-sanitized).
+const exportUrl = computed(() =>
+    route("patients.export-csv", {
+        search: props.filters.search || undefined,
+        sex: props.filters.sex || undefined,
+        civil_status: props.filters.civil_status || undefined,
+        age_min: props.filters.age_min || undefined,
+        age_max: props.filters.age_max || undefined,
+        date_from: props.filters.date_from || undefined,
+        date_to: props.filters.date_to || undefined,
+        sort: props.filters.sort ?? "created_at",
+        direction: props.filters.direction ?? "desc",
+    }),
+);
 
 const sexLabel = (sex) => ({ male: "Male", female: "Female" })[sex] ?? sex;
 
@@ -57,6 +195,15 @@ const fullName = (patient) =>
     [patient.first_name, patient.middle_name, patient.last_name]
         .filter(Boolean)
         .join(" ");
+
+const listName = (patient) => {
+    const middle = patient.middle_name
+        ? ` ${patient.middle_name.charAt(0)}`
+        : "";
+    return [patient.last_name, `${patient.first_name}${middle}`]
+        .filter(Boolean)
+        .join(", ");
+};
 
 const initials = (name) =>
     String(name)
@@ -185,11 +332,7 @@ const confirmImport = () => {
             </div>
             <div class="flex flex-wrap items-center gap-3">
                 <a
-                    :href="
-                        route('patients.export-csv', {
-                            search: props.filters.search || undefined,
-                        })
-                    "
+                    :href="exportUrl"
                     class="inline-flex"
                     aria-label="Export patients to CSV"
                 >
@@ -220,12 +363,35 @@ const confirmImport = () => {
             </div>
         </div>
 
-        <div class="max-w-md">
-            <TextInput
-                v-model="search"
-                label="Search"
-                placeholder="Name, patient number, or contact…"
-            />
+        <div class="flex flex-wrap items-end gap-3">
+            <div class="flex-1">
+                <TextInput
+                    v-model="search"
+                    label="Search"
+                    placeholder="Name, patient number, or contact…"
+                />
+            </div>
+            <div>
+                <Button
+                    variant="outline"
+                    size="sm"
+                    :aria-label="
+                        activeFilterCount
+                            ? `Filter patients (${activeFilterCount} active)`
+                            : 'Filter patients'
+                    "
+                    @click="openFilters"
+                >
+                    <SlidersHorizontal class="h-4 w-4" />
+                    Filter
+                    <span
+                        v-if="activeFilterCount"
+                        class="flex h-4 min-w-4 items-center justify-center rounded-full bg-brand-500 px-1 text-xs font-semibold text-white"
+                    >
+                        {{ activeFilterCount }}
+                    </span>
+                </Button>
+            </div>
         </div>
 
         <div
@@ -286,7 +452,7 @@ const confirmImport = () => {
                                     <span>
                                         <span
                                             class="block text-sm font-medium text-gray-800"
-                                            >{{ fullName(patient) }}</span
+                                            >{{ listName(patient) }}</span
                                         >
                                         <span
                                             class="block text-xs text-gray-400"
@@ -312,7 +478,7 @@ const confirmImport = () => {
                                         :href="
                                             route('patients.show', patient.id)
                                         "
-                                        :aria-label="`View ${fullName(patient)}`"
+                                        :aria-label="`View ${listName(patient)}`"
                                         class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-800"
                                     >
                                         <Eye class="h-4 w-4" />
@@ -322,7 +488,7 @@ const confirmImport = () => {
                                         :href="
                                             route('patients.edit', patient.id)
                                         "
-                                        :aria-label="`Edit ${fullName(patient)}`"
+                                        :aria-label="`Edit ${listName(patient)}`"
                                         class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-800"
                                     >
                                         <Pencil class="h-4 w-4" />
@@ -330,7 +496,7 @@ const confirmImport = () => {
                                     <button
                                         v-if="can.delete"
                                         type="button"
-                                        :aria-label="`Delete ${fullName(patient)}`"
+                                        :aria-label="`Delete ${listName(patient)}`"
                                         class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-status-cancelled hover:bg-status-cancelled/10"
                                         @click="openDelete(patient)"
                                     >
@@ -449,8 +615,8 @@ const confirmImport = () => {
                             :disabled="
                                 Boolean(
                                     importForm.processing ||
-                                        !importForm.file ||
-                                        fileError,
+                                    !importForm.file ||
+                                    fileError,
                                 )
                             "
                             @click="uploadCsv"
@@ -591,5 +757,86 @@ const confirmImport = () => {
                 </div>
             </div>
         </Modal>
+
+        <Drawer :show="showFilters" @close="showFilters = false">
+            <template #title>Filter patients</template>
+
+            <div
+                class="flex items-center justify-between border-b border-gray-100 px-6 py-4"
+            >
+                <h2 class="text-lg font-semibold text-gray-800">
+                    Filter patients
+                </h2>
+                <button
+                    type="button"
+                    class="flex h-11 w-11 items-center justify-center rounded-lg text-gray-500 transition hover:bg-gray-100"
+                    :aria-label="'Close filters'"
+                    @click="showFilters = false"
+                >
+                    <X class="h-5 w-5" />
+                </button>
+            </div>
+
+            <div class="space-y-5 px-6 py-5">
+                <div>
+                    <SelectField
+                        v-model="draft.sort"
+                        label="Sort by"
+                        :options="sortOptions"
+                    />
+                </div>
+                <div>
+                    <RadioPills
+                        v-model="draft.direction"
+                        label="Direction"
+                        name="filter-direction"
+                        :options="directionOptions"
+                    />
+                </div>
+                <div>
+                    <SelectField
+                        v-model="draft.sex"
+                        label="Sex"
+                        :options="sexOptions"
+                        noneLabel="All sexes"
+                    />
+                </div>
+                <div>
+                    <SelectField
+                        v-model="draft.civil_status"
+                        label="Civil status"
+                        :options="civilStatusOptions"
+                        noneLabel="All statuses"
+                    />
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <TextInput
+                        v-model="draft.age_min"
+                        label="Age min"
+                        type="number"
+                        min="0"
+                    />
+                    <TextInput
+                        v-model="draft.age_max"
+                        label="Age max"
+                        type="number"
+                        min="0"
+                    />
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <DateField v-model="draft.date_from" label="From" />
+                    <DateField v-model="draft.date_to" label="To" />
+                </div>
+            </div>
+
+            <div
+                class="flex items-center justify-end gap-2 border-t border-gray-100 px-6 py-4"
+            >
+                <Button variant="outline" size="sm" @click="clearFilters">
+                    Clear
+                </Button>
+                <Button size="sm" @click="applyFilters">Apply</Button>
+            </div>
+        </Drawer>
     </div>
 </template>

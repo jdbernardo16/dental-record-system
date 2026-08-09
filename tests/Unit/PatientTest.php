@@ -47,6 +47,6 @@ it('registers a patient, assigns a number, and logs activity', function () {
 it('searches patients by name, number, or contact', function () {
     Patient::factory()->create(['first_name' => 'Ana', 'last_name' => 'Santos', 'contact_number' => '09171234567']);
 
-    expect(app(PatientRepository::class)->search('Santos')->total())->toBe(1);
-    expect(app(PatientRepository::class)->search('09171234567')->total())->toBe(1);
+    expect(app(PatientRepository::class)->query(['search' => 'Santos'])->count())->toBe(1);
+    expect(app(PatientRepository::class)->query(['search' => '09171234567'])->count())->toBe(1);
 });

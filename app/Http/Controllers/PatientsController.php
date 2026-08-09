@@ -48,16 +48,15 @@ class PatientsController extends Controller
     {
         $this->authorize('viewAny', Patient::class);
 
-        $search = $request->query('search');
+        $filters = $this->indexFilters($request);
 
-        return response()->streamDownload(function () use ($search) {
+        return response()->streamDownload(function () use ($filters) {
             $handle = fopen('php://output', 'w');
             fwrite($handle, "\xEF\xBB\xBF");
             fputcsv($handle, array_merge(['patient_number'], PatientImportService::IMPORTABLE_COLUMNS));
 
-            Patient::query()
-                ->when($search, fn ($query) => $query->search($search))
-                ->orderByDesc('created_at')
+            app(PatientRepository::class)
+                ->query($filters)
                 ->cursor()
                 ->each(function (Patient $patient) use ($handle) {
                     fputcsv($handle, [
@@ -94,6 +93,56 @@ class PatientsController extends Controller
         return in_array($first, ['=', '+', '-', '@', "\t", "\r"], true)
             ? "'".$value
             : $value;
+    }
+
+    /**
+     * Sanitize query params into a filter array for the patient repository.
+     *
+     * Lenient whitelist approach: unknown or malformed values are dropped
+     * (never redirect/throw), and missing sort/direction fall back to the
+     * default listing (created_at descending).
+     *
+     * @return array<string, mixed>
+     */
+    private function indexFilters(Request $request): array
+    {
+        $sort = $request->query('sort');
+        $sort = in_array($sort, ['name', 'patient_number', 'sex', 'age', 'created_at'], true)
+            ? $sort
+            : 'created_at';
+
+        $direction = $request->query('direction');
+        if (! in_array($direction, ['asc', 'desc'], true)) {
+            $direction = $sort === 'created_at' ? 'desc' : 'asc';
+        }
+
+        return [
+            'search' => is_string($request->query('search')) ? $request->query('search') : null,
+            'sex' => in_array($request->query('sex'), ['male', 'female'], true)
+                ? $request->query('sex')
+                : null,
+            'civil_status' => in_array($request->query('civil_status'), array_keys(CivilStatus::meta()), true)
+                ? $request->query('civil_status')
+                : null,
+            'age_min' => $this->positiveInt($request->query('age_min')),
+            'age_max' => $this->positiveInt($request->query('age_max')),
+            'date_from' => $this->isoDate($request->query('date_from')),
+            'date_to' => $this->isoDate($request->query('date_to')),
+            'sort' => $sort,
+            'direction' => $direction,
+        ];
+    }
+
+    private function positiveInt(mixed $value): ?int
+    {
+        return is_string($value) && ctype_digit($value) ? (int) $value : null;
+    }
+
+    private function isoDate(mixed $value): ?string
+    {
+        return is_string($value) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $value) === 1
+            ? $value
+            : null;
     }
 
     /**
@@ -151,13 +200,14 @@ class PatientsController extends Controller
      */
     private function indexProps(Request $request): array
     {
+        $filters = $this->indexFilters($request);
+
         return [
             'patients' => app(PatientRepository::class)
-                ->search($request->query('search'))
+                ->query($filters)
+                ->paginate(20)
                 ->withQueryString(),
-            'filters' => [
-                'search' => $request->query('search'),
-            ],
+            'filters' => $filters,
             'can' => [
                 'create' => $request->user()->can('patients.create'),
                 'update' => $request->user()->can('patients.update'),
