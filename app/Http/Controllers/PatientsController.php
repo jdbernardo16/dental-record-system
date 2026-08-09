@@ -20,6 +20,7 @@ use App\Services\SettingsService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -209,6 +210,28 @@ class PatientsController extends Controller
     {
         $this->authorize('view', $patient);
 
+        return Inertia::render('Patients/Export', $this->patientExportData($request, $patient));
+    }
+
+    /**
+     * Download a templated PDF document of the patient's full record.
+     */
+    public function pdf(Request $request, Patient $patient): \Illuminate\Http\Response
+    {
+        $this->authorize('view', $patient);
+
+        $pdf = Pdf::loadView('pdf.patient-record', $this->patientExportData($request, $patient));
+
+        return $pdf->download("patient-record-{$patient->patient_number}.pdf");
+    }
+
+    /**
+     * Shared record data for the printable page and the PDF document.
+     *
+     * @return array<string, mixed>
+     */
+    private function patientExportData(Request $request, Patient $patient): array
+    {
         $canViewClinical = [
             'medical-history' => $request->user()->can('medical-histories.view'),
             'consultations' => $request->user()->can('consultations.view'),
@@ -220,7 +243,7 @@ class PatientsController extends Controller
 
         $chartService = app(DentalChartService::class);
 
-        return Inertia::render('Patients/Export', [
+        return [
             'patient' => $patient,
             'canViewClinical' => $canViewClinical,
             'medicalHistory' => $canViewClinical['medical-history'] ? $patient->medicalHistory : null,
@@ -256,7 +279,7 @@ class PatientsController extends Controller
                 'address' => app(SettingsService::class)->get('clinic.address', ''),
             ],
             'exportedAt' => now()->format('F j, Y g:i A'),
-        ]);
+        ];
     }
 
     /**

@@ -45,6 +45,7 @@ Route::middleware(['auth', 'verified', 'permission:patients.view'])->get('/patie
 Route::middleware(['auth', 'verified', 'permission:patients.create'])->get('/patients/create', [PatientsController::class, 'create'])->name('patients.create');
 Route::middleware(['auth', 'verified', 'permission:patients.view'])->get('/patients/{patient}', [PatientsController::class, 'show'])->name('patients.show');
 Route::middleware(['auth', 'verified', 'permission:patients.view'])->get('/patients/{patient}/export', [PatientsController::class, 'export'])->name('patients.export');
+Route::middleware(['auth', 'verified', 'permission:patients.view'])->get('/patients/{patient}/pdf', [PatientsController::class, 'pdf'])->name('patients.pdf');
 Route::middleware(['auth', 'verified', 'permission:patients.create'])->post('/patients', [PatientsController::class, 'store'])->name('patients.store');
 Route::middleware(['auth', 'verified', 'permission:patients.update'])->get('/patients/{patient}/edit', [PatientsController::class, 'edit'])->name('patients.edit');
 Route::middleware(['auth', 'verified', 'permission:patients.update'])->patch('/patients/{patient}', [PatientsController::class, 'update'])->name('patients.update');

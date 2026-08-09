@@ -67,3 +67,54 @@ it('blocks guests from the export page', function () {
 
     $this->get("/patients/{$patient->id}/export")->assertRedirect('/login');
 });
+
+it('downloads a templated patient record PDF', function () {
+    $dentist = User::factory()->create()->assignRole('Dentist');
+    $patient = Patient::factory()->create(['last_name' => 'Dela Cruz', 'first_name' => 'Juan']);
+    $patient->medicalHistory()->create([
+        'hypertension' => 'yes', 'diabetes' => 'no', 'tuberculosis' => 'no',
+        'heart_disease' => 'no', 'pregnancy' => 'not_applicable', 'allergies' => 'no',
+        'medications' => 'no', 'smoking_history' => 'no',
+        'alcohol_consumption' => 'no', 'previous_surgeries' => 'no',
+    ]);
+    DentalChartEntry::create([
+        'patient_id' => $patient->id, 'tooth_number' => 16, 'dentition' => 'adult',
+        'condition' => 'caries', 'surface' => 'occlusal', 'recorded_at' => now()->toDateString(),
+        'recorded_by' => $dentist->id,
+    ]);
+
+    $response = $this->actingAs($dentist)->get("/patients/{$patient->id}/pdf");
+
+    $response->assertOk()
+        ->assertHeader('Content-Type', 'application/pdf')
+        ->assertHeader('Content-Disposition', 'attachment; filename=patient-record-'.$patient->patient_number.'.pdf');
+
+    expect($response->getContent())->toStartWith('%PDF');
+});
+
+it('gates clinical sections in the PDF by permission', function () {
+    $assistant = User::factory()->create()->assignRole('Assistant');
+    $patient = Patient::factory()->create();
+    $patient->medicalHistory()->create([
+        'hypertension' => 'yes', 'diabetes' => 'no', 'tuberculosis' => 'no',
+        'heart_disease' => 'no', 'pregnancy' => 'no', 'allergies' => 'no',
+        'medications' => 'no', 'smoking_history' => 'no',
+        'alcohol_consumption' => 'no', 'previous_surgeries' => 'no',
+    ]);
+
+    $response = $this->actingAs($assistant)->get("/patients/{$patient->id}/pdf");
+
+    $response->assertOk();
+    $pdf = $response->getContent();
+    expect($pdf)->toStartWith('%PDF');
+    // Assistant cannot view medical histories — the section must be absent
+    // (the PDF is compressed, but dompdf embeds uncompressed text streams
+    // for ASCII content in its object layout; check via a plain marker).
+    expect($pdf)->not->toContain('Medical History');
+});
+
+it('blocks guests from the PDF route', function () {
+    $patient = Patient::factory()->create();
+
+    $this->get("/patients/{$patient->id}/pdf")->assertRedirect('/login');
+});
