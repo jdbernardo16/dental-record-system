@@ -41,7 +41,7 @@ onUnmounted(() => document.removeEventListener('click', handleClickOutside))
 
 <template>
     <header
-        class="sticky top-0 z-30 flex h-16 w-full shrink-0 items-center justify-between border-b border-gray-200 bg-white px-4 sm:px-6"
+        class="sticky top-0 z-50 flex h-16 w-full shrink-0 items-center justify-between border-b border-gray-200 bg-white px-4 sm:px-6"
     >
         <button
             type="button"

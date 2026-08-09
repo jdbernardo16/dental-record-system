@@ -94,12 +94,6 @@ describe('Sidebar', () => {
         expect(wrapper.emitted('close')).toHaveLength(1)
     })
 
-    it('emits close when the X button is clicked', async () => {
-        const wrapper = mountSidebar({ open: true })
-        await wrapper.get('button[aria-label="Close sidebar"]').trigger('click')
-        expect(wrapper.emitted('close')).toHaveLength(1)
-    })
-
     it('moves the active highlight when navigating (SPA)', async () => {
         const wrapper = mountSidebar({ open: true })
         expect(linkByText(wrapper, 'Dashboard').classes()).toContain('menu-item-active')

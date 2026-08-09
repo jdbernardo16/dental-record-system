@@ -10,7 +10,6 @@ import {
     Settings,
     ShieldCheck,
     Users,
-    X,
 } from "lucide-vue-next";
 import Badge from "../Components/Badge.vue";
 
@@ -162,16 +161,6 @@ const isActive = (item) => {
                 >
                     Dental Clinic
                 </span>
-                <button
-                    v-if="open"
-                    type="button"
-                    aria-label="Close sidebar"
-                    title="Close sidebar"
-                    class="ml-auto flex h-9 w-9 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100"
-                    @click="$emit('close')"
-                >
-                    <X class="h-5 w-5" />
-                </button>
             </div>
 
             <nav class="no-scrollbar flex-1 overflow-y-auto px-4 py-6">
