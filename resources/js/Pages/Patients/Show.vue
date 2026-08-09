@@ -508,12 +508,20 @@ const confirmDeleteAttachment = (attachment) => {
                 <p class="mt-1 text-sm text-gray-500">{{ patient.patient_number }}</p>
             </div>
             <div class="flex items-center gap-2">
-                <Link :href="route('patients.pdf', patient.id)">
+                <!-- Plain anchor (not Inertia Link): the PDF response is not
+                     an Inertia page, and Link's XHR would swallow it. Opens
+                     the browser PDF viewer in a new tab. -->
+                <a
+                    :href="route('patients.pdf', patient.id)"
+                    target="_blank"
+                    rel="noopener"
+                    class="inline-flex"
+                >
                     <Button variant="outline" size="sm">
                         <FileText class="h-4 w-4" />
                         Export PDF
                     </Button>
-                </Link>
+                </a>
                 <Link v-if="can.update" :href="route('patients.edit', patient.id)">
                     <Button variant="outline" size="sm">
                         <Pencil class="h-4 w-4" />
