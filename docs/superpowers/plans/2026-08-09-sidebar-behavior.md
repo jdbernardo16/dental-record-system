@@ -386,3 +386,335 @@ Resize to ≤1023px viewport (e.g. 375×667) and reload:
 
 Run: `git status --short && git diff --check`
 Expected: no output (clean tree).
+
+---
+
+# Revision 2 — Manual rail (Option A) + active-state fix (2026-08-09)
+
+User feedback after Tasks 1–4: (1) the active menu item only highlights after a full refresh (SPA navigation leaves it stale); (2) the sidebar can no longer be closed — "where is the button?" User chose **Option A**: desktop collapses to an icons-only rail via a manual button.
+
+**Root cause (active-state):** `isActive()` reads only non-reactive sources (ziggy reads `window.location`). On Inertia navigation the Sidebar's props (`open`) and `navGroups` don't change, so Vue skips its re-render and the stale highlight persists until reload. Fix: make `isActive` depend on `page.url` (reactive — changes on every navigation).
+
+**Design changes vs. rev 1:**
+- Rail is back but MANUAL: `open ? 'lg:w-72' : 'lg:w-24'`; labels `v-if="open"`.
+- X close button in the logo row (`aria-label="Close sidebar"`) when `open`, emits `close`.
+- Header hamburger restored at all viewports (remove `lg:hidden`); `ml-auto` on dropdown stays.
+- AppLayout: `sidebarOpen = ref(window.innerWidth >= 1024)` (desktop expanded, mobile closed by default).
+
+### Task 5: Update Sidebar tests to the new contract (red)
+
+**Files:**
+- Modify: `tests/js/Sidebar.spec.js`
+
+- [ ] **Step 1: Rewrite the test file**
+
+Replace the entire file with:
+
+```js
+import { describe, expect, it, vi } from 'vitest'
+import { mount } from '@vue/test-utils'
+import { defineComponent, nextTick, reactive, ref } from 'vue'
+
+const mockPageUrl = ref('/dashboard')
+
+vi.mock('@inertiajs/vue3', async (importOriginal) => {
+    const actual = await importOriginal()
+    return {
+        ...actual,
+        usePage: () =>
+            reactive({
+                props: {
+                    auth: { can: { manageUsers: true, managePatients: true, manageAppointments: true } },
+                    can: { reports: true, settings: true },
+                },
+                url: mockPageUrl,
+            }),
+    }
+})
+
+const mockRouteHrefs = {
+    dashboard: '/dashboard',
+    'wizard.index': '/wizard',
+    'patients.index': '/patients',
+    'appointments.index': '/appointments',
+    'users.index': '/users',
+    'reports.index': '/reports',
+    'settings.index': '/settings',
+}
+
+vi.mock('../../vendor/tightenco/ziggy', () => ({
+    route: (name) => {
+        if (name) return mockRouteHrefs[name] ?? `/${String(name).replace(/\./g, '/')}`
+        const currentName =
+            Object.entries(mockRouteHrefs).find(([, href]) => href === mockPageUrl.value)?.[0] ?? ''
+        return {
+            current: (checkName) => {
+                if (checkName === undefined) return currentName
+                if (currentName === checkName) return true
+                if (checkName.endsWith('.*')) return currentName.startsWith(checkName.slice(0, -2))
+                return false
+            },
+        }
+    },
+}))
+
+import Sidebar from '../../resources/js/Components/Sidebar.vue'
+
+const LinkStub = defineComponent({
+    name: 'Link',
+    props: { href: { type: String, required: true } },
+    template: '<a :href="href"><slot /></a>',
+})
+
+const mountSidebar = (props = {}) =>
+    mount(Sidebar, {
+        props: { open: false, ...props },
+        global: { stubs: { Link: LinkStub } },
+    })
+
+const linkByText = (wrapper, text) =>
+    wrapper.findAll('a').find((a) => a.text().includes(text))
+
+describe('Sidebar', () => {
+    it('emits close when a nav link is clicked', async () => {
+        const wrapper = mountSidebar({ open: true })
+        const links = wrapper.findAll('a')
+        expect(links.length).toBeGreaterThan(0)
+        await links[0].trigger('click')
+        expect(wrapper.emitted('close')).toHaveLength(1)
+    })
+
+    it('expands with labels when open and collapses to the rail when closed', () => {
+        const open = mountSidebar({ open: true })
+        const openAside = open.get('aside')
+        expect(openAside.classes()).toContain('w-72')
+        expect(openAside.classes()).toContain('translate-x-0')
+        expect(openAside.classes()).toContain('lg:w-72')
+        expect(open.text()).toContain('Dashboard')
+
+        const closed = mountSidebar({ open: false })
+        const closedAside = closed.get('aside')
+        expect(closedAside.classes()).toContain('-translate-x-full')
+        expect(closedAside.classes()).toContain('lg:translate-x-0')
+        expect(closedAside.classes()).toContain('lg:w-24')
+        expect(closed.text()).not.toContain('Dashboard')
+    })
+
+    it('closes via backdrop click', async () => {
+        const wrapper = mountSidebar({ open: true })
+        await wrapper.get('.fixed.inset-0').trigger('click')
+        expect(wrapper.emitted('close')).toHaveLength(1)
+    })
+
+    it('emits close when the X button is clicked', async () => {
+        const wrapper = mountSidebar({ open: true })
+        await wrapper.get('button[aria-label="Close sidebar"]').trigger('click')
+        expect(wrapper.emitted('close')).toHaveLength(1)
+    })
+
+    it('moves the active highlight when navigating (SPA)', async () => {
+        const wrapper = mountSidebar({ open: true })
+        expect(linkByText(wrapper, 'Dashboard').classes()).toContain('menu-item-active')
+
+        mockPageUrl.value = '/appointments'
+        await nextTick()
+
+        expect(linkByText(wrapper, 'Appointments').classes()).toContain('menu-item-active')
+        expect(linkByText(wrapper, 'Dashboard').classes()).not.toContain('menu-item-active')
+    })
+})
+```
+
+- [ ] **Step 2: Run the tests and verify they FAIL**
+
+Run: `npx vitest run tests/js/Sidebar.spec.js`
+Expected: ~3 failures — "collapses to the rail when closed" (`lg:w-24` absent in current code), "X button" (`button[aria-label="Close sidebar"]` not found), "moves the active highlight" (highlight stays on Dashboard). Tests 1 and 3 may pass.
+
+- [ ] **Step 3: Commit the failing tests**
+
+```bash
+git add tests/js/Sidebar.spec.js
+git commit -m "test: update sidebar tests for manual rail and navigation reactivity (red)"
+```
+
+### Task 6: Implement Option A rail + active-state fix (green)
+
+**Files:**
+- Modify: `resources/js/Components/Sidebar.vue`
+- Modify: `resources/js/Components/Header.vue`
+- Modify: `resources/js/Layouts/AppLayout.vue`
+
+- [ ] **Step 1: Sidebar.vue script — add `page.url` dependency to `isActive`**
+
+In `resources/js/Components/Sidebar.vue`, replace the `isActive` function with:
+
+```js
+const isActive = (item) => {
+    page.url // reactive dependency — re-evaluates on SPA navigation
+    const current = route().current()
+    if (typeof current !== 'string') return false
+    return (item.routes ?? [item.routeName])
+        .filter(Boolean)
+        .some((name) => route().current(name))
+}
+```
+
+`page` (from `usePage()`) is already defined in the script. No other script changes.
+
+- [ ] **Step 2: Sidebar.vue template — manual rail + X close button**
+
+Replace the entire `<template>` with:
+
+```vue
+<template>
+    <div>
+        <div
+            v-if="open"
+            class="fixed inset-0 z-40 bg-gray-900/50 lg:hidden"
+            @click="$emit('close')"
+        ></div>
+
+        <aside
+            :class="[
+                'fixed top-0 left-0 z-50 flex h-full flex-col border-r border-gray-200 bg-white transition-all duration-300 ease-in-out',
+                open ? 'w-72 translate-x-0' : 'w-72 -translate-x-full',
+                'lg:static lg:translate-x-0',
+                open ? 'lg:w-72' : 'lg:w-24',
+            ]"
+        >
+            <div
+                :class="[
+                    'flex h-16 shrink-0 items-center gap-3 border-b border-gray-100 px-5',
+                    !open ? 'lg:justify-center lg:px-0' : '',
+                ]"
+            >
+                <img src="/images/jdc-square.png" alt="Jerrmond Dental Clinic" class="h-10 w-10 rounded-xl" />
+                <span v-if="open" class="whitespace-nowrap text-base font-semibold text-gray-900">
+                    Dental Clinic
+                </span>
+                <button
+                    v-if="open"
+                    type="button"
+                    aria-label="Close sidebar"
+                    title="Close sidebar"
+                    class="ml-auto flex h-9 w-9 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100"
+                    @click="$emit('close')"
+                >
+                    <X class="h-5 w-5" />
+                </button>
+            </div>
+
+            <nav class="no-scrollbar flex-1 overflow-y-auto px-4 py-6">
+                <div v-for="group in navGroups" :key="group.title" class="mb-6 last:mb-0">
+                    <h2 v-if="open" class="mb-3 text-xs font-medium uppercase leading-5 tracking-wide text-gray-400">
+                        {{ group.title }}
+                    </h2>
+                    <ul class="flex flex-col gap-1.5">
+                        <li v-for="item in group.items" :key="item.name">
+                            <Link
+                                v-if="item.href"
+                                :href="item.href"
+                                :class="[
+                                    'menu-item group',
+                                    isActive(item) ? 'menu-item-active' : 'menu-item-inactive',
+                                    !open ? 'lg:justify-center' : '',
+                                ]"
+                                @click="$emit('close')"
+                            >
+                                <span
+                                    :class="
+                                        isActive(item)
+                                            ? 'menu-item-icon-active'
+                                            : 'menu-item-icon-inactive'
+                                    "
+                                >
+                                    <component :is="item.icon" class="h-5 w-5" />
+                                </span>
+                                <span v-if="open" class="flex-1 text-left whitespace-nowrap">
+                                    {{ item.name }}
+                                </span>
+                            </Link>
+                            <button
+                                v-else
+                                type="button"
+                                disabled
+                                :title="`${item.name} — coming in ${item.badge}`"
+                                class="menu-item menu-item-inactive w-full cursor-not-allowed opacity-50 disabled:hover:bg-transparent"
+                                :class="{ 'lg:justify-center': !open }"
+                            >
+                                <span class="menu-item-icon-inactive">
+                                    <component :is="item.icon" class="h-5 w-5" />
+                                </span>
+                                <span v-if="open" class="flex flex-1 items-center justify-between gap-2">
+                                    <span class="whitespace-nowrap">{{ item.name }}</span>
+                                    <Badge
+                                        :color="item.badge === 'Admin' ? 'info' : 'light'"
+                                        size="sm"
+                                    >
+                                        {{ item.badge }}
+                                    </Badge>
+                                </span>
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+    </div>
+</template>
+```
+
+Add `X` to the lucide-vue-next import list in the script (alphabetical order: after `Users`).
+
+- [ ] **Step 3: Header.vue — restore the hamburger at all viewports**
+
+In `resources/js/Components/Header.vue`, remove `lg:hidden` from the hamburger button class list:
+
+```html
+class="flex h-11 w-11 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100"
+```
+
+Keep the `ml-auto` on the dropdown wrapper (line ~55) and everything else unchanged.
+
+- [ ] **Step 4: AppLayout.vue — viewport-aware default**
+
+In `resources/js/Layouts/AppLayout.vue`, replace:
+
+```js
+const sidebarOpen = ref(false)
+```
+
+with:
+
+```js
+const sidebarOpen = ref(window.innerWidth >= 1024)
+```
+
+- [ ] **Step 5: Run the Sidebar tests**
+
+Run: `npx vitest run tests/js/Sidebar.spec.js`
+Expected: 5 passing.
+
+- [ ] **Step 6: Run the full JS suite**
+
+Run: `npx vitest run`
+Expected: 93 passing (88 + 5 sidebar), 0 failures.
+
+- [ ] **Step 7: Commit**
+
+```bash
+git add resources/js/Components/Sidebar.vue resources/js/Components/Header.vue resources/js/Layouts/AppLayout.vue tests/js/Sidebar.spec.js
+git commit -m "fix: update sidebar active state on navigation and restore manual rail collapse"
+```
+
+### Task 7: Full verification + rebuild
+
+- [ ] **Step 1:** `./vendor/bin/pest` → 123 passing.
+- [ ] **Step 2:** `npm run build` → success; commit `public/build`, `public/sw.js`, `public/manifest.webmanifest` as `chore: rebuild frontend assets`.
+- [ ] **Step 3:** Browser verification (desktop ≥1024px):
+  - Sidebar expanded by default (w-72, labels); clicking header hamburger collapses to icons-only rail (w-24); clicking again expands.
+  - No hover expansion.
+  - SPA-navigate via sidebar links: active highlight moves immediately (no refresh).
+- [ ] **Step 4:** Browser verification (mobile ≤1023px, e.g. 375×667):
+  - Drawer closed by default; hamburger opens it; X button inside the drawer closes it; tapping a nav item navigates AND closes the drawer; backdrop click closes.
+- [ ] **Step 5:** `git status --short` and `git diff --check` clean.
