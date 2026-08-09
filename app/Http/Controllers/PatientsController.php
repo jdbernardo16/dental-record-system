@@ -214,7 +214,9 @@ class PatientsController extends Controller
     }
 
     /**
-     * Download a templated PDF document of the patient's full record.
+     * Preview (and optionally download) a templated PDF document of the
+     * patient's full record — streamed inline so the browser shows its
+     * built-in PDF viewer.
      */
     public function pdf(Request $request, Patient $patient): \Illuminate\Http\Response
     {
@@ -222,7 +224,7 @@ class PatientsController extends Controller
 
         $pdf = Pdf::loadView('pdf.patient-record', $this->patientExportData($request, $patient));
 
-        return $pdf->download("patient-record-{$patient->patient_number}.pdf");
+        return $pdf->stream("patient-record-{$patient->patient_number}.pdf");
     }
 
     /**

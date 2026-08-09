@@ -87,7 +87,7 @@ it('downloads a templated patient record PDF', function () {
 
     $response->assertOk()
         ->assertHeader('Content-Type', 'application/pdf')
-        ->assertHeader('Content-Disposition', 'attachment; filename=patient-record-'.$patient->patient_number.'.pdf');
+        ->assertHeader('Content-Disposition', 'inline; filename=patient-record-'.$patient->patient_number.'.pdf');
 
     expect($response->getContent())->toStartWith('%PDF');
 });
