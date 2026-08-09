@@ -1,10 +1,11 @@
-# DCPRS User Manual — Dental Clinic Patient Record System
+# Jerrmond Dental Clinic — Patient Record System (User Manual)
 
-> **For clinic staff.** This manual explains how to use the DCPRS application day-to-day:
+> **For clinic staff.** This manual explains how to use the clinic's patient record system
+> day-to-day:
 > registering patients, running the intake wizard, managing appointments, recording
 > consultations and treatments, marking dental charts, capturing signatures and consents,
-> uploading files, and reading reports. It includes complete sample scenarios with
-> step-by-step walkthroughs for each role.
+> uploading files, importing/exporting patient lists, and reading reports. It includes
+> complete sample scenarios with step-by-step walkthroughs for each role.
 >
 > The system replaces the paper **PDA dental chart** — every field on the paper form has a
 > digital home in this application. Keep this manual next to the tablets during training.
@@ -71,10 +72,19 @@ digitizes the full PDA patient chart:
 
 **First-time tips**
 
+- The **sidebar** stays open on the left on larger screens. On a tablet or phone it slides
+  in via the **☰** button and closes automatically after you tap a destination.
+- Tap your **avatar (top-right)** for your account menu: **Edit profile** (update your
+  name, email, or password) and **Sign out**.
+- The landing page has a **Register** link. Anyone can create an account, but
+  self-registered accounts have **no role and no access** — the Administrator assigns your
+  role via **Users** (Section 16). For day-to-day work, sign in with the account the
+  Administrator created for you.
 - If you are the Administrator and this is a fresh installation, the seeded dev accounts are
   `admin` / `dentist` / `assistant` / `receptionist`, all with password `password`
   (emails are `admin@test.com`, `dentist@test.com`, `assistant@test.com`, `receptionist@test.com`) —
-  **change them immediately** via Users (Section 16).
+  **change them immediately** via Users (Section 16). Note: `receptionist` uses the
+  Assistant role — the system has **three roles**, not four (see Section 3).
 - A sleeping tablet may show *Session expired* — just sign in again; your place is kept.
 - On the login screen, **Remember me** keeps you signed in on that tablet.
 - If you forget your password, tap **Forgot your password?** and follow the email link
@@ -84,23 +94,24 @@ digitizes the full PDA patient chart:
 
 ## 3. Roles & permissions
 
-Four roles control what you can see and do. Your role decides which menu items and buttons
-appear — you will never see actions you are not allowed to perform.
+**Three roles** control what you can see and do. Your role decides which menu items and
+buttons appear — you will never see actions you are not allowed to perform. *(The former
+Receptionist role was merged into Assistant — there is one front-desk account type.)*
 
-| Capability | Administrator | Dentist | Assistant | Receptionist |
-|---|:---:|:---:|:---:|:---:|
-| Manage users (staff accounts) | ✅ | | | |
-| View / register / edit patients | ✅ | ✅ | edit only | register |
-| Delete (soft) patients | ✅ | | | |
-| Medical history (view/edit) | ✅ | ✅ | | |
-| Appointments (view / create / update / cancel / attendance) | ✅ | ✅ (no create) | ✅ | ✅ |
-| Consultations | ✅ | ✅ | | |
-| Dental chart (view / update) | ✅ | ✅ / view | view | |
-| Treatments (create / sign) | ✅ | ✅ | | |
-| Attachments (upload / view) | ✅ | ✅ | ✅ | |
-| Consents (create / patient sign / dentist sign) | ✅ | ✅ | create + patient sign | |
-| Reports | ✅ | | | |
-| Settings | ✅ | | | |
+| Capability | Administrator | Dentist | Assistant |
+|---|:---:|:---:|:---:|
+| Manage users (staff accounts) | ✅ | | |
+| View / register / edit patients | ✅ | ✅ | ✅ |
+| Delete (soft) patients | ✅ | | |
+| Medical history (view / create / edit) | ✅ | ✅ | create |
+| Appointments (view / create / update / cancel / attendance) | ✅ | view, update, cancel, attendance (no create) | ✅ |
+| Consultations (view / create / edit own) | ✅ | ✅ | |
+| Dental chart (view / update) | ✅ | ✅ | view |
+| Treatments (create / sign) | ✅ | ✅ | |
+| Attachments (upload / view) | ✅ | ✅ | ✅ |
+| Consents (create / patient sign / dentist sign) | ✅ | ✅ | create + patient sign |
+| Reports | ✅ | | |
+| Settings | ✅ | | |
 
 > **Tip for shared tablets:** each staff member should sign in with their own account so the
 > audit trail records *who* did *what*.
@@ -113,10 +124,9 @@ The dashboard is your day-start screen. It shows:
 
 | Widget | What it shows |
 |---|---|
-| **Today's appointments** | Appointments for today that are *pending* or *confirmed*, in time order. Tap **View all** to open the full day. |
-| **Recent patients** | The 10 most recently registered patients. Tap **View all** to search the registry. |
-| **Pending procedures** | Treatments recorded but **not yet signed** by the dentist (dentist/admin view). |
-| **Follow-ups** | Confirmed appointments in the next 7 days that were flagged as follow-ups. |
+| **Today's appointments** | Count of today's *pending* or *confirmed* appointments. Tap **View all** to open the full day. |
+| **Recent patients** | Count of the 10 most recently registered patients. Tap **View all** to search the registry. |
+| **Follow-ups** | Count of *confirmed* follow-up appointments in the next 7 days (flagged when the appointment was created — see Section 8). |
 | **Monthly statistics** | A bar chart of new patients and new appointments over the last 6 months. |
 
 Tap any widget's **View all** link to drill into the full list.
@@ -129,8 +139,9 @@ The intake wizard is the fastest way to register a walk-in patient and capture e
 one sitting. It has **7 steps**; each step saves immediately, and the wizard resumes at the
 first incomplete step if you leave midway.
 
-> **Who:** Receptionist (steps 1–2, then hands the tablet to the clinical team), Dentist,
-> or Assistant. Permission buttons appear only for steps you may perform.
+> **Who:** the front-desk staff member (Assistant role) handles steps 1–2, then hands the
+> tablet to the clinical team; a Dentist or Assistant continues the clinical steps.
+> Permission buttons appear only for steps you may perform.
 
 ### Step 1 — Patient
 
@@ -217,7 +228,16 @@ Hand the tablet to the patient:
 1. Sidebar → **Patients**.
 2. Type in the **Search** box — it matches **name, patient number, or contact number** as
    you type.
-3. Tap a row to open the record.
+3. To sort or narrow the list, tap **Filter** (beside the search box) to open the filter
+   drawer:
+   - **Sort by** — Name, Patient number, Age, Sex, or Date registered.
+   - **Direction** — Ascending or Descending (radio buttons).
+   - **Sex**, **Civil status**, **Age min/max**, and **Registered from/to** range filters.
+   - **Apply** runs the search; **Clear** resets the filters. The number of active filters
+     shows on the **Filter** button, and the CSV **Export** below always reflects the
+     current view.
+4. Names are shown **last name first** (e.g. *Bernardo, John B*).
+5. Tap a row to open the record.
 
 ### The record page
 
@@ -238,10 +258,30 @@ Hand the tablet to the patient:
 
 Tap **Edit**, change the fields, and save. Only roles with `patients.update` see the button.
 
+### Exporting & importing patients
+
+The toolbar above the table has **Export** and **Import** buttons.
+
+**Export** downloads the **current view** as a CSV file — exactly the patients matching your
+search, filters, and sort. The file opens in Excel (or any spreadsheet app) and includes the
+patient number, name, demographics, and contact details.
+
+**Import** adds many patients at once from a CSV file (max **500 rows, 2 MB**):
+
+1. Tap **Import** and choose a file — or tap **Download template** first to get the correct
+   column layout (11 demographic columns; patient numbers are assigned automatically, so the
+   file never includes them).
+2. **Review** — the system validates every row and marks each one **New**, **Duplicate**, or
+   **Invalid** (with the reason). A row matching an existing patient (same name and birth
+   date) is a Duplicate and will be skipped; Invalid rows list exactly what to fix.
+3. Tap **Confirm import** — only the valid **New** rows are created. The result shows how
+   many were imported, skipped, or failed.
+
 ### Deleting a patient (Administrator only)
 
-Tap **Delete** and confirm. This is a **soft delete** — the record can be restored by an
-administrator, and clinical history is retained until archival (Section 19).
+Tap **Delete** — a confirmation dialog asks you to confirm before the record is removed.
+This is a **soft delete** — the record can be restored by an administrator, and clinical
+history is retained until archival (Section 19).
 
 ---
 
@@ -511,28 +551,30 @@ limits, archival schedule).
 
 Sidebar → **Users** (Administrator only).
 
-- **Add user:** name, username, email, password, and role (Administrator / Dentist / Assistant /
-  Receptionist).
-- **Edit:** change name/username/email/role; **deactivate** a user to block their sign-in without
-  deleting them (useful for departed staff). You cannot deactivate your own account.
-- **Delete:** removes the account (audited).
+- **Add user:** name, username, email, password, and role (Administrator / Dentist /
+  Assistant).
+- **Edit:** change name/username/email/role or the password (leave blank to keep unchanged);
+  toggle **Account active** to block a departed staff member's sign-in without deleting
+  them. You cannot deactivate your own account.
+- **Delete:** removes the account (audited). Row actions are icon buttons — pencil to edit,
+  trash to delete.
 
 ---
 
 ## 17. Sample scenarios
 
-### Scenario A — Walk-in patient, full intake (Receptionist + clinical staff)
+### Scenario A — Walk-in patient, full intake (Front desk + clinical staff)
 
 *Mrs. Dela Cruz walks in without an appointment.*
 
-1. **Receptionist** taps **New intake** (sidebar).
+1. **Front desk** taps **New intake** (sidebar).
 2. Step 1 — registers: *Liza Dela Cruz, Female, born 1990-05-15, Married, Filipino,
    0917-123-4567, QC address*, emergency contact *Juan Dela Cruz*. Taps **Register &
    continue**. Patient number `2026-0001` assigned.
 3. Step 2 — medical history: answers the 10 questions (allergies **Yes** → types
    *Penicillin*), opens **General health** and records blood type *O+*, blood pressure
    *120/80*, ticks *High blood pressure* + *Diabetes* in the conditions checklist. Saves.
-4. Receptionist hands the tablet to **Mrs. Dela Cruz** for steps 3–4: she reads the 10
+4. Front desk hands the tablet to **Mrs. Dela Cruz** for steps 3–4: she reads the 10
    waiver statements and initials each, accepts, draws her signature, and taps **Sign &
    continue**.
 5. The **Dentist** takes over at step 5 — chief complaint: *"Pain on my upper left when
@@ -543,15 +585,15 @@ Sidebar → **Users** (Administrator only).
    Continues.
 7. Step 7 — treatment: *Composite restoration* on tooth 26, linked to the consultation,
    saved. **Sign now** → draws signature → **Signed**. **Finish** lands on the record.
-8. **Receptionist** books a follow-up: **Appointments** → **New appointment** → search
-   *Dela Cruz* → date next week 09:00–09:30 → reason *"Follow-up after composite
-   restoration"* → **Create**.
+8. **Front desk** books a follow-up: **Appointments** → **New appointment** → search
+   *Dela Cruz* → date next week 09:00–09:30 → tick **Follow-up appointment** → reason
+   *"Follow-up after composite restoration"* → **Create**.
 
-### Scenario B — Returning patient with an appointment (Receptionist + Dentist)
+### Scenario B — Returning patient with an appointment (Front desk + Dentist)
 
 *Mr. Santos has a confirmed 09:00 appointment.*
 
-1. **Receptionist** opens **Appointments** (today). The 09:00 row shows **Confirmed**.
+1. **Front desk** opens **Appointments** (today). The 09:00 row shows **Confirmed**.
 2. At the front desk, taps the row → **Mark attended** → status **Completed**.
 3. **Dentist** opens the patient record → **Consultations** → **Add consultation** (chief
    complaint, findings). Saves.
@@ -578,14 +620,16 @@ Sidebar → **Users** (Administrator only).
 
 ### Scenario D — Administrator: daily administration
 
-1. **Dashboard** → checks today's appointments, recent patients, pending procedures.
+1. **Dashboard** → checks today's appointment count and recent patients.
 2. **Users** → adds a new Assistant (name, email, password, role), later deactivates the
    account of a departing staff member.
 3. **Settings** → updates the clinic name (appears on the landing page immediately) and
    raises the upload limit to 40 MB.
-4. **Reports** → month-to-date range → reviews patient growth and dentist workload →
+4. **Patients** → **Filter** (Sex: *Female*, Age min *30*, Age max *40*) → **Apply** →
+   **Export** to download the filtered CSV for the monthly meeting.
+5. **Reports** → month-to-date range → reviews patient growth and dentist workload →
    downloads **CSV** for the monthly meeting → **Print** to PDF.
-5. **Backup check** (weekly): confirms `storage/app/backups/dcprs-backup/` has a fresh
+6. **Backup check** (weekly): confirms `storage/app/backups/dcprs-backup/` has a fresh
    nightly zip (Section 19).
 
 ---
@@ -617,6 +661,11 @@ allowed in Settings). Pick another time or dentist.
 **Q: Can I undo a soft-deleted patient?**
 A: An Administrator restores it from the database (or from the archive if past the grace
 period — see Section 19). Act quickly; archival is automatic.
+
+**Q: How do I add many patients at once?**
+A: Use **Patients → Import** with a CSV file. Download the template, fill in one row per
+patient, upload it, review the preview (duplicates and invalid rows are skipped), then
+**Confirm import**. See Section 6.
 
 **Q: What file types can I upload?**
 A: JPG, PNG, GIF, WebP, and PDF, up to the size limit in Settings (default 25 MB). X-rays
