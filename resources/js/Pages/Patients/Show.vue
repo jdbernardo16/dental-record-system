@@ -801,12 +801,12 @@ const confirmDeleteAttachment = (attachment) => {
         </div>
 
         <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-            <div class="flex gap-1 border-b border-gray-100 px-4 pt-3">
+            <div class="no-scrollbar flex gap-1 overflow-x-auto border-b border-gray-100 px-4 pt-3">
                 <template v-for="tab in tabs" :key="tab.name">
                     <Link
                         v-if="tab.href"
                         :href="tab.href(patient.id)"
-                        class="inline-flex items-center gap-2 rounded-t-lg px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:text-brand-600"
+                        class="inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-t-lg px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:text-brand-600"
                     >
                         <component :is="tab.icon" class="h-4 w-4" />
                         {{ tab.name }}
@@ -816,7 +816,7 @@ const confirmDeleteAttachment = (attachment) => {
                         v-else-if="tab.wired"
                         type="button"
                         :aria-pressed="activeTab === tab.name.toLowerCase()"
-                        class="inline-flex items-center gap-2 rounded-t-lg px-4 py-2.5 text-sm font-medium transition"
+                        class="inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-t-lg px-4 py-2.5 text-sm font-medium transition"
                         :class="
                             activeTab === tab.name.toLowerCase()
                                 ? 'bg-gray-50 text-brand-600'
@@ -832,7 +832,7 @@ const confirmDeleteAttachment = (attachment) => {
                         type="button"
                         disabled
                         :title="`${tab.name} — coming in ${tab.phase}`"
-                        class="inline-flex cursor-not-allowed items-center gap-2 rounded-t-lg px-4 py-2.5 text-sm font-medium text-gray-400"
+                        class="inline-flex shrink-0 cursor-not-allowed items-center gap-2 whitespace-nowrap rounded-t-lg px-4 py-2.5 text-sm font-medium text-gray-400"
                     >
                         <component :is="tab.icon" class="h-4 w-4" />
                         {{ tab.name }}
