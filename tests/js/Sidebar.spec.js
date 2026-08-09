@@ -63,7 +63,8 @@ const linkByText = (wrapper, text) =>
     wrapper.findAll('a').find((a) => a.text().includes(text))
 
 describe('Sidebar', () => {
-    it('emits close when a nav link is clicked', async () => {
+    it('emits close when a nav link is clicked on mobile', async () => {
+        Object.defineProperty(window, 'innerWidth', { value: 375, configurable: true })
         const wrapper = mountSidebar({ open: true })
         const links = wrapper.findAll('a')
         expect(links.length).toBeGreaterThan(0)
