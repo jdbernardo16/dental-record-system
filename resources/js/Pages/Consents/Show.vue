@@ -1,20 +1,17 @@
 <script setup>
 import { computed } from 'vue'
 import { Head, Link } from '@inertiajs/vue3'
-import { FileText, Printer } from 'lucide-vue-next'
+import { FileText } from 'lucide-vue-next'
 import { route } from '../../../../vendor/tightenco/ziggy'
 import AppLayout from '@/Layouts/AppLayout.vue'
 import Badge from '@/Components/Badge.vue'
 import { Button } from '@/Components/ui/button'
-import { useToastStore } from '@/Stores/toast'
 
 defineOptions({ layout: AppLayout })
 
 const props = defineProps({
     consent: { type: Object, required: true },
 })
-
-const toastStore = useToastStore()
 
 const patient = computed(() => props.consent.patient)
 
@@ -44,10 +41,6 @@ const formatDateTime = (value) => {
     return new Date(value).toLocaleString()
 }
 
-const printForm = () => {
-    toastStore.show('Preparing the printable form…')
-    window.print()
-}
 </script>
 
 <template>
@@ -77,10 +70,6 @@ const printForm = () => {
                         Export PDF
                     </Button>
                 </a>
-                <Button size="sm" class="print:hidden" @click="printForm">
-                    <Printer class="h-4 w-4" />
-                    Print
-                </Button>
             </div>
         </div>
 
