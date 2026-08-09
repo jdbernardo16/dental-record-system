@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue'
-import { DialogContent, DialogOverlay, DialogPortal, DialogRoot } from 'reka-ui'
+import { DialogContent, DialogOverlay, DialogPortal, DialogRoot, DialogTitle } from 'reka-ui'
 import { cn } from '@/lib/utils'
 
 const props = defineProps({
@@ -68,6 +68,9 @@ const maxWidthClass = computed(() => {
                 @pointer-down-outside="blockClose"
                 @interact-outside="blockClose"
             >
+                <DialogTitle class="sr-only">
+                    <slot name="title" />
+                </DialogTitle>
                 <slot />
             </DialogContent>
         </DialogPortal>
