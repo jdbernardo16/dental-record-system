@@ -223,8 +223,18 @@ class PatientsController extends Controller
         $this->authorize('view', $patient);
 
         $pdf = Pdf::loadView('pdf.patient-record', $this->patientExportData($request, $patient));
+        $content = $pdf->output();
 
-        return $pdf->stream("patient-record-{$patient->patient_number}.pdf");
+        // The blade copies signature/initial SVGs to temp files so dompdf can
+        // render them as images — remove them now that the PDF is generated.
+        foreach (glob(sys_get_temp_dir().'/dcprs-*.tmp') ?: [] as $file) {
+            @unlink($file);
+        }
+
+        return response($content, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => "inline; filename=patient-record-{$patient->patient_number}.pdf",
+        ]);
     }
 
     /**

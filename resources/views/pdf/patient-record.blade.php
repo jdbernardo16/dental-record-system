@@ -254,18 +254,22 @@
         <div class="section">Consent Forms — Documents</div>
 
         @php
-            // Signature/initial SVGs live on the public disk — inline them so
-            // the document shows the actual signatures and initials.
-            $svgOf = function (string|null $path): ?string {
+            // Signature/initial SVGs live on the public disk. dompdf only
+            // renders SVG as <img> from a real file path (inline <svg> markup
+            // is ignored), so copy each to a temp file and reference it.
+            // The controller cleans the files up after the PDF is generated.
+            $svgFile = function (string|null $path, string $prefix): ?string {
                 if (! $path) {
                     return null;
                 }
-                return \Illuminate\Support\Facades\Storage::disk('public')->exists($path)
-                    ? \Illuminate\Support\Facades\Storage::disk('public')->get($path)
-                    : null;
+                $disk = \Illuminate\Support\Facades\Storage::disk('public');
+                if (! $disk->exists($path)) {
+                    return null;
+                }
+                $tmp = tempnam(sys_get_temp_dir(), $prefix);
+                file_put_contents($tmp, $disk->get($path));
+                return $tmp;
             };
-            $fitSvg = fn (string $svg, int $w, int $h): string =>
-                preg_replace('/width="\d+" height="\d+"/', "width=\"{$w}\" height=\"{$h}\"", $svg, 1);
         @endphp
 
         @foreach ($consentForms as $consent)
@@ -296,10 +300,10 @@
                     <div style="margin:7px 0;">
                         <p class="sec-label">{{ $loop->iteration }}. {{ $section->label }}</p>
                         <p class="sec-text">{{ $section->text }}</p>
-                        @php $initialSvg = $svgOf($section->initial_svg_path); @endphp
-                        @if ($initialSvg)
+                        @php $initialFile = $svgFile($section->initial_svg_path, 'dcprs-init-'); @endphp
+                        @if ($initialFile)
                             <div style="text-align:right;">
-                                {!! $fitSvg($initialSvg, 140, 42) !!}
+                                <img src="{{ $initialFile }}" style="width: 140px; height: 23px;" />
                             </div>
                         @endif
                     </div>
@@ -309,33 +313,33 @@
                 <p class="quote">“{{ $consent->consent_text['authorization'] ?? '—' }}”</p>
 
                 @php
-                    $patientSvg = $svgOf($consent->patient_signature_path);
-                    $guardianSvg = $svgOf($consent->guardian_signature_path);
-                    $dentistSvg = $svgOf($consent->dentist_signature_path);
+                    $patientFile = $svgFile($consent->patient_signature_path, 'dcprs-sig-');
+                    $guardianFile = $svgFile($consent->guardian_signature_path, 'dcprs-sig-');
+                    $dentistFile = $svgFile($consent->dentist_signature_path, 'dcprs-sig-');
                 @endphp
-                @if ($patientSvg || $guardianSvg || $dentistSvg)
+                @if ($patientFile || $guardianFile || $dentistFile)
                     <table class="sig-table">
                         <tr>
-                            @if ($patientSvg)
+                            @if ($patientFile)
                                 <td>
                                     <p class="sec-label">Patient signature</p>
-                                    {!! $fitSvg($patientSvg, 230, 69) !!}
+                                    <img src="{{ $patientFile }}" style="width: 230px; height: 38px;" />
                                     <p class="sig-name">{{ $consent->patient_name }}</p>
                                     <p class="sig-date">{{ $consent->patient_signed_at?->format('M j, Y g:i A') }}</p>
                                 </td>
                             @endif
-                            @if ($guardianSvg)
+                            @if ($guardianFile)
                                 <td>
                                     <p class="sec-label">Parent / guardian signature</p>
-                                    {!! $fitSvg($guardianSvg, 230, 69) !!}
+                                    <img src="{{ $guardianFile }}" style="width: 230px; height: 38px;" />
                                     <p class="sig-name">{{ $consent->guardian_name }}</p>
                                     <p class="sig-date">{{ $consent->patient_signed_at?->format('M j, Y g:i A') }}</p>
                                 </td>
                             @endif
-                            @if ($dentistSvg)
+                            @if ($dentistFile)
                                 <td>
                                     <p class="sec-label">Dentist signature</p>
-                                    {!! $fitSvg($dentistSvg, 230, 69) !!}
+                                    <img src="{{ $dentistFile }}" style="width: 230px; height: 38px;" />
                                     <p class="sig-name">{{ $consent->dentist?->name ?? '—' }}</p>
                                     <p class="sig-date">{{ $consent->dentist_signed_at?->format('M j, Y g:i A') }}</p>
                                 </td>
