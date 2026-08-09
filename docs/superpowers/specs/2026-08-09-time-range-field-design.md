@@ -29,6 +29,16 @@ Appointment forms (create + reschedule modals in `Appointments/Index.vue`) use a
 - Clear button (X, lucide) shown when `start` or `end` is set; resets both to null (mirrors DateField's clear affordance).
 - Label/error/hint markup copied from DateField conventions (Label component, `status-cancelled` error text, `fieldId` via `useId`).
 
+### Hybrid time selector (popover picker) — rev. 2
+
+The reka-ui `TimeRangeField` is type-in only (no built-in selector popup). Per user decision (Option A), add a click-to-select popover on top of the segments:
+
+- Wrap the field in `PopoverRoot` (same pattern as DateField): the **clock icon becomes a `PopoverTrigger` button** (`aria-label="Pick time"`, `type="button"`, disabled when the field is disabled) next to the Clear button.
+- `PopoverContent` portaled below the field, reusing DateField's popover classes (`z-50 rounded-md border bg-popover shadow-md`, side offset 6, animation classes).
+- Content: two side-by-side columns with small **"Start" / "End"** captions. Each column has a **scrollable hour list (00–23)** and a **scrollable minute list (00–55, 5-minute steps)** (max-height, overflow-y-auto, clickable buttons; selected value highlighted with the brand accent).
+- Clicking a value updates that side via the same `rangeValue` model (segments update live); the popover **stays open** after selections (so both sides can be set), closes on outside click / Escape.
+- Typing in segments and picking in the popover both work and stay in sync.
+
 ### `resources/js/Pages/Appointments/Index.vue`
 
 - **Create modal**: replace the `grid-cols-1 sm:grid-cols-3` block containing DateField + Start TextInput + End TextInput with `grid-cols-1 sm:grid-cols-2` containing DateField + TimeRangeField:
@@ -46,10 +56,13 @@ Appointment forms (create + reschedule modals in `Appointments/Index.vue`) use a
 
 ## Testing
 
-- **Vitest** — new `tests/js/TimeRangeField.spec.js` (mirror `tests/js/DateField.spec.js` conventions; happy-dom, `@` alias):
+- **Vitest** — `tests/js/TimeRangeField.spec.js` (mirror `tests/js/DateField.spec.js` conventions; happy-dom, `@` alias):
   - renders label + required star + error text when provided,
   - shows "Clear" only when start or end is set; clicking it emits `update:start`/`update:end` with null,
-  - binds `HH:mm` strings into the internal Time values and emits `HH:mm` strings on change.
+  - binds `HH:mm` strings into the internal Time values and emits `HH:mm` strings on change,
+  - rejects `HH:mm:ss` / out-of-range values as null, pads `9:5` → `09:05` (rev. 2 hardening),
+  - **hybrid picker (rev. 2):** clock button opens the popover; clicking hour + minute buttons emits the matching `update:start`/`update:end`; both columns reflect the current values; popover stays open after a selection; trigger hidden when disabled.
+- **Browser check (manual):** open `/appointments` → New appointment in a real browser; verify typing in segments AND picking from the popover both produce the same `start_time`/`end_time` payload.
 - **Pest** — existing appointment feature tests must stay green (wire format unchanged); no new backend tests needed.
 
 ## Out of scope
