@@ -49,10 +49,10 @@ export default defineConfig({
                 scope: '/',
                 start_url: '/',
                 icons: [
-                    { src: '/favicon-192x192.png', sizes: '192x192', type: 'image/png' },
-                    { src: '/pwa-512x512.png', sizes: '512x512', type: 'image/png' },
-                    { src: '/pwa-maskable-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
-                    { src: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+                    { src: '/favicon-192x192.png?v=20260809', sizes: '192x192', type: 'image/png' },
+                    { src: '/pwa-512x512.png?v=20260809', sizes: '512x512', type: 'image/png' },
+                    { src: '/pwa-maskable-512x512.png?v=20260809', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+                    { src: '/apple-touch-icon.png?v=20260809', sizes: '180x180', type: 'image/png' },
                 ],
             },
             workbox: {
