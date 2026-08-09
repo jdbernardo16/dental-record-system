@@ -18,7 +18,12 @@ defineProps({
     open: { type: Boolean, default: false },
 });
 
-defineEmits(["close"]);
+const emit = defineEmits(["close"]);
+
+const onNavClick = () => {
+    // Only close on mobile (<lg) — on desktop the sidebar stays expanded
+    if (window.innerWidth < 1024) emit("close");
+};
 
 const page = usePage();
 
@@ -193,7 +198,7 @@ const isActive = (item) => {
                                         : 'menu-item-inactive',
                                     !open ? 'lg:justify-center' : '',
                                 ]"
-                                @click="$emit('close')"
+                                @click="onNavClick"
                             >
                                 <span
                                     :class="
