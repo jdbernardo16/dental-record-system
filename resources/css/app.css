@@ -150,3 +150,26 @@
     font-size: 17px;
   }
 }
+
+/* Print: the app shell uses h-screen + overflow containers that clip to one
+   viewport-height page when printing. Reset them so full pages print, and
+   hide chrome that only belongs on screen (sidebar is fixed/off-canvas). */
+@media print {
+    html {
+        font-size: 12pt;
+    }
+
+    .h-screen {
+        height: auto !important;
+    }
+
+    .overflow-hidden,
+    .overflow-y-auto,
+    .overflow-x-auto {
+        overflow: visible !important;
+    }
+
+    aside {
+        display: none !important;
+    }
+}

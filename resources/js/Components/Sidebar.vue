@@ -132,7 +132,7 @@ const isActive = (item) => {
     <div>
         <div
             v-if="open"
-            class="fixed inset-0 z-40 bg-gray-900/50 lg:hidden"
+            class="fixed inset-0 z-40 bg-gray-900/50 lg:hidden print:hidden"
             @click="$emit('close')"
         ></div>
 
