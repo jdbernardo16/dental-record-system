@@ -45,7 +45,7 @@ onUnmounted(() => document.removeEventListener('click', handleClickOutside))
     >
         <button
             type="button"
-            class="flex h-11 w-11 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100"
+            class="flex h-11 w-11 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 lg:hidden"
             aria-label="Toggle sidebar"
             @click="$emit('toggle')"
         >
