@@ -14,7 +14,7 @@ beforeEach(function () {
 
 it('renders the patient index with paginated results', function () {
     Patient::factory()->count(25)->create();
-    $user = User::factory()->create()->assignRole('Receptionist');
+    $user = User::factory()->create()->assignRole('Assistant');
 
     $this->actingAs($user)->get('/patients?search=')
         ->assertOk()
@@ -26,14 +26,14 @@ it('renders the patient index with paginated results', function () {
 
 it('searches patients through the index', function () {
     Patient::factory()->create(['last_name' => 'Bautista']);
-    $user = User::factory()->create()->assignRole('Receptionist');
+    $user = User::factory()->create()->assignRole('Assistant');
 
     $this->actingAs($user)->get('/patients?search=Bautista')
         ->assertInertia(fn ($page) => $page->has('patients.data', 1));
 });
 
 it('lets receptionists create patients but not delete them', function () {
-    $user = User::factory()->create()->assignRole('Receptionist');
+    $user = User::factory()->create()->assignRole('Assistant');
 
     $this->actingAs($user)->post('/patients', [
         'first_name' => 'Liza', 'last_name' => 'Reyes', 'sex' => 'female',

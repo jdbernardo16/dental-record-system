@@ -13,7 +13,7 @@ beforeEach(function () {
 });
 
 it('renders the day view with today appointments', function () {
-    $user = User::factory()->create()->assignRole('Receptionist');
+    $user = User::factory()->create()->assignRole('Assistant');
     $patient = Patient::factory()->create();
     Appointment::factory()->create(['patient_id' => $patient->id, 'appointment_date' => now()->toDateString()]);
 
@@ -23,7 +23,7 @@ it('renders the day view with today appointments', function () {
 });
 
 it('creates an appointment through the store route', function () {
-    $user = User::factory()->create()->assignRole('Receptionist');
+    $user = User::factory()->create()->assignRole('Assistant');
     $patient = Patient::factory()->create();
 
     $this->actingAs($user)->post('/appointments', [
@@ -36,8 +36,8 @@ it('creates an appointment through the store route', function () {
 });
 
 it('rejects a non-dentist user as the assigned dentist', function () {
-    $user = User::factory()->create()->assignRole('Receptionist');
-    $receptionist = User::factory()->create()->assignRole('Receptionist');
+    $user = User::factory()->create()->assignRole('Assistant');
+    $receptionist = User::factory()->create()->assignRole('Assistant');
     $patient = Patient::factory()->create();
 
     $this->actingAs($user)->post('/appointments', [
@@ -52,7 +52,7 @@ it('rejects a non-dentist user as the assigned dentist', function () {
 });
 
 it('confirms a pending appointment', function () {
-    $user = User::factory()->create()->assignRole('Receptionist');
+    $user = User::factory()->create()->assignRole('Assistant');
     $appointment = Appointment::factory()->create(['status' => 'pending']);
 
     $this->actingAs($user)->post("/appointments/{$appointment->id}/confirm")
@@ -62,7 +62,7 @@ it('confirms a pending appointment', function () {
 });
 
 it('reschedules an appointment through the update route', function () {
-    $user = User::factory()->create()->assignRole('Receptionist');
+    $user = User::factory()->create()->assignRole('Assistant');
     $appointment = Appointment::factory()->create(['status' => 'confirmed']);
 
     $this->actingAs($user)->patch("/appointments/{$appointment->id}", [
@@ -75,7 +75,7 @@ it('reschedules an appointment through the update route', function () {
 });
 
 it('records attendance and marks no-show', function () {
-    $user = User::factory()->create()->assignRole('Receptionist');
+    $user = User::factory()->create()->assignRole('Assistant');
     $appointment = Appointment::factory()->create(['status' => 'confirmed']);
 
     $this->actingAs($user)->post("/appointments/{$appointment->id}/attendance", ['present' => false])
@@ -86,7 +86,7 @@ it('records attendance and marks no-show', function () {
 });
 
 it('marks attendance as completed when present', function () {
-    $user = User::factory()->create()->assignRole('Receptionist');
+    $user = User::factory()->create()->assignRole('Assistant');
     $appointment = Appointment::factory()->create(['status' => 'confirmed']);
 
     $this->actingAs($user)->post("/appointments/{$appointment->id}/attendance", ['present' => true])
@@ -96,7 +96,7 @@ it('marks attendance as completed when present', function () {
 });
 
 it('cancels an appointment with a reason', function () {
-    $user = User::factory()->create()->assignRole('Receptionist');
+    $user = User::factory()->create()->assignRole('Assistant');
     $appointment = Appointment::factory()->create(['status' => 'pending']);
 
     $this->actingAs($user)->post("/appointments/{$appointment->id}/cancel", ['reason' => 'Patient unavailable'])
@@ -106,7 +106,7 @@ it('cancels an appointment with a reason', function () {
 });
 
 it('returns a session error when overlapping an existing appointment', function () {
-    $user = User::factory()->create()->assignRole('Receptionist');
+    $user = User::factory()->create()->assignRole('Assistant');
     $dentist = User::factory()->create()->assignRole('Dentist');
     $patient = Patient::factory()->create();
     Appointment::factory()->create([
@@ -129,7 +129,7 @@ it('blocks users without the appointments.view permission', function () {
 });
 
 it('passes the back-to-patient prop when arriving from a patient record', function () {
-    $user = User::factory()->create()->assignRole('Receptionist');
+    $user = User::factory()->create()->assignRole('Assistant');
     $patient = Patient::factory()->create();
 
     $this->actingAs($user)->get("/appointments?patient={$patient->id}")
@@ -140,7 +140,7 @@ it('passes the back-to-patient prop when arriving from a patient record', functi
 });
 
 it('omits the back-to-patient prop without a patient param', function () {
-    $user = User::factory()->create()->assignRole('Receptionist');
+    $user = User::factory()->create()->assignRole('Assistant');
 
     $this->actingAs($user)->get('/appointments')
         ->assertOk()
@@ -150,7 +150,7 @@ it('omits the back-to-patient prop without a patient param', function () {
 });
 
 it('omits the back-to-patient prop for a non-numeric patient param', function () {
-    $user = User::factory()->create()->assignRole('Receptionist');
+    $user = User::factory()->create()->assignRole('Assistant');
 
     $this->actingAs($user)->get('/appointments?patient=abc')
         ->assertOk()
@@ -160,7 +160,7 @@ it('omits the back-to-patient prop for a non-numeric patient param', function ()
 });
 
 it('omits the back-to-patient prop for a nonexistent patient', function () {
-    $user = User::factory()->create()->assignRole('Receptionist');
+    $user = User::factory()->create()->assignRole('Assistant');
 
     $this->actingAs($user)->get('/appointments?patient=999999')
         ->assertOk()
@@ -181,7 +181,7 @@ it('omits the back-to-patient prop for users without the patients.view permissio
 });
 
 it('omits the back-to-patient prop when the patient param is an array', function () {
-    $user = User::factory()->create()->assignRole('Receptionist');
+    $user = User::factory()->create()->assignRole('Assistant');
 
     $this->actingAs($user)->get('/appointments?patient[]=1')
         ->assertOk()
@@ -191,7 +191,7 @@ it('omits the back-to-patient prop when the patient param is an array', function
 });
 
 it('keeps the back-to-patient param when creating an appointment from a patient calendar', function () {
-    $user = User::factory()->create()->assignRole('Receptionist');
+    $user = User::factory()->create()->assignRole('Assistant');
     $patient = Patient::factory()->create();
 
     $this->actingAs($user)->post('/appointments', [

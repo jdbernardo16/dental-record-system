@@ -65,7 +65,7 @@ it('keeps existing rows when the expansion columns are null', function () {
 });
 
 it('stores the PDA patient fields', function () {
-    $receptionist = User::factory()->create()->assignRole('Receptionist');
+    $receptionist = User::factory()->create()->assignRole('Assistant');
 
     $this->actingAs($receptionist)->post('/patients', [
         'first_name' => 'Liza', 'last_name' => 'Reyes', 'sex' => 'female',

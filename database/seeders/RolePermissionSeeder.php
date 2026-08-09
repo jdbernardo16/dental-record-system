@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
+use App\Models\User;
 
 class RolePermissionSeeder extends Seeder
 {
@@ -26,23 +27,30 @@ class RolePermissionSeeder extends Seeder
                 'attachments.view', 'attachments.upload',
                 'consents.view', 'consents.create', 'consents.sign-patient', 'consents.sign-dentist',
             ],
+            // Assistant = merged Receptionist + Assistant permissions (one
+            // front-desk account type).
             'Assistant' => [
-                'patients.view', 'patients.update',
+                'patients.view', 'patients.create', 'patients.update',
                 'appointments.view', 'appointments.create', 'appointments.update',
                 'appointments.cancel', 'appointments.attendance',
                 'dental-chart.view',
                 'attachments.view', 'attachments.upload',
                 'consents.view', 'consents.create', 'consents.sign-patient',
             ],
-            'Receptionist' => [
-                'patients.view', 'patients.create',
-                'appointments.view', 'appointments.create', 'appointments.update',
-                'appointments.cancel', 'appointments.attendance',
-            ],
         ];
 
         foreach ($rolePermissions as $name => $permissions) {
             Role::firstOrCreate(['name' => $name])->syncPermissions($permissions);
+        }
+
+        // Receptionist was merged into Assistant — reassign existing users,
+        // then drop the role (applies on re-seed to dev databases). Guarded:
+        // User::role() throws when the role name does not exist (fresh DBs).
+        if (Role::where('name', 'Receptionist')->exists()) {
+            foreach (User::role('Receptionist')->get() as $user) {
+                $user->assignRole('Assistant');
+            }
+            Role::where('name', 'Receptionist')->delete();
         }
     }
 }

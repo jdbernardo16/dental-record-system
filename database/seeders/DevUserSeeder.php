@@ -16,7 +16,7 @@ class DevUserSeeder extends Seeder
             ['username' => 'admin', 'name' => 'Administrator', 'email' => 'admin@test.com', 'role' => 'Administrator'],
             ['username' => 'dentist', 'name' => 'Jerrmond De Jesus', 'email' => 'dentist@test.com', 'role' => 'Dentist'],
             ['username' => 'assistant', 'name' => 'Mia Santos', 'email' => 'assistant@test.com', 'role' => 'Assistant'],
-            ['username' => 'receptionist', 'name' => 'Joy Cruz', 'email' => 'receptionist@test.com', 'role' => 'Receptionist'],
+            ['username' => 'receptionist', 'name' => 'Joy Cruz', 'email' => 'receptionist@test.com', 'role' => 'Assistant'],
         ];
 
         foreach ($users as $data) {

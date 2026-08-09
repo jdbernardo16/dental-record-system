@@ -24,7 +24,7 @@ it('lets an administrator create a user with a role', function () {
 });
 
 it('blocks non-admins from managing users', function () {
-    $receptionist = User::factory()->create()->assignRole('Receptionist');
+    $receptionist = User::factory()->create()->assignRole('Assistant');
 
     $this->actingAs($receptionist)->get('/users')->assertForbidden();
     $this->actingAs($receptionist)->post('/users', [

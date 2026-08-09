@@ -53,12 +53,3 @@ it('rejects wrong file types', function () {
     ])->assertSessionHasErrors(['file']);
 });
 
-it('blocks receptionists from uploading', function () {
-    $user = User::factory()->create()->assignRole('Receptionist');
-    $patient = Patient::factory()->create();
-
-    $this->actingAs($user)->post("/patients/{$patient->id}/attachments", [
-        'file' => UploadedFile::fake()->image('x.jpg'),
-        'category' => 'image',
-    ])->assertForbidden();
-});

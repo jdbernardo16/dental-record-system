@@ -126,14 +126,6 @@ it('blocks dentist countersign before patient signs', function () {
     ])->assertStatus(409);
 });
 
-it('blocks receptionists from consent actions', function () {
-    $user = User::factory()->create()->assignRole('Receptionist');
-    $patient = Patient::factory()->create();
-
-    $this->actingAs($user)->post('/consents', ['patient_id' => $patient->id, 'initials' => []])
-        ->assertForbidden();
-});
-
 it('voids a previous unsigned draft when a new waiver is saved', function () {
     $assistant = User::factory()->create()->assignRole('Assistant');
     $patient = Patient::factory()->create(['birth_date' => now()->subYears(25)]);

@@ -21,7 +21,6 @@ const roleColor = (role) =>
         Administrator: 'dark',
         Dentist: 'info',
         Assistant: 'light',
-        Receptionist: 'warning',
     })[role] ?? 'light'
 
 const initials = (name) =>

@@ -7,13 +7,18 @@ use Spatie\Permission\Models\Role;
 
 uses(RefreshDatabase::class);
 
-it('seeds the four roles with the full permission catalogue', function () {
+it('seeds the three roles with the full permission catalogue', function () {
     $this->seed(RolePermissionSeeder::class);
 
-    expect(Role::pluck('name')->all())->toContain('Administrator', 'Dentist', 'Assistant', 'Receptionist');
+    expect(Role::pluck('name')->all())->toContain('Administrator', 'Dentist', 'Assistant');
+    expect(Role::pluck('name')->all())->not->toContain('Receptionist');
     expect(Role::where('name', 'Administrator')->first()->permissions)->toHaveCount(count(array_merge(...array_values(config('permissions')))));
 
-    $receptionist = User::factory()->create()->assignRole('Receptionist');
-    expect($receptionist->can('appointments.create'))->toBeTrue();
-    expect($receptionist->can('patients.delete'))->toBeFalse();
+    // Assistant carries the merged Assistant + Receptionist permission set
+    $assistant = User::factory()->create()->assignRole('Assistant');
+    expect($assistant->can('appointments.create'))->toBeTrue();
+    expect($assistant->can('patients.create'))->toBeTrue();
+    expect($assistant->can('patients.update'))->toBeTrue();
+    expect($assistant->can('attachments.upload'))->toBeTrue();
+    expect($assistant->can('patients.delete'))->toBeFalse();
 });

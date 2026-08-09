@@ -49,7 +49,7 @@ it('updates existing medical history instead of duplicating', function () {
 });
 
 it('blocks receptionists from editing medical history', function () {
-    $user = User::factory()->create()->assignRole('Receptionist');
+    $user = User::factory()->create()->assignRole('Assistant');
     $patient = Patient::factory()->create();
 
     $this->actingAs($user)->post("/patients/{$patient->id}/medical-history", [
@@ -100,7 +100,7 @@ it('logs medical history saves with audit properties', function () {
 });
 
 it('does not expose medical history data to roles without view permission', function () {
-    $receptionist = User::factory()->create()->assignRole('Receptionist');
+    $receptionist = User::factory()->create()->assignRole('Assistant');
     $patient = Patient::factory()->create();
 
     $this->actingAs($receptionist)->get("/patients/{$patient->id}")

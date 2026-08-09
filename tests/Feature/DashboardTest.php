@@ -13,7 +13,7 @@ beforeEach(function () {
 });
 
 it('renders dashboard widgets for any role', function () {
-    $user = User::factory()->create()->assignRole('Receptionist');
+    $user = User::factory()->create()->assignRole('Assistant');
     $patients = Patient::factory()->count(3)->create();
     Appointment::factory()->count(2)->create([
         'patient_id' => $patients->first()->id,
@@ -31,7 +31,7 @@ it('renders dashboard widgets for any role', function () {
 });
 
 it('gates follow-ups and pending procedures behind permissions', function () {
-    $user = User::factory()->create()->assignRole('Receptionist');
+    $user = User::factory()->create()->assignRole('Assistant');
 
     $this->actingAs($user)->get('/dashboard')
         ->assertOk()

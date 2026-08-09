@@ -13,7 +13,7 @@ beforeEach(function () {
 });
 
 it('renders the wizard for receptionists with a fresh patient step', function () {
-    $user = User::factory()->create()->assignRole('Receptionist');
+    $user = User::factory()->create()->assignRole('Assistant');
 
     $this->actingAs($user)->get('/wizard')
         ->assertOk()

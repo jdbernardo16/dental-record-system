@@ -34,17 +34,19 @@ it('renders the export page with the full record for a dentist', function () {
             ->has('exportedAt'));
 });
 
-it('gates clinical sections by permission for receptionists', function () {
-    $receptionist = User::factory()->create()->assignRole('Receptionist');
+it('gates clinical sections by permission for assistants', function () {
+    $assistant = User::factory()->create()->assignRole('Assistant');
     $patient = Patient::factory()->create();
 
-    $this->actingAs($receptionist)->get("/patients/{$patient->id}/export")
+    // The merged Assistant role can view the dental chart (dental-chart.view)
+    // but not medical histories or treatments.
+    $this->actingAs($assistant)->get("/patients/{$patient->id}/export")
         ->assertOk()
         ->assertInertia(fn ($page) => $page
             ->where('medicalHistory', null)
             ->where('canViewClinical.medical-history', false)
             ->where('canViewClinical.treatments', false)
-            ->where('chartState', null));
+            ->whereNotNull('chartState'));
 });
 
 it('includes chart history and consent sections for the dentist', function () {

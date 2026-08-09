@@ -82,7 +82,7 @@ it('blocks a different dentist from signing', function () {
 });
 
 it('blocks receptionists from creating treatments', function () {
-    $user = User::factory()->create()->assignRole('Receptionist');
+    $user = User::factory()->create()->assignRole('Assistant');
     $patient = Patient::factory()->create();
 
     $this->actingAs($user)->post("/patients/{$patient->id}/treatments", [

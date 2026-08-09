@@ -58,7 +58,7 @@ it('requires chief complaint and validates exam fields', function () {
 });
 
 it('blocks receptionists from creating consultations', function () {
-    $user = User::factory()->create()->assignRole('Receptionist');
+    $user = User::factory()->create()->assignRole('Assistant');
     $patient = Patient::factory()->create();
 
     $this->actingAs($user)->post("/patients/{$patient->id}/consultations", [

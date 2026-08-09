@@ -18,7 +18,7 @@ beforeEach(function () {
 
     $this->patient = Patient::factory()->create();
     $this->dentist = User::factory()->create()->assignRole('Dentist');
-    $this->receptionist = User::factory()->create()->assignRole('Receptionist');
+    $this->receptionist = User::factory()->create()->assignRole('Assistant');
 });
 
 it('follows the spec transitions', function () {
