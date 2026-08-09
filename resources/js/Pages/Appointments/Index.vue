@@ -3,20 +3,21 @@ import { computed, ref, watch } from "vue";
 import { Head, router, useForm } from "@inertiajs/vue3";
 import {
     CalendarPlus,
-    Check,
     ChevronLeft,
     ChevronRight,
     X,
 } from "lucide-vue-next";
 import { route } from "../../../../vendor/tightenco/ziggy";
 import AppLayout from "@/Layouts/AppLayout.vue";
+import BackToPatient from "@/Components/BackToPatient.vue";
 import Badge from "@/Components/Badge.vue";
 import { Button } from "@/Components/ui/button";
 import {
     DateField,
+    SearchSelectField,
     SelectField,
     TextareaField,
-    TextInput,
+    TimeRangeField,
 } from "@/Components/Fields";
 import { scrollToFirstError } from "@/lib/scroll";
 import Modal from "@/Components/Modal.vue";
@@ -31,6 +32,7 @@ const props = defineProps({
     dentists: { type: Array, default: () => [] },
     can: { type: Object, default: () => ({}) },
     statusOptions: { type: Object, default: () => ({}) },
+    backToPatient: { type: Object, default: null },
 });
 
 const toastStore = useToastStore();
@@ -75,7 +77,8 @@ const todayLocal = () => toLocalDate(new Date());
 
 const isToday = computed(() => props.date === todayLocal());
 
-const goTo = (date) => router.get(route("appointments.index", { date }));
+const goTo = (date) =>
+    router.get(route("appointments.index", { date, patient: props.backToPatient?.id }));
 const shiftDay = (offset) => {
     const parts = props.date.split("-").map(Number);
     const d = new Date(parts[0], parts[1] - 1, parts[2] + offset);
@@ -103,16 +106,12 @@ const closeDetail = () => {
     selected.value = null;
 };
 
-const patientSearch = ref("");
-const filteredPatients = computed(() => {
-    const term = patientSearch.value.trim().toLowerCase();
-    if (!term) return props.patients;
-    return props.patients.filter(
-        (p) =>
-            `${p.first_name} ${p.last_name}`.toLowerCase().includes(term) ||
-            p.patient_number.toLowerCase().includes(term),
-    );
-});
+const patientOptions = computed(() =>
+    props.patients.map((p) => ({
+        value: p.id,
+        label: `${[p.last_name, p.first_name].filter(Boolean).join(", ")} — ${p.patient_number}`,
+    })),
+);
 
 // reka-ui Select cannot deselect and rejects empty-string item values, so
 // the "No dentist assigned" state is represented by SelectField's noneLabel
@@ -129,12 +128,12 @@ const createForm = useForm({
     start_time: "",
     end_time: "",
     reason: "",
+    patient: props.backToPatient?.id ?? "",
 });
 
 const openCreate = () => {
     createForm.reset();
     createForm.appointment_date = props.date;
-    patientSearch.value = "";
     showCreate.value = true;
 };
 
@@ -255,6 +254,10 @@ watch(
                 <p class="mt-1 text-sm text-gray-500">{{ dateLabel }}</p>
             </div>
             <div class="flex items-center gap-2">
+                <BackToPatient
+                    v-if="backToPatient"
+                    :patient-id="backToPatient.id"
+                />
                 <button
                     type="button"
                     class="flex h-11 w-11 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-600 transition hover:bg-gray-50"
@@ -359,65 +362,15 @@ watch(
             </div>
 
             <div>
-                <TextInput
+                <SearchSelectField
                     id="patient_search"
-                    v-model="patientSearch"
+                    v-model="createForm.patient_id"
                     label="Patient"
-                    type="search"
+                    :options="patientOptions"
                     placeholder="Search by name or patient number…"
+                    :hint="patients.length >= 50 ? 'Showing the 50 most recent patients — full list on the Patients page.' : null"
+                    :error="createForm.errors.patient_id"
                 />
-                <div
-                    class="mt-2 max-h-56 overflow-y-auto rounded-lg border border-gray-300"
-                >
-                    <button
-                        v-for="p in filteredPatients"
-                        :key="p.id"
-                        type="button"
-                        class="flex w-full items-center justify-between gap-3 px-4 py-3 text-left text-sm transition hover:bg-gray-50"
-                        :class="
-                            createForm.patient_id === p.id ? 'bg-brand-50' : ''
-                        "
-                        @click="createForm.patient_id = p.id"
-                    >
-                        <span class="min-w-0">
-                            <span
-                                class="block truncate font-medium text-gray-800"
-                            >
-                                {{
-                                    [p.last_name, p.first_name]
-                                        .filter(Boolean)
-                                        .join(", ")
-                                }}
-                            </span>
-                            <span class="block text-xs text-gray-500">{{
-                                p.patient_number
-                            }}</span>
-                        </span>
-                        <Check
-                            v-if="createForm.patient_id === p.id"
-                            class="h-4 w-4 shrink-0 text-brand-500"
-                        />
-                    </button>
-                    <p
-                        v-if="!filteredPatients.length"
-                        class="px-4 py-3 text-sm text-gray-500"
-                    >
-                        No patients found.
-                    </p>
-                </div>
-                <p
-                    v-if="patients.length >= 50"
-                    class="mt-1.5 text-xs text-gray-400"
-                >
-                    Showing the 50 most recent patients — full list on the
-                    Patients page.
-                </p>
-                <p
-                    v-if="createForm.errors.patient_id"
-                    class="mt-1.5 text-xs text-status-cancelled"
-                >
-                    {{ createForm.errors.patient_id }}
-                </p>
             </div>
 
             <div>
@@ -431,25 +384,22 @@ watch(
                 />
             </div>
 
-            <div class="grid grid-cols-1 gap-5 sm:grid-cols-3">
+            <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
                 <DateField
                     v-model="createForm.appointment_date"
                     label="Date"
                     required
                     :error="createForm.errors.appointment_date"
                 />
-                <TextInput
-                    v-model="createForm.start_time"
-                    type="time"
-                    label="Start"
+                <TimeRangeField
+                    v-model:start="createForm.start_time"
+                    v-model:end="createForm.end_time"
+                    label="Time"
                     required
-                    :error="createForm.errors.start_time"
-                />
-                <TextInput
-                    v-model="createForm.end_time"
-                    type="time"
-                    label="End"
-                    :error="createForm.errors.end_time"
+                    :error="
+                        createForm.errors.start_time ??
+                        createForm.errors.end_time
+                    "
                 />
             </div>
 
@@ -667,21 +617,16 @@ watch(
                     required
                     :error="rescheduleForm.errors.appointment_date"
                 />
-                <div class="grid grid-cols-2 gap-4">
-                    <TextInput
-                        v-model="rescheduleForm.start_time"
-                        type="time"
-                        label="Start"
-                        required
-                        :error="rescheduleForm.errors.start_time"
-                    />
-                    <TextInput
-                        v-model="rescheduleForm.end_time"
-                        type="time"
-                        label="End"
-                        :error="rescheduleForm.errors.end_time"
-                    />
-                </div>
+                <TimeRangeField
+                    v-model:start="rescheduleForm.start_time"
+                    v-model:end="rescheduleForm.end_time"
+                    label="Time"
+                    required
+                    :error="
+                        rescheduleForm.errors.start_time ??
+                        rescheduleForm.errors.end_time
+                    "
+                />
             </div>
             <p
                 v-if="rescheduleForm.errors.appointment"
