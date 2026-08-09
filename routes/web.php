@@ -88,6 +88,9 @@ Route::middleware(['auth', 'verified', 'permission:consents.create'])
 Route::middleware(['auth', 'verified', 'permission:consents.view'])
     ->get('/consents/{consentForm}', [ConsentsController::class, 'show'])
     ->name('consents.show');
+Route::middleware(['auth', 'verified', 'permission:consents.view'])
+    ->get('/consents/{consentForm}/pdf', [ConsentsController::class, 'pdf'])
+    ->name('consents.pdf');
 Route::middleware(['auth', 'verified', 'permission:consents.sign-patient'])
     ->post('/consents/{consentForm}/patient-sign', [ConsentsController::class, 'patientSign'])
     ->name('consents.patient-sign');

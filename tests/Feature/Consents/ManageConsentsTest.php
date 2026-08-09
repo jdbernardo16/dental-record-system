@@ -160,3 +160,29 @@ it('returns a clean validation error (not 500) when initials is not an array', f
         'initials' => 'not-an-array',
     ])->assertSessionHasErrors('initials');
 });
+
+it('downloads a templated consent PDF', function () {
+    $dentist = User::factory()->create()->assignRole('Dentist');
+    $patient = Patient::factory()->create();
+    $consent = ConsentForm::factory()->create([
+        'patient_id' => $patient->id,
+        'dentist_id' => $dentist->id,
+        'status' => 'patient_signed',
+        'patient_name' => $patient->full_name ?? 'Test Patient',
+    ]);
+
+    $response = $this->actingAs($dentist)->get("/consents/{$consent->id}/pdf");
+
+    $response->assertOk()
+        ->assertHeader('Content-Type', 'application/pdf')
+        ->assertHeader('Content-Disposition', 'inline; filename=consent-'.$consent->id.'-Test Patient.pdf');
+
+    expect($response->getContent())->toStartWith('%PDF');
+});
+
+it('blocks guests from the consent PDF route', function () {
+    $patient = Patient::factory()->create();
+    $consent = ConsentForm::factory()->create(['patient_id' => $patient->id]);
+
+    $this->get("/consents/{$consent->id}/pdf")->assertRedirect('/login');
+});

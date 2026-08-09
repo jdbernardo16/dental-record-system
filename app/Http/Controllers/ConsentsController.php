@@ -8,6 +8,8 @@ use App\Http\Requests\StoreConsentRequest;
 use App\Models\ConsentForm;
 use App\Models\Patient;
 use App\Services\ConsentService;
+use App\Services\SettingsService;
+use App\Support\PdfExport;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
@@ -36,6 +38,25 @@ class ConsentsController extends Controller
         return Inertia::render('Consents/Show', [
             'consent' => $consentForm->load(['patient', 'sections', 'dentist:id,name']),
         ]);
+    }
+
+    /**
+     * Preview a templated PDF document of a single consent form.
+     */
+    public function pdf(Request $request, ConsentForm $consentForm): \Illuminate\Http\Response
+    {
+        $this->authorize('view', $consentForm);
+
+        $consent = $consentForm->load(['patient', 'sections', 'dentist:id,name']);
+
+        return PdfExport::make('pdf.consent', [
+            'consent' => $consent,
+            'clinic' => [
+                'name' => app(SettingsService::class)->get('clinic.name', 'Dental Clinic'),
+                'address' => app(SettingsService::class)->get('clinic.address', ''),
+            ],
+            'exportedAt' => now()->format('F j, Y g:i A'),
+        ], "consent-{$consent->id}-{$consent->patient_name}");
     }
 
     public function patientSign(SignPatientConsentRequest $request, ConsentForm $consentForm): RedirectResponse

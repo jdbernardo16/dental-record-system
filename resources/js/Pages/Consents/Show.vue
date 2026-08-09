@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { Head, Link } from '@inertiajs/vue3'
-import { Printer } from 'lucide-vue-next'
+import { FileText, Printer } from 'lucide-vue-next'
 import { route } from '../../../../vendor/tightenco/ziggy'
 import AppLayout from '@/Layouts/AppLayout.vue'
 import Badge from '@/Components/Badge.vue'
@@ -64,6 +64,19 @@ const printForm = () => {
                 <Link :href="route('patients.show', patient.id)">
                     <Button variant="outline" size="sm">Back to patient</Button>
                 </Link>
+                <!-- Plain anchor (not Inertia Link): the PDF response is not an
+                     Inertia page, and Link's XHR would swallow it. Opens the
+                     browser PDF viewer in a new tab. -->
+                <a
+                    :href="route('consents.pdf', consent.id)"
+                    target="_blank"
+                    rel="noopener"
+                >
+                    <Button variant="outline" size="sm" class="print:hidden">
+                        <FileText class="h-4 w-4" />
+                        Export PDF
+                    </Button>
+                </a>
                 <Button size="sm" class="print:hidden" @click="printForm">
                     <Printer class="h-4 w-4" />
                     Print

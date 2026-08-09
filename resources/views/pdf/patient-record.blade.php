@@ -257,19 +257,9 @@
             // Signature/initial SVGs live on the public disk. dompdf only
             // renders SVG as <img> from a real file path (inline <svg> markup
             // is ignored), so copy each to a temp file and reference it.
-            // The controller cleans the files up after the PDF is generated.
-            $svgFile = function (string|null $path, string $prefix): ?string {
-                if (! $path) {
-                    return null;
-                }
-                $disk = \Illuminate\Support\Facades\Storage::disk('public');
-                if (! $disk->exists($path)) {
-                    return null;
-                }
-                $tmp = tempnam(sys_get_temp_dir(), $prefix);
-                file_put_contents($tmp, $disk->get($path));
-                return $tmp;
-            };
+            // PdfExport cleans the files up after the PDF is generated.
+            $svgFile = fn (string|null $path, string $prefix): ?string =>
+                \App\Support\PdfExport::svgFile($path, $prefix);
         @endphp
 
         @foreach ($consentForms as $consent)
