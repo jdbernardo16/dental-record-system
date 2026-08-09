@@ -1,18 +1,15 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { Head, Link, router, useForm } from '@inertiajs/vue3'
-import { ArrowLeft, Check, Pencil, Signature } from 'lucide-vue-next'
+import { ArrowLeft, Check, Pencil } from 'lucide-vue-next'
 import { route } from '../../../../vendor/tightenco/ziggy'
 import AppLayout from '@/Layouts/AppLayout.vue'
-import Badge from '@/Components/Badge.vue'
+import BackToPatient from '@/Components/BackToPatient.vue'
 import { Button } from '@/Components/ui/button'
 import { DateField, RadioPills, TextInput } from '@/Components/Fields'
-import ConsultationForm from '@/Components/Wizard/ConsultationForm.vue'
 import MedicalHistoryForm from '@/Components/Wizard/MedicalHistoryForm.vue'
-import SignaturePadModal from '@/Components/SignaturePadModal.vue'
 import SignatureStep from '@/Components/Wizard/SignatureStep.vue'
 import ToothChart, { wholeToothOnly } from '@/Components/ToothChart.vue'
-import TreatmentForm from '@/Components/Wizard/TreatmentForm.vue'
 import WaiverStep from '@/Components/Wizard/WaiverStep.vue'
 import { useToastStore } from '@/Stores/toast'
 import { useWizardStore } from '@/Stores/wizard'
@@ -33,14 +30,10 @@ const props = defineProps({
     patientAge: { type: Number, default: 0 },
     sexOptions: { type: Array, default: () => [] },
     civilStatusOptions: { type: Array, default: () => [] },
-    consultationOptions: { type: Object, default: () => ({}) },
-    toothOptions: { type: Array, default: () => [] },
     statusOptions: { type: Object, default: () => ({}) },
     chartState: { type: Object, default: () => ({}) },
     chartHistory: { type: Array, default: () => [] },
     chartOptions: { type: Object, default: () => ({}) },
-    treatments: { type: Array, default: () => [] },
-    consultations: { type: Array, default: () => [] },
     can: { type: Object, default: () => ({}) },
 })
 
@@ -71,7 +64,7 @@ const navigateTo = (index) => {
 
 const backStep = () => {
     const current = wizardStore.step
-    wizardStore.go(current === 4 ? 1 : Math.max(0, current - 1))
+    wizardStore.go(Math.max(0, current - 1))
     scrollToTop()
 }
 
@@ -133,23 +126,6 @@ const onWaiverSaved = () => {
 const onSignatureSaved = () => {
     wizardStore.markComplete('signature')
     wizardStore.go(4)
-    scrollToTop()
-}
-
-const onConsultationSaved = () => {
-    wizardStore.markComplete('consultation')
-    wizardStore.go(5)
-    scrollToTop()
-}
-
-const onChartDone = () => {
-    wizardStore.markComplete('dental_chart')
-    wizardStore.go(6)
-    scrollToTop()
-}
-
-const onTreatmentSaved = () => {
-    wizardStore.markComplete('treatment')
     scrollToTop()
 }
 
@@ -221,48 +197,6 @@ const chipClass = (selected) => [
         : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50',
 ]
 
-/* ---------------------------------------------------------------- Step 6 */
-
-const signModalOpen = ref(false)
-const signingTreatment = ref(null)
-
-const signForm = useForm({
-    signature_svg: '',
-})
-
-const openSign = (treatment) => {
-    signingTreatment.value = treatment
-    signModalOpen.value = true
-}
-
-const confirmSign = (svg) => {
-    signForm.signature_svg = svg
-    signForm.post(route('treatments.sign', signingTreatment.value.id), {
-        // keep the wizard on the treatment step — a completed intake resumes at step 0
-        preserveState: true,
-        preserveScroll: true,
-        onSuccess: () => {
-            signModalOpen.value = false
-            signForm.reset()
-            signingTreatment.value = null
-            toastStore.show('Treatment signed.')
-        },
-        onError: () => {
-            toastStore.show('Signing failed — please try again.', 'error')
-        },
-    })
-}
-
-const closeSign = () => {
-    signModalOpen.value = false
-    signingTreatment.value = null
-}
-
-const formatSignedAt = (value) => {
-    if (!value) return ''
-    return new Date(value).toLocaleString()
-}
-
 const finishWizard = () => {
     wizardStore.reset()
     router.visit(route('patients.show', props.patient.id))
@@ -273,11 +207,14 @@ const finishWizard = () => {
     <Head :title="patient ? `Intake — ${patientFullName()}` : 'Patient intake'" />
 
     <div class="mx-auto max-w-5xl space-y-6">
-        <div>
-            <h1 class="text-2xl font-semibold text-gray-800">Patient intake</h1>
-            <p class="mt-1 text-sm text-gray-500">
-                {{ patient ? `Resuming intake for ${patientFullName()}` : 'Register a new patient and complete the intake checklist.' }}
-            </p>
+        <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+                <h1 class="text-2xl font-semibold text-gray-800">Patient intake</h1>
+                <p class="mt-1 text-sm text-gray-500">
+                    {{ patient ? `Resuming intake for ${patientFullName()}` : 'Register a new patient and complete the intake checklist.' }}
+                </p>
+            </div>
+            <BackToPatient v-if="patient" :patient-id="patient.id" />
         </div>
 
         <!-- Stepper -->
@@ -613,21 +550,8 @@ const finishWizard = () => {
                 </p>
             </div>
 
-            <!-- 4 · Consultation -->
-            <div v-show="wizardStore.step === 4">
-                <ConsultationForm
-                    v-if="patientId"
-                    :patient-id="patientId"
-                    :options="consultationOptions"
-                    @saved="onConsultationSaved"
-                />
-                <p v-else class="py-10 text-center text-sm text-gray-500">
-                    Register the patient first to continue.
-                </p>
-            </div>
-
-            <!-- 5 · Dental chart -->
-            <div v-show="wizardStore.step === 5" class="space-y-6">
+            <!-- 4 · Dental chart -->
+            <div v-show="wizardStore.step === 4" class="space-y-6">
                 <ToothChart
                     :state="chartState"
                     dentition="adult"
@@ -685,66 +609,6 @@ const finishWizard = () => {
                 </div>
 
                 <div class="flex justify-end">
-                    <Button size="md" type="button" @click="onChartDone">Continue to treatment</Button>
-                </div>
-            </div>
-
-            <!-- 6 · Treatment -->
-            <div v-show="wizardStore.step === 6" class="space-y-6">
-                <TreatmentForm
-                    v-if="patientId"
-                    :patient-id="patientId"
-                    :consultations="consultations"
-                    :tooth-options="toothOptions"
-                    @saved="onTreatmentSaved"
-                />
-
-                <div v-if="treatments.length" class="rounded-2xl border border-gray-200 bg-gray-50/50 p-6">
-                    <div class="flex flex-wrap items-center justify-between gap-3">
-                        <div>
-                            <h3 class="text-sm font-semibold text-gray-800">Treatment records</h3>
-                            <p class="mt-0.5 text-xs text-gray-500">
-                                {{ treatments.length }} on record{{ treatments.some((t) => !t.signed_at) ? ' — sign pending records to complete the intake' : '' }}
-                            </p>
-                        </div>
-                        <Badge size="sm" color="success">Created</Badge>
-                    </div>
-
-                    <ul class="mt-4 divide-y divide-gray-100">
-                        <li
-                            v-for="treatment in treatments"
-                            :key="treatment.id"
-                            class="flex flex-wrap items-center justify-between gap-3 py-3"
-                        >
-                            <div class="flex min-w-0 flex-wrap items-center gap-2">
-                                <Badge size="sm" color="light">{{ treatment.treatment_date }}</Badge>
-                                <span class="truncate text-sm font-medium text-gray-800">
-                                    {{ treatment.procedure_name }}
-                                </span>
-                                <Badge v-if="treatment.tooth_number" size="sm" color="primary">
-                                    Tooth {{ treatment.tooth_number }}
-                                </Badge>
-                                <Badge size="sm" :color="treatment.signed_at ? 'success' : 'warning'">
-                                    {{ treatment.signed_at ? 'Signed' : 'Pending' }}
-                                </Badge>
-                            </div>
-                            <div class="flex shrink-0 items-center gap-2">
-                                <span class="text-xs text-gray-500">{{ treatment.dentist?.name ?? '—' }}</span>
-                                <Button
-                                    v-if="!treatment.signed_at && can.treatments?.sign"
-                                    variant="outline"
-                                    size="sm"
-                                    @click="openSign(treatment)"
-                                >
-                                    <Signature class="h-4 w-4" />
-                                    Sign now
-                                </Button>
-                            </div>
-                        </li>
-                    </ul>
-                </div>
-
-                <div class="flex justify-end">
                     <Button size="md" type="button" @click="finishWizard">Finish</Button>
                 </div>
             </div>
@@ -756,15 +620,7 @@ const finishWizard = () => {
                 <ArrowLeft class="h-4 w-4" />
                 Back
             </Button>
-            <p class="text-sm text-gray-500">Step {{ wizardStore.step + 1 }} of 7</p>
+            <p class="text-sm text-gray-500">Step {{ wizardStore.step + 1 }} of {{ steps.length }}</p>
         </div>
-
-        <SignaturePadModal
-            :show="signModalOpen"
-            title="Sign treatment"
-            confirm-label="Accept signature"
-            @close="closeSign"
-            @confirm="confirmSign"
-        />
     </div>
 </template>

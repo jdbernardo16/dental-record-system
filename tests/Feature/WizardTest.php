@@ -1,7 +1,6 @@
 <?php
 
 use App\Models\ConsentForm;
-use App\Models\Consultation;
 use App\Models\Patient;
 use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
@@ -21,7 +20,7 @@ it('renders the wizard for receptionists with a fresh patient step', function ()
         ->assertInertia(fn ($page) => $page
             ->component('Wizard/Index')
             ->has('patient')
-            ->has('steps', 7));
+            ->has('steps', 5));
 });
 
 it('resumes an existing patient at the first incomplete step', function () {
@@ -35,7 +34,7 @@ it('resumes an existing patient at the first incomplete step', function () {
             ->where('patient.id', $patient->id)
             ->where('resumeStep', 1)); // step index: 0 patient, 1 medical history, ...
 
-    // After medical history + consultation but no consent, resume at the consent step
+    // After medical history but no consent, resume at the waiver step
     $this->actingAs($dentist)->post("/patients/{$patient->id}/medical-history", [
         'hypertension' => 'no',
         'diabetes' => 'no',
@@ -48,12 +47,11 @@ it('resumes an existing patient at the first incomplete step', function () {
         'alcohol_consumption' => 'no',
         'previous_surgeries' => 'no',
     ])->assertRedirect();
-    Consultation::factory()->create(['patient_id' => $patient->id, 'dentist_id' => $dentist->id]);
 
     $this->actingAs($dentist)->get("/wizard/{$patient->id}")
         ->assertInertia(fn ($page) => $page->where('resumeStep', 2)); // 2 = waiver (no consent started yet)
 
-    // A patient-signed consent + consultation resumes at the dental chart step
+    // A patient-signed consent resumes at the dental chart step
     ConsentForm::factory()->create([
         'patient_id' => $patient->id,
         'dentist_id' => $dentist->id,
@@ -61,5 +59,5 @@ it('resumes an existing patient at the first incomplete step', function () {
     ]);
 
     $this->actingAs($dentist)->get("/wizard/{$patient->id}")
-        ->assertInertia(fn ($page) => $page->where('resumeStep', 5)); // 5 = dental chart
+        ->assertInertia(fn ($page) => $page->where('resumeStep', 4)); // 4 = dental chart
 });

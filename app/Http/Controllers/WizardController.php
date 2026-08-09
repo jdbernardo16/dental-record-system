@@ -9,7 +9,6 @@ use App\Enums\RestorationType;
 use App\Enums\Sex;
 use App\Enums\ToothCondition;
 use App\Enums\ToothSurface;
-use App\Models\Consultation;
 use App\Models\Patient;
 use App\Services\DentalChartService;
 use Illuminate\Http\Request;
@@ -19,15 +18,13 @@ use Inertia\Response;
 
 class WizardController extends Controller
 {
-    /** Steps per blueprint Flow 1 (spec tail): patient, medical history, waiver, signature, consultation, dental chart, treatment. */
+    /** Steps per blueprint Flow 1 (spec tail): patient, medical history, waiver, signature, dental chart. */
     public const STEPS = [
         ['key' => 'patient', 'label' => 'Patient'],
         ['key' => 'medical_history', 'label' => 'Medical history'],
         ['key' => 'waiver', 'label' => 'Waiver'],
         ['key' => 'signature', 'label' => 'Signature'],
-        ['key' => 'consultation', 'label' => 'Consultation'],
         ['key' => 'dental_chart', 'label' => 'Dental chart'],
-        ['key' => 'treatment', 'label' => 'Treatment'],
     ];
 
     public function index(Request $request, ?Patient $patient = null): Response
@@ -39,12 +36,6 @@ class WizardController extends Controller
                 'resumeStep' => 0,
                 'sexOptions' => $this->enumOptions(Sex::meta()),
                 'civilStatusOptions' => $this->enumOptions(CivilStatus::meta()),
-                'consultationOptions' => [
-                    'periodontal' => Consultation::periodontalOptions(),
-                    'occlusion' => Consultation::occlusionOptions(),
-                    'appliances' => Consultation::applianceOptions(),
-                    'tmd' => Consultation::tmdOptions(),
-                ],
                 'toothOptions' => DentitionType::meta()['adult']['teeth'],
                 'statusOptions' => AppointmentStatus::meta(),
                 'can' => [
@@ -56,9 +47,7 @@ class WizardController extends Controller
         }
 
         $medicalHistory = $patient->medicalHistory;
-        $hasConsultation = $patient->consultations()->exists();
         $hasChart = $patient->chartEntries()->exists();
-        $hasTreatment = $patient->treatments()->exists();
         $consentDraft = $patient->consentForms()->where('status', 'unsigned')->exists();
         $consentSigned = $patient->consentForms()->whereIn('status', ['patient_signed', 'signed'])->exists();
 
@@ -66,9 +55,7 @@ class WizardController extends Controller
             $medicalHistory === null && ! $consentDraft && ! $consentSigned => 1,
             ! $consentDraft && ! $consentSigned => 2, // waiver (no consent started yet)
             ! $consentSigned => 3,                    // signature (draft exists, not signed)
-            ! $hasConsultation => 4,
-            ! $hasChart => 5,
-            ! $hasTreatment => 6,
+            ! $hasChart => 4,
             default => 0,
         };
 
@@ -100,12 +87,6 @@ class WizardController extends Controller
             'patientAge' => $patient->age,
             'sexOptions' => $this->enumOptions(Sex::meta()),
             'civilStatusOptions' => $this->enumOptions(CivilStatus::meta()),
-            'consultationOptions' => [
-                'periodontal' => Consultation::periodontalOptions(),
-                'occlusion' => Consultation::occlusionOptions(),
-                'appliances' => Consultation::applianceOptions(),
-                'tmd' => Consultation::tmdOptions(),
-            ],
             'toothOptions' => DentitionType::meta()['adult']['teeth'],
             'statusOptions' => AppointmentStatus::meta(),
             'chartState' => $hasChart ? $service->currentState($patient->id, 'adult') : [],
@@ -116,22 +97,9 @@ class WizardController extends Controller
                 'surfaces' => ToothSurface::meta(),
                 'dentitions' => DentitionType::meta(),
             ],
-            'treatments' => $patient->treatments()
-                ->with('dentist:id,name', 'consultation:id,chief_complaint')
-                ->latest('treatment_date')
-                ->limit(20)
-                ->get(),
-            'consultations' => $patient->consultations()
-                ->with('dentist:id,name')
-                ->latest('consultation_date')
-                ->limit(20)
-                ->get(),
             'can' => [
                 'dentalChart' => [
                     'update' => $request->user()->can('dental-chart.update'),
-                ],
-                'treatments' => [
-                    'sign' => $request->user()->can('treatments.sign'),
                 ],
             ],
         ]);
