@@ -1,5 +1,7 @@
 <script setup>
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
+import { computed } from 'vue'
+import { DialogContent, DialogOverlay, DialogPortal, DialogRoot } from 'reka-ui'
+import { cn } from '@/lib/utils'
 
 const props = defineProps({
     show: {
@@ -14,54 +16,26 @@ const props = defineProps({
         type: Boolean,
         default: true,
     },
-});
+})
 
-const emit = defineEmits(['close']);
-const dialog = ref();
-const showSlot = ref(props.show);
+const emit = defineEmits(['close'])
 
-watch(
-    () => props.show,
-    () => {
-        if (props.show) {
-            document.body.style.overflow = 'hidden';
-            showSlot.value = true;
-
-            dialog.value?.showModal();
-        } else {
-            document.body.style.overflow = '';
-
-            setTimeout(() => {
-                dialog.value?.close();
-                showSlot.value = false;
-            }, 200);
-        }
+// Controlled reka-ui dialog. Both the dialog content and any popover inside it
+// (e.g. the DateField calendar) portal to <body> and stack by z-index + DOM
+// order, so a popover opened after the dialog renders above it. This replaces
+// the old native <dialog>/showModal() which sat in the browser TOP LAYER and
+// could never be covered by a portaled popover.
+const open = computed({
+    get: () => props.show,
+    set: (value) => {
+        if (!value && props.closeable) emit('close')
     },
-);
+})
 
-const close = () => {
-    if (props.closeable) {
-        emit('close');
-    }
-};
-
-const closeOnEscape = (e) => {
-    if (e.key === 'Escape') {
-        e.preventDefault();
-
-        if (props.show) {
-            close();
-        }
-    }
-};
-
-onMounted(() => document.addEventListener('keydown', closeOnEscape));
-
-onUnmounted(() => {
-    document.removeEventListener('keydown', closeOnEscape);
-
-    document.body.style.overflow = '';
-});
+// When not closeable, block escape / outside-pointer close at the reka-ui level.
+const blockClose = (event) => {
+    if (!props.closeable) event.preventDefault()
+}
 
 const maxWidthClass = computed(() => {
     return {
@@ -70,54 +44,32 @@ const maxWidthClass = computed(() => {
         lg: 'sm:max-w-lg',
         xl: 'sm:max-w-xl',
         '2xl': 'sm:max-w-2xl',
-    }[props.maxWidth];
-});
+    }[props.maxWidth]
+})
 </script>
 
 <template>
-    <dialog
-        class="z-50 m-0 min-h-full min-w-full overflow-y-auto bg-transparent backdrop:bg-transparent"
-        ref="dialog"
-    >
-        <div
-            class="fixed inset-0 z-50 overflow-y-auto px-4 py-6 sm:px-0"
-            scroll-region
-        >
-            <Transition
-                enter-active-class="ease-out duration-300"
-                enter-from-class="opacity-0"
-                enter-to-class="opacity-100"
-                leave-active-class="ease-in duration-200"
-                leave-from-class="opacity-100"
-                leave-to-class="opacity-0"
+    <DialogRoot v-model:open="open">
+        <DialogPortal>
+            <DialogOverlay
+                class="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-gray-500/75"
+            />
+            <DialogContent
+                v-bind="{
+                    ...$attrs,
+                }"
+                :class="
+                    cn(
+                        'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] fixed top-[50%] left-[50%] z-50 grid max-h-[90vh] w-full max-w-lg -translate-x-1/2 -translate-y-1/2 gap-4 overflow-y-auto rounded-lg bg-white p-0 shadow-xl duration-200 sm:w-full',
+                        maxWidthClass,
+                    )
+                "
+                @escape-key-down="blockClose"
+                @pointer-down-outside="blockClose"
+                @interact-outside="blockClose"
             >
-                <div
-                    v-show="show"
-                    class="fixed inset-0 transform transition-all"
-                    @click="close"
-                >
-                    <div
-                        class="absolute inset-0 bg-gray-500 opacity-75"
-                    />
-                </div>
-            </Transition>
-
-            <Transition
-                enter-active-class="ease-out duration-300"
-                enter-from-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                enter-to-class="opacity-100 translate-y-0 sm:scale-100"
-                leave-active-class="ease-in duration-200"
-                leave-from-class="opacity-100 translate-y-0 sm:scale-100"
-                leave-to-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-            >
-                <div
-                    v-show="show"
-                    class="relative z-10 mb-6 overflow-hidden rounded-lg bg-white shadow-xl transition-all sm:mx-auto sm:w-full"
-                    :class="maxWidthClass"
-                >
-                    <slot v-if="showSlot" />
-                </div>
-            </Transition>
-        </div>
-    </dialog>
+                <slot />
+            </DialogContent>
+        </DialogPortal>
+    </DialogRoot>
 </template>
