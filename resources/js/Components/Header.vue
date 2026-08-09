@@ -52,7 +52,7 @@ onUnmounted(() => document.removeEventListener('click', handleClickOutside))
             <Menu class="h-6 w-6" />
         </button>
 
-        <div ref="dropdownRef" class="relative">
+        <div ref="dropdownRef" class="relative ml-auto">
             <button
                 type="button"
                 class="flex h-11 items-center gap-2.5 rounded-lg px-2 hover:bg-gray-100"
