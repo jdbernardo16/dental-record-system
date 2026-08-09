@@ -96,9 +96,10 @@ const hasValue = computed(
             <ComboboxPortal>
                 <ComboboxContent
                     data-slot="combobox-content"
-                    class="relative z-50 max-h-(--reka-combobox-content-available-height) min-w-[8rem] overflow-x-hidden overflow-y-auto rounded-md border bg-popover text-popover-foreground shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95"
+                    position="popper"
+                    class="relative z-50 max-h-(--reka-combobox-content-available-height) min-w-[8rem] overflow-x-hidden overflow-y-auto rounded-md border bg-popover text-popover-foreground shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1"
                 >
-                    <ComboboxViewport class="min-w-(--reka-combobox-trigger-width) p-1">
+                    <ComboboxViewport class="min-w-(--reka-combobox-trigger-width) w-full p-1">
                         <ComboboxEmpty data-slot="combobox-empty" class="px-2 py-6 text-center text-sm text-gray-500">
                             No matches found.
                         </ComboboxEmpty>
