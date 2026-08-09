@@ -34,7 +34,6 @@ export default defineConfig({
             registerType: 'autoUpdate',
             injectRegister: false,
             includeAssets: [
-                'favicon.svg',
                 'favicon.ico',
                 'apple-touch-icon.png',
                 'pwa-512x512.png',
@@ -44,7 +43,7 @@ export default defineConfig({
                 name: 'Dental Record',
                 short_name: 'Dental',
                 description: 'Dental clinic patient record system',
-                theme_color: '#0d9298',
+                theme_color: '#08AEEA',
                 background_color: '#ffffff',
                 display: 'standalone',
                 scope: '/',
