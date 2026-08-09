@@ -1,10 +1,11 @@
 <script setup>
 import { computed, ref, watch } from "vue";
-import { Head, router, useForm } from "@inertiajs/vue3";
+import { Head, Link, router, useForm } from "@inertiajs/vue3";
 import {
     CalendarPlus,
     ChevronLeft,
     ChevronRight,
+    ExternalLink,
     X,
 } from "lucide-vue-next";
 import { route } from "../../../../vendor/tightenco/ziggy";
@@ -294,10 +295,10 @@ watch(
             class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm"
         >
             <ul class="divide-y divide-gray-100">
-                <li v-for="appt in appointments" :key="appt.id">
+                <li v-for="appt in appointments" :key="appt.id" class="flex items-stretch">
                     <button
                         type="button"
-                        class="flex w-full flex-wrap items-center gap-x-4 gap-y-2 px-5 py-4 text-left transition hover:bg-gray-50"
+                        class="flex min-w-0 flex-1 flex-wrap items-center gap-x-4 gap-y-2 px-5 py-4 text-left transition hover:bg-gray-50"
                         @click="openDetail(appt)"
                     >
                         <span
@@ -328,6 +329,15 @@ watch(
                             {{ statusMeta[appt.status]?.label ?? appt.status }}
                         </Badge>
                     </button>
+                    <Link
+                        v-if="appt.patient"
+                        :href="route('patients.show', appt.patient.id)"
+                        class="flex shrink-0 items-center border-l border-gray-100 px-3 text-gray-400 transition hover:bg-gray-50 hover:text-brand-500"
+                        :aria-label="`Open patient record for ${patientName(appt.patient)}`"
+                        title="Open patient record"
+                    >
+                        <ExternalLink class="h-4 w-4" />
+                    </Link>
                 </li>
             </ul>
         </div>
@@ -488,6 +498,16 @@ watch(
             <div
                 class="flex flex-wrap items-center justify-end gap-2 border-t border-gray-100 pt-4"
             >
+                <Link
+                    v-if="selected.patient"
+                    :href="route('patients.show', selected.patient.id)"
+                    class="mr-auto"
+                >
+                    <Button variant="outline" size="sm" type="button">
+                        <ExternalLink class="h-4 w-4" />
+                        View patient record
+                    </Button>
+                </Link>
                 <template v-if="selected.status === 'pending'">
                     <Button
                         v-if="can.update"
