@@ -287,9 +287,9 @@
                 </table>
 
                 @foreach ($consent->sections as $section)
-                    <div style="margin:7px 0;">
-                        <p class="sec-label">{{ $loop->iteration }}. {{ $section->label }}</p>
-                        <p class="sec-text">{{ $section->text }}</p>
+            <div style="margin:7px 0;">
+                <p class="sec-label">{{ $loop->iteration }}. {{ $section->label }}</p>
+                <p class="sec-text">{{ $consent->consent_text['sections'][$section->key]['text'] ?? config("consent.sections.{$section->key}.text") ?? '' }}</p>
                         @php $initialFile = $svgFile($section->initial_svg_path, 'dcprs-init-'); @endphp
                         @if ($initialFile)
                             <div style="text-align:right;">

@@ -14,6 +14,13 @@
         ? 'Signed from IP '.$consent->ip_address
         : null;
     $agent = $consent->user_agent ? trim(preg_replace('/\s+/', ' ', $consent->user_agent)) : null;
+
+    // Section rows don't store text — read it from the consent snapshot
+    // (what the patient saw), falling back to the current template config.
+    $snapshotSections = $consent->consent_text['sections'] ?? [];
+    $sectionText = fn ($section) => $snapshotSections[$section->key]['text']
+        ?? config("consent.sections.{$section->key}.text")
+        ?? '';
 @endphp
 
 <!DOCTYPE html>
@@ -105,7 +112,7 @@
     @foreach ($consent->sections as $section)
         <div class="sec">
             <p class="sec-label">{{ $loop->iteration }}. {{ $section->label }}</p>
-            <p class="sec-text">{{ $section->text }}</p>
+            <p class="sec-text">{{ $sectionText($section) }}</p>
             @php $initialFile = \App\Support\PdfExport::svgFile($section->initial_svg_path, 'dcprs-init-'); @endphp
             @if ($initialFile)
                 <p class="sec-initial"><img src="{{ $initialFile }}" style="width: 120px; height: 22px;" /></p>

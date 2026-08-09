@@ -35,8 +35,22 @@ class ConsentsController extends Controller
     {
         $this->authorize('view', $consentForm);
 
+        $consent = $consentForm->load(['patient', 'sections', 'dentist:id,name']);
+
+        // Section rows don't store the text — merge it in from the consent
+        // snapshot (what the patient actually saw), falling back to the
+        // current template config.
+        $snapshot = $consent->consent_text['sections'] ?? [];
+        $consent->sections->transform(function ($section) use ($snapshot) {
+            $section->text = $snapshot[$section->key]['text']
+                ?? config("consent.sections.{$section->key}.text")
+                ?? '';
+
+            return $section;
+        });
+
         return Inertia::render('Consents/Show', [
-            'consent' => $consentForm->load(['patient', 'sections', 'dentist:id,name']),
+            'consent' => $consent,
         ]);
     }
 
