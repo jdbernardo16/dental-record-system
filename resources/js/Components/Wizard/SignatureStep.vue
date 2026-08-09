@@ -7,6 +7,7 @@ import { Button } from '@/Components/ui/button'
 import { VueSignaturePad } from 'vue-signature-pad'
 import { useToastStore } from '@/Stores/toast'
 import { normalizeSvg } from '@/lib/signatureSvg'
+import { encodeSvgPayload } from '@/lib/svgWire'
 import { scrollToFirstError } from '@/lib/scroll'
 
 const props = defineProps({
@@ -177,6 +178,15 @@ const canSign = computed(() => {
 })
 
 const sign = () => {
+    // Base64-encode SVG payloads on the wire: the CDN WAF rejects any POST
+    // body containing the literal `<svg` tag. The server decodes first, and
+    // the transform reads the raw form data on every submit (no double-encode).
+    form.transform((data) => ({
+        ...data,
+        signature_svg: encodeSvgPayload(data.signature_svg),
+        guardian_svg: data.guardian_svg ? encodeSvgPayload(data.guardian_svg) : data.guardian_svg,
+    }))
+
     form.post(route('consents.patient-sign', props.consentFormId), {
         preserveScroll: true,
         onSuccess: () => {
@@ -198,7 +208,7 @@ const sign = () => {
         </span>
         <p class="text-sm font-medium text-gray-700">Complete the waiver first</p>
         <p class="max-w-sm text-sm text-gray-500">
-            The 10 consent statements must be read and initialed before the patient signature can be captured.
+            The 10 consent statements must be read and signed before the patient signature can be captured.
         </p>
     </div>
 

@@ -4,6 +4,7 @@ import { Head, router } from '@inertiajs/vue3'
 import { History, X } from 'lucide-vue-next'
 import { route } from '../../../../vendor/tightenco/ziggy'
 import AppLayout from '@/Layouts/AppLayout.vue'
+import BackToPatient from '@/Components/BackToPatient.vue'
 import Badge from '@/Components/Badge.vue'
 import { Button } from '@/Components/ui/button'
 import ToothChart, { wholeToothOnly } from '@/Components/ToothChart.vue'
@@ -128,6 +129,7 @@ const chipClass = (selected) => [
             <div class="flex min-w-0 flex-wrap items-center gap-2">
                 <h1 class="text-2xl font-semibold text-gray-800">{{ fullName() }}</h1>
                 <Badge size="sm" color="light">{{ patient.patient_number }}</Badge>
+                <BackToPatient :patient-id="patient.id" />
             </div>
             <div class="flex flex-wrap items-center gap-2">
                 <div class="inline-flex gap-1 rounded-full bg-gray-100 p-1" role="radiogroup" aria-label="Dentition">

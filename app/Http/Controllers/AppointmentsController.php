@@ -31,7 +31,9 @@ class AppointmentsController extends Controller
             ? $request->query('date')
             : now()->toDateString();
 
-        return Inertia::render('Appointments/Index', [
+        $patientId = $this->resolveBackToPatientId($request->query('patient'), $request);
+
+        $props = [
             'appointments' => Appointment::with([
                 'patient:id,first_name,middle_name,last_name,patient_number',
                 'dentist:id,name',
@@ -52,7 +54,13 @@ class AppointmentsController extends Controller
                 'cancel' => $request->user()->can('appointments.cancel'),
                 'attendance' => $request->user()->can('appointments.attendance'),
             ],
-        ]);
+        ];
+
+        if ($patientId !== null) {
+            $props['backToPatient'] = ['id' => $patientId];
+        }
+
+        return Inertia::render('Appointments/Index', $props);
     }
 
     /**
@@ -64,7 +72,40 @@ class AppointmentsController extends Controller
 
         $this->service->create($request->validated(), $request->user());
 
-        return Redirect::route('appointments.index', ['date' => $request->validated()['appointment_date']]);
+        $redirect = ['date' => $request->validated()['appointment_date']];
+
+        // The calendar form carries ?patient= for patient-originated sessions;
+        // keep it on the redirect so the back link survives the round trip.
+        $patientId = $this->resolveBackToPatientId($request->input('patient'), $request);
+
+        if ($patientId !== null) {
+            $redirect['patient'] = $patientId;
+        }
+
+        return Redirect::route('appointments.index', $redirect);
+    }
+
+    /**
+     * Resolve a patient reference (query param or form field) to a patient id
+     * the current user may view, or null when absent/invalid.
+     */
+    private function resolveBackToPatientId(mixed $patientParam, Request $request): ?int
+    {
+        if (! is_string($patientParam) && ! is_int($patientParam)) {
+            return null;
+        }
+
+        $value = trim((string) $patientParam);
+
+        if (! preg_match('/^\d+$/', $value)) {
+            return null;
+        }
+
+        $patientId = (int) $value;
+
+        return Patient::whereKey($patientId)->exists() && $request->user()->can('patients.view')
+            ? $patientId
+            : null;
     }
 
     /**

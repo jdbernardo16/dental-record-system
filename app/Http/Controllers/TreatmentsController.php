@@ -6,6 +6,7 @@ use App\Http\Requests\StoreTreatmentRequest;
 use App\Models\Patient;
 use App\Models\Treatment;
 use App\Services\TreatmentService;
+use App\Support\SvgCodec;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
@@ -27,11 +28,14 @@ class TreatmentsController extends Controller
     {
         $this->authorize('sign', $treatment);
 
-        $request->validate([
+        $validated = $request->validate([
             'signature_svg' => ['required', 'string'],
         ]);
 
-        $this->service->sign($treatment, $request->string('signature_svg'), $request->user());
+        // Signatures arrive base64-encoded from the frontend (the CDN WAF
+        // rejects the literal `<svg` tag in POST bodies); decode first so the
+        // stored format stays raw SVG.
+        $this->service->sign($treatment, SvgCodec::decode($validated['signature_svg']), $request->user());
 
         return Redirect::back();
     }

@@ -1,0 +1,62 @@
+- generic [ref=e33]:
+  - complementary [ref=e35]:
+    - generic [ref=e36]:
+      - img "Jerrmond Dental Clinic" [ref=e37]
+      - generic [ref=e38]: Dental Clinic
+    - navigation [ref=e39]:
+      - generic [ref=e40]:
+        - heading "Menu" [level=2] [ref=e41]
+        - list [ref=e42]:
+          - listitem [ref=e43]:
+            - link "Dashboard" [ref=e44] [cursor=pointer]:
+              - /url: http://localhost:8000/dashboard
+          - listitem [ref=e52]:
+            - link "New intake" [ref=e53] [cursor=pointer]:
+              - /url: http://localhost:8000/wizard
+          - listitem [ref=e59]:
+            - link "Patients" [ref=e60] [cursor=pointer]:
+              - /url: http://localhost:8000/patients
+          - listitem [ref=e68]:
+            - link "Appointments" [ref=e69] [cursor=pointer]:
+              - /url: http://localhost:8000/appointments
+          - listitem [ref=e74]:
+            - link "Users" [ref=e75] [cursor=pointer]:
+              - /url: http://localhost:8000/users
+          - listitem [ref=e81]:
+            - link "Reports" [ref=e82] [cursor=pointer]:
+              - /url: http://localhost:8000/reports
+          - listitem [ref=e87]:
+            - link "Settings" [ref=e88] [cursor=pointer]:
+              - /url: http://localhost:8000/settings
+  - generic [ref=e94]:
+    - banner [ref=e95]:
+      - button "Toggle sidebar" [ref=e96]
+      - button "A Administrator" [ref=e99]:
+        - generic [ref=e100]: A
+        - generic [ref=e101]: Administrator
+    - main [ref=e104]:
+      - generic [ref=e105]:
+        - generic [ref=e106]:
+          - generic [ref=e107]:
+            - heading "Appointments" [level=1] [ref=e108]
+            - paragraph [ref=e109]: Sunday, August 9, 2026
+          - generic [ref=e110]:
+            - button "Previous day" [ref=e111]
+            - button "Next day" [ref=e114]
+            - button "New appointment" [ref=e117]
+        - list [ref=e119]:
+          - listitem [ref=e120]:
+            - button "18:38 – 19:38 Juan Dela Cruz No reason Cancelled" [ref=e121]:
+              - generic [ref=e122]: 18:38 – 19:38
+              - generic [ref=e123]:
+                - generic [ref=e124]: Juan Dela Cruz
+                - generic [ref=e125]: No reason
+              - generic [ref=e126]: Cancelled
+          - listitem [ref=e127]:
+            - button "18:38 – 19:38 Juan Dela Cruz No reason Dr. Ana Reyes Confirmed" [ref=e128]:
+              - generic [ref=e129]: 18:38 – 19:38
+              - generic [ref=e130]:
+                - generic [ref=e131]: Juan Dela Cruz
+                - generic [ref=e132]: No reason
+              - generic [ref=e133]: Dr. Ana Reyes
+              - generic [ref=e134]: Confirmed

@@ -127,3 +127,79 @@ it('blocks users without the appointments.view permission', function () {
 
     $this->actingAs($user)->get('/appointments')->assertForbidden();
 });
+
+it('passes the back-to-patient prop when arriving from a patient record', function () {
+    $user = User::factory()->create()->assignRole('Receptionist');
+    $patient = Patient::factory()->create();
+
+    $this->actingAs($user)->get("/appointments?patient={$patient->id}")
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('Appointments/Index')
+            ->where('backToPatient.id', $patient->id));
+});
+
+it('omits the back-to-patient prop without a patient param', function () {
+    $user = User::factory()->create()->assignRole('Receptionist');
+
+    $this->actingAs($user)->get('/appointments')
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('Appointments/Index')
+            ->missing('backToPatient'));
+});
+
+it('omits the back-to-patient prop for a non-numeric patient param', function () {
+    $user = User::factory()->create()->assignRole('Receptionist');
+
+    $this->actingAs($user)->get('/appointments?patient=abc')
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('Appointments/Index')
+            ->missing('backToPatient'));
+});
+
+it('omits the back-to-patient prop for a nonexistent patient', function () {
+    $user = User::factory()->create()->assignRole('Receptionist');
+
+    $this->actingAs($user)->get('/appointments?patient=999999')
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('Appointments/Index')
+            ->missing('backToPatient'));
+});
+
+it('omits the back-to-patient prop for users without the patients.view permission', function () {
+    $user = User::factory()->create()->givePermissionTo('appointments.view');
+    $patient = Patient::factory()->create();
+
+    $this->actingAs($user)->get("/appointments?patient={$patient->id}")
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('Appointments/Index')
+            ->missing('backToPatient'));
+});
+
+it('omits the back-to-patient prop when the patient param is an array', function () {
+    $user = User::factory()->create()->assignRole('Receptionist');
+
+    $this->actingAs($user)->get('/appointments?patient[]=1')
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('Appointments/Index')
+            ->missing('backToPatient'));
+});
+
+it('keeps the back-to-patient param when creating an appointment from a patient calendar', function () {
+    $user = User::factory()->create()->assignRole('Receptionist');
+    $patient = Patient::factory()->create();
+
+    $this->actingAs($user)->post('/appointments', [
+        'patient_id' => $patient->id,
+        'patient' => $patient->id,
+        'appointment_date' => '2026-08-10',
+        'start_time' => '09:00',
+        'end_time' => '09:30',
+        'reason' => 'Check-up',
+    ])->assertRedirect("/appointments?date=2026-08-10&patient={$patient->id}");
+});

@@ -50,6 +50,28 @@ it('signs a treatment with an SVG signature', function () {
     expect(Storage::disk('local')->exists($treatment->fresh()->signature_path))->toBeTrue();
 });
 
+it('accepts a base64-encoded signature (WAF bypass)', function () {
+    $dentist = User::factory()->create()->assignRole('Dentist');
+    $patient = Patient::factory()->create();
+    $treatment = Treatment::factory()->create([
+        'patient_id' => $patient->id,
+        'dentist_id' => $dentist->id,
+    ]);
+
+    $svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 150"><path d="M10 80 Q 95 10 180 80 T 290 80" stroke="black" stroke-width="2" fill="none"/></svg>';
+
+    $this->actingAs($dentist)->post("/treatments/{$treatment->id}/sign", [
+        'signature_svg' => base64_encode($svg),
+    ])->assertRedirect();
+
+    $treatment = $treatment->fresh();
+    expect($treatment->isSigned())->toBeTrue();
+    expect($treatment->signature_path)->not->toBeNull();
+    // Stored raw (SignatureStorageService serializes with an XML declaration),
+    // i.e. the base64 payload was decoded — the literal `<svg` proves it.
+    expect(Storage::disk('local')->get($treatment->signature_path))->toContain('<svg');
+});
+
 it('blocks a different dentist from signing', function () {
     $dentist = User::factory()->create()->assignRole('Dentist');
     $other = User::factory()->create()->assignRole('Dentist');

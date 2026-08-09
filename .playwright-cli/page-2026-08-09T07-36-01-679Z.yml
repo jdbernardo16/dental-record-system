@@ -1,0 +1,109 @@
+- generic:
+  - generic:
+    - generic:
+      - generic:
+        - complementary:
+          - generic: Dental Clinic
+          - navigation:
+            - generic:
+              - heading [level=2]: Menu
+              - list:
+                - listitem:
+                  - link:
+                    - /url: http://localhost:8000/dashboard
+                    - generic: Dashboard
+                - listitem:
+                  - link:
+                    - /url: http://localhost:8000/wizard
+                    - generic: New intake
+                - listitem:
+                  - link:
+                    - /url: http://localhost:8000/patients
+                    - generic: Patients
+                - listitem:
+                  - link:
+                    - /url: http://localhost:8000/appointments
+                    - generic: Appointments
+                - listitem:
+                  - link:
+                    - /url: http://localhost:8000/users
+                    - generic: Users
+                - listitem:
+                  - link:
+                    - /url: http://localhost:8000/reports
+                    - generic: Reports
+                - listitem:
+                  - link:
+                    - /url: http://localhost:8000/settings
+                    - generic: Settings
+      - generic:
+        - banner:
+          - button
+          - generic:
+            - button:
+              - generic: A
+              - generic: Administrator
+        - main:
+          - generic:
+            - generic:
+              - generic:
+                - heading [level=1]: Appointments
+                - paragraph: Sunday, August 9, 2026
+              - generic:
+                - button
+                - button
+                - button: New appointment
+            - generic:
+              - list:
+                - listitem:
+                  - button:
+                    - generic: 18:38 – 19:38
+                    - generic:
+                      - generic: Juan Dela Cruz
+                      - generic: No reason
+                    - generic: Cancelled
+                - listitem:
+                  - button:
+                    - generic: 18:38 – 19:38
+                    - generic:
+                      - generic: Juan Dela Cruz
+                      - generic: No reason
+                    - generic: Dr. Ana Reyes
+                    - generic: Confirmed
+  - dialog [ref=f1e106]:
+    - heading [level=2] [ref=f1e107]
+    - generic [ref=f1e108]:
+      - generic [ref=f1e109]:
+        - heading "New appointment" [level=2] [ref=f1e110]
+        - button "Close" [ref=f1e111]
+      - generic [ref=f1e116]:
+        - generic [ref=f1e117]: Patient
+        - combobox "Patient" [ref=f1e120]
+      - generic [ref=f1e122]:
+        - generic [ref=f1e123]: Dentist
+        - combobox "Dentist" [ref=f1e124]:
+          - generic: No dentist assigned
+      - generic [ref=f1e125]:
+        - generic [ref=f1e126]:
+          - generic [ref=f1e127]: Date *
+          - button "Date *" [ref=f1e128]:
+            - generic [ref=f1e129]: Aug 09, 2026
+        - generic [ref=f1e132]:
+          - generic [ref=f1e133]: Time *
+          - group [ref=f1e134]:
+            - spinbutton "hour," [ref=f1e136]: "09"
+            - generic [ref=f1e137]: ":"
+            - spinbutton "minute," [ref=f1e140]: "53"
+            - generic: –
+            - spinbutton "hour," [active] [ref=f1e142]: "00"
+            - generic [ref=f1e143]: ":"
+            - spinbutton "minute," [ref=f1e146]: ––
+            - button "Clear time" [ref=f1e159]
+            - textbox [ref=f1e151]: 09:53:00 - undefined
+      - generic [ref=f1e153]:
+        - generic [ref=f1e154]: Reason
+        - textbox "Reason" [ref=f1e155]:
+          - /placeholder: Optional…
+      - generic [ref=f1e156]:
+        - button "Cancel" [ref=f1e157]
+        - button "Create appointment" [ref=f1e158]
